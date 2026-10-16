@@ -1,3 +1,4 @@
+from boundary.create_user_profile_page import CreateUserProfilePage
 import os
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from entity.user_profile import UserProfile
 load_dotenv(Path(__file__).with_name(".env"))
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 
 app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
     drivername="postgresql+psycopg",
@@ -23,6 +25,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
 )
 
 db.init_app(app)
+
+app.add_url_rule(
+    "/profiles/create",
+    view_func=CreateUserProfilePage.as_view("create_user_profile")
+)
 
 
 @app.cli.command("init-db")

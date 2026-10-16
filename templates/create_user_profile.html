@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create User Profile | Nestora</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/create_user_profile.css') }}"
+    >
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>Nestora</h2>
+                <p>User Admin Portal</p>
+            </div>
+
+            <nav aria-label="Main navigation">
+                <p class="nav-heading">Workspace</p>
+                <p class="nav-item">Dashboard</p>
+
+                <p class="nav-heading">User Profiles</p>
+
+                <a
+                    class="nav-item active"
+                    href="{{ url_for('create_user_profile') }}"
+                    aria-current="page"
+                >
+                    Create User Profiles
+                </a>
+
+                <span class="nav-item pending">View User Profiles</span>
+                <span class="nav-item pending">Update User Profiles</span>
+                <span class="nav-item pending">Suspend User Profiles</span>
+                <span class="nav-item pending">Search User Profiles</span>
+
+                <p class="nav-heading">User Accounts</p>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <p class="breadcrumb">
+                User Profiles / Create User Profiles
+            </p>
+
+            <h1>Create User Profiles</h1>
+
+            <section class="form-card" aria-labelledby="form-heading">
+                <h2 id="form-heading">Profile details</h2>
+                <p>Add the basic information and permissions for this profile.</p>
+
+                {% for category, message in get_flashed_messages(
+                    with_categories=true
+                ) %}
+                    <div class="message {{ category }}" role="status">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p class="error" role="alert">
+                            {{ field.label.text }}: {{ error }}
+                        </p>
+                    {% endfor %}
+                {% endfor %}
+
+                <form
+                    method="post"
+                    action="{{ url_for('create_user_profile') }}"
+                >
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        {{ form.profileName.label }}
+                        {{ form.profileName(
+                            class_="form-control",
+                            placeholder="Enter profile name"
+                        ) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.description.label }}
+                        {{ form.description(
+                            class_="form-control",
+                            placeholder="Enter description",
+                            rows=5
+                        ) }}
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form.status.label }}
+                            {{ form.status(class_="form-control") }}
+                        </div>
+
+                        <fieldset class="form-group permissions-group">
+                            <legend>Permissions</legend>
+
+                            <details class="permissions-dropdown">
+                                <summary>Select permissions</summary>
+                                {{ form.permissions(
+                                    class_="permission-list"
+                                ) }}
+                            </details>
+                        </fieldset>
+                    </div>
+
+                    <div class="form-actions">
+                        {{ form.submit(
+                            class_="button button-primary",
+                            disabled=true
+                        ) }}
+
+                        <button
+                            class="button button-secondary"
+                            type="button"
+                            disabled
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
