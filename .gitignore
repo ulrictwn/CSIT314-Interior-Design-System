@@ -1,4 +1,13 @@
 .env
-.postgres-data/
+.env.*
+!.env.example
 .venv/
 __pycache__/
+*.py[cod]
+.postgres-data/
+uploads/
+instance/
+backups/
+*.sqlite
+*.sqlite3
+.DS_Store

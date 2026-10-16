@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% from 'macros.html' import profile_table with context %}{% block content %}
+<header class="page-heading"><div><h1>{{ title }}</h1><p>Manage the roles and permissions used across Nestora.</p></div>{% if can('profile.create') %}<a class="button button-primary" href="{{ url_for('create_user_profile') }}">Create profile</a>{% endif %}</header>
+{% if can('profile.search') %}<form class="search-bar" method="get" action="{{ url_for('search_user_profiles') }}"><label class="sr-only" for="profile-query">Search profiles</label><input class="form-control" id="profile-query" name="q" placeholder="Search profiles by name or description" maxlength="200" required><button class="button button-primary" type="submit">Search</button></form>{% endif %}
+{% if profiles is not none %}{{ profile_table(profiles, mode) }}{% else %}<section class="form-card"><h2>User profiles</h2><p>Choose an available action from the sidebar.</p></section>{% endif %}
+{% endblock %}

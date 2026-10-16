@@ -1,0 +1,28 @@
+{% macro field(item, placeholder='', full=false) %}
+<div class="form-group {{ 'full-width' if full else '' }}">
+  {{ item.label }}
+  {{ item(class_='form-control' + (' invalid' if item.errors else ''), placeholder=placeholder, aria_invalid='true' if item.errors else 'false') }}
+  {% for error in item.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro form_errors(form) %}
+{% if form.errors %}<div class="message error" role="alert"><strong>Please check your entries.</strong><ul>{% for name, errors in form.errors.items() %}{% for error in errors %}<li>{{ form[name].label.text }}: {{ error }}</li>{% endfor %}{% endfor %}</ul></div>{% endif %}
+{% endmacro %}
+
+{% macro status(value) %}<span class="status {{ 'active' if value in ['Active', 'Published', 'Current'] else 'suspended' }}">{{ value }}</span>{% endmacro %}
+
+{% macro profile_actions(profile, mode='view') %}
+<div class="row-actions">
+  {% if can('profile.view') %}<a class="button button-outline button-small" href="{{ url_for('view_user_profile', profile_id=profile.profile_id) }}">View</a>{% endif %}
+  {% if can('profile.update') and mode == 'update' %}<a class="button button-outline button-small" href="{{ url_for('update_user_profile', profile_id=profile.profile_id) }}">Update</a>{% endif %}
+  {% if can('profile.suspend') and mode == 'suspend' %}<a class="button button-outline button-small" href="{{ url_for('suspend_user_profile', profile_id=profile.profile_id) }}">Suspend</a>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro profile_table(profiles, mode='view') %}
+{% if profiles %}<div class="table-wrap"><table><thead><tr><th>Profile</th><th>Profile ID</th><th>Status</th><th>Permissions</th><th>Action</th></tr></thead><tbody>
+{% for profile in profiles %}<tr><td><strong>{{ profile.name }}</strong><small class="cell-subtitle">{{ profile.description|truncate(100) }}</small></td><td>{{ profile.profile_id }}</td><td>{{ status(profile.status) }}</td><td>{{ profile.permissions|length }} selected</td><td>{{ profile_actions(profile, mode) }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty-state"><h2>No profiles found.</h2><p>Create a profile or try another search.</p></div>{% endif %}
+{% endmacro %}
+
