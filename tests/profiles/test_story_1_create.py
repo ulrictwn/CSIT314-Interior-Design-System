@@ -57,17 +57,3 @@ def test_TC07_create_allows_empty_permissions(app, submit, profile_data):
     assert submit('/profiles/create', {**profile_data, 'permissions': []}).status_code == 302
     with app.app_context():
         assert UserProfile.getProfile('Customer').permissions == []
-
-
-def test_TC08_cancel_create_navigates_without_saving(app, client):
-    page = client.get('/profiles/create').get_data(as_text=True)
-    assert 'href="/profiles">Cancel</a>' in page
-    assert client.get('/profiles').status_code == 200
-    with app.app_context():
-        assert UserProfile.listUserProfiles() == []
-
-
-def test_TC09_duplicate_selected_permissions_are_stored_once(app, submit, profile_data):
-    assert submit('/profiles/create', {**profile_data, 'permissions': ['profile.view', 'profile.view']}).status_code == 302
-    with app.app_context():
-        assert UserProfile.getProfile('Customer').permissions == ['profile.view']

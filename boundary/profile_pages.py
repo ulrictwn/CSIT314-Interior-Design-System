@@ -125,15 +125,18 @@ class SearchUserProfilePage(Page):
 
     def get(self):
         self.keyword = request.args.get('q', '')
+        controller = SearchUserProfileController(self.actor)
 
-        try:
-            if 'q' in request.args:
+        if 'q' in request.args:
+            try:
                 self.onSearch(self.keyword)
-            else:
-                self.displayResults(None)
-        except DomainError as error:
-            flash(str(error), 'error')
-            self.displayResults(None)
+            except AccessError:
+                raise
+            except DomainError as error:
+                flash(str(error), 'error')
+                self.displayResults(controller.listUserProfiles())
+        else:
+            self.displayResults(controller.listUserProfiles())
 
         return self.rendered_page
 
