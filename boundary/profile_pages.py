@@ -124,17 +124,34 @@ class SearchUserProfilePage(Page):
     permission = 'profile.search'
 
     def get(self):
-        query = request.args.get('q', '')
-        profiles = None
+        self.keyword = request.args.get('q', '')
+        controller = SearchUserProfileController(self.actor)
+
         if 'q' in request.args:
             try:
-                profiles = self.onSearch(query)
+                self.onSearch(self.keyword)
+            except AccessError:
+                raise
             except DomainError as error:
                 flash(str(error), 'error')
-        return render_template('profiles/search.html', profiles=profiles, query=query, title='Search User Profiles')
+                self.displayResults(controller.listUserProfiles())
+        else:
+            self.displayResults(controller.listUserProfiles())
 
-    def onSearch(self, keyword):
-        return SearchUserProfileController(self.actor).searchUserProfiles(keyword)
+        return self.rendered_page
 
-    def displaySuccess(self):
-        return 'Search completed.'
+    def onSearch(self, keyword: str) -> None:
+        self.keyword = keyword
+
+        controller = SearchUserProfileController(self.actor)
+        profiles = controller.searchUserProfiles(keyword)
+
+        self.displayResults(profiles)
+
+    def displayResults(self, profiles) -> None:
+        self.rendered_page = render_template(
+            'profiles/search.html',
+            profiles=profiles,
+            query=self.keyword,
+            title='Search User Profiles'
+        )
