@@ -75,6 +75,10 @@ class UserProfile(db.Model):
         new_status = status if status is not None else profile.status
         if new_status != 'Active' and profile_account_count(profileId):
             raise DomainError('This profile is in use.')
+        if profile.name.strip().casefold() == 'user admin':
+            from entity.user_account import UserAccount
+            UserAccount._protect_administration(profile_id=profileId, profile_name=profileName,
+                permissions=permissions, status=new_status)
         profile.name, profile.description = profileName.strip(), description.strip()
         profile.status, profile.permissions = new_status, list(dict.fromkeys(permissions))
         try:

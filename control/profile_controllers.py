@@ -75,14 +75,14 @@ class SuspendUserProfileController(Controller):
 
 
 class SearchUserProfileController(Controller):
+    def listUserProfiles(self):
+        self.require('profile.search')
+        return UserProfile.listUserProfiles()
+
     def searchUserProfiles(self, keyword):
         self.require('profile.search')
         query = required(keyword, 'Search text', 200)
         return UserProfile.searchUserProfiles(query)
-
-    def listUserProfiles(self):
-        self.require('profile.search')
-        return UserProfile.listUserProfiles()
 
 
 class ProfileDirectoryController(Controller):

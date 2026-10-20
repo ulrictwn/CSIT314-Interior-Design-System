@@ -91,7 +91,7 @@ def test_TC39_legacy_upgrade_preserves_profile_and_adds_status(app, legacy_name)
         profile = db.session.get(UserProfile, 1)
         assert (profile.name, profile.description, profile.status, profile.permissions) == (
             'Existing role', 'Retained description', 'Active', ['profile.view'])
-        assert inspect(db.engine).get_table_names() == ['user_profile']
+        assert 'user_profile' in inspect(db.engine).get_table_names()
 
 
 @pytest.mark.database
@@ -117,14 +117,14 @@ def test_TC41_upgrade_rejects_unknown_schema_without_deleting_table(app):
             connection.execute(text('CREATE TABLE user_profile (unfamiliar_id INTEGER PRIMARY KEY)'))
         with pytest.raises(RuntimeError, match='unfamiliar structure'):
             upgrade_database()
-        assert inspect(db.engine).get_table_names() == ['user_profile']
+        assert 'user_profile' in inspect(db.engine).get_table_names()
 
 
 @pytest.mark.database
 def test_TC42_ambiguous_existing_account_schema_blocks_suspension(app, seed, submit, snapshot):
     profile_id = seed()
     with app.app_context():
-        db.session.execute(text('CREATE TABLE user_account (account_id INTEGER PRIMARY KEY, custom_role INTEGER)'))
+        db.session.execute(text('CREATE TABLE user_accounts (account_id INTEGER PRIMARY KEY, custom_role INTEGER)'))
         db.session.commit()
     response = submit(f'/profiles/{profile_id}/suspend', {})
     assert response.status_code == 400

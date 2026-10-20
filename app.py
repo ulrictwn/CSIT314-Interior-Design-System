@@ -1,7 +1,7 @@
-
+"""Stories 1–12: profile/account administration and real User Admin authentication."""
 import os
 from pathlib import Path
-import click
+from datetime import timedelta
 from dotenv import load_dotenv
 from flask import Flask, g, render_template
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent
 
 
 class DevelopmentProfileActor:
-    """Explicitly enabled local UI preview; never represents a stored account."""
+    """Compatibility actor for isolated tests only; never a web login bypass."""
     def has_permission(self, permission):
         return permission in PERMISSION_OPTIONS and permission.startswith('profile.')
 
@@ -34,7 +34,7 @@ def create_app(configuration=None):
         SQLALCHEMY_TRACK_MODIFICATIONS=False, SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax', SESSION_COOKIE_SECURE=os.getenv('COOKIE_SECURE', 'false').lower() == 'true',
         PROFILE_DEVELOPMENT_PREVIEW=os.getenv('PROFILE_DEVELOPMENT_PREVIEW', 'false').lower() == 'true',
-        PROFILE_ACTOR_LOADER=None)
+        PROFILE_ACTOR_LOADER=None, PERMANENT_SESSION_LIFETIME=timedelta(minutes=30), LOGIN_ATTEMPT_LIMIT=5)
     if configuration:
         app.config.update(configuration)
     if not app.config['SECRET_KEY'] or app.config['SECRET_KEY'] == 'replace-with-a-generated-secret-key':
@@ -48,30 +48,22 @@ def create_app(configuration=None):
                 connection.execute('PRAGMA foreign_keys=ON')
     CSRFProtect(app)
 
-    @app.before_request
-    def load_profile_actor():
-        loader = app.config.get('PROFILE_ACTOR_LOADER')
-        g.profile_actor = loader() if loader else (DevelopmentProfileActor() if app.config['PROFILE_DEVELOPMENT_PREVIEW'] else None)
+    from infrastructure.auth import load_account
+    from infrastructure.navigation import navigation
+    app.before_request(load_account)
 
     @app.context_processor
     def profile_context():
+        from boundary.forms import ActionForm
         actor = g.get('profile_actor')
-        return dict(permission_labels=PERMISSION_OPTIONS,
-            preview_mode=app.config['PROFILE_DEVELOPMENT_PREVIEW'] and not app.config.get('PROFILE_ACTOR_LOADER'),
+        return dict(permission_labels=PERMISSION_OPTIONS, current_user=g.get('current_user'),
+            action_form=ActionForm(), navigation=navigation(actor),
             can=lambda code: bool(actor and actor.has_permission(code)))
 
     from boundary.routes import register_routes
+    from infrastructure.commands import register_commands
     register_routes(app)
-
-    @app.cli.command('upgrade-db')
-    def upgrade_db():
-        from infrastructure.migrations import upgrade_database
-        try:
-            upgrade_database()
-        except RuntimeError as error:
-            raise click.ClickException(str(error)) from error
-        click.echo('Profile table ready. Existing data preserved; no account tables created.')
-    app.cli.add_command(upgrade_db, 'init-db')
+    register_commands(app)
 
     @app.errorhandler(DomainError)
     def domain_error(error):

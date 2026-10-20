@@ -26,3 +26,11 @@
 </tbody></table></div>{% else %}<div class="empty-state"><h2>No profiles found.</h2><p>Create a profile or try another search.</p></div>{% endif %}
 {% endmacro %}
 
+{% macro account_table(accounts, mode='view') %}
+{% if accounts %}<div class="table-wrap"><table><thead><tr><th>Account</th><th>Account ID</th><th>Assigned profile</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for account in accounts %}<tr><td><strong>{{ account.username }}</strong><small class="cell-subtitle">{{ account.full_name }} · {{ account.email }}</small></td><td>{{ account.account_id }}</td><td>{{ account.profile.name }}</td><td>{{ status(account.status) }}</td><td><div class="row-actions">
+{% if can('account.view') %}<a class="button button-outline button-small" href="{{ url_for('view_user_account', account_id=account.account_id) }}">View</a>{% endif %}
+{% if can('account.update') and mode == 'update' %}<a class="button button-outline button-small" href="{{ url_for('update_user_account', account_id=account.account_id) }}">Update</a>{% endif %}
+{% if can('account.suspend') and mode == 'suspend' %}<a class="button button-outline button-small" href="{{ url_for('suspend_user_account', account_id=account.account_id) }}">Suspend</a>{% endif %}
+</div></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-state"><h2>No accounts found.</h2><p>Create an account or try another search.</p></div>{% endif %}
+{% endmacro %}
