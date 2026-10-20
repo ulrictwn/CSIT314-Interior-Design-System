@@ -1,11 +1,21 @@
-from flask import redirect, url_for
+from boundary.dashboard_page import HomePage, DashboardPage
+from boundary.auth_pages import LoginPage, LogoutPage
+from boundary.account_pages import (UserAccountsPage, CreateUserAccountPage, ViewUserAccountPage,
+    UpdateUserAccountPage, SuspendUserAccountPage, SearchUserAccountPage)
 from boundary.profile_pages import (UserProfilesPage, CreateUserProfilePage, ViewUserProfilePage,
     UpdateUserProfilePage, SuspendUserProfilePage, SearchUserProfilePage)
 
 
 def register_routes(app):
-    app.add_url_rule('/', 'home', lambda: redirect(url_for('user_profiles')))
     routes = [
+        ('/', 'home', HomePage), ('/dashboard', 'dashboard', DashboardPage),
+        ('/login', 'login', LoginPage), ('/logout', 'logout', LogoutPage),
+        ('/accounts', 'user_accounts', UserAccountsPage),
+        ('/accounts/create', 'create_user_account', CreateUserAccountPage),
+        ('/accounts/search', 'search_user_accounts', SearchUserAccountPage),
+        ('/accounts/<string:account_id>', 'view_user_account', ViewUserAccountPage),
+        ('/accounts/<string:account_id>/update', 'update_user_account', UpdateUserAccountPage),
+        ('/accounts/<string:account_id>/suspend', 'suspend_user_account', SuspendUserAccountPage),
         ('/profiles', 'user_profiles', UserProfilesPage),
         ('/profiles/create', 'create_user_profile', CreateUserProfilePage),
         ('/profiles/search', 'search_user_profiles', SearchUserProfilePage),

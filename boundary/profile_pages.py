@@ -142,10 +142,8 @@ class SearchUserProfilePage(Page):
 
     def onSearch(self, keyword: str) -> None:
         self.keyword = keyword
-
         controller = SearchUserProfileController(self.actor)
         profiles = controller.searchUserProfiles(keyword)
-
         self.displayResults(profiles)
 
     def displayResults(self, profiles) -> None:

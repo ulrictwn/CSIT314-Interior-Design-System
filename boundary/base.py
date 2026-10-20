@@ -13,7 +13,7 @@ class Page(MethodView):
 
     def dispatch_request(self, *args, **kwargs):
         if self.actor is None:
-            raise AccessError('Connect an authenticated User Admin, or enable the private development preview described in README.md.')
+            raise AccessError('Please sign in with an active User Admin account.')
         if self.permission and not self.actor.has_permission(self.permission):
             raise AccessError('You do not have permission to access this page.')
         return super().dispatch_request(*args, **kwargs)

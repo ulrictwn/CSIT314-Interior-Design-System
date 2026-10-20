@@ -11,3 +11,7 @@ backups/
 *.sqlite
 *.sqlite3
 .DS_Store
+reports/
+dist/
+.coverage
+.pytest_cache/

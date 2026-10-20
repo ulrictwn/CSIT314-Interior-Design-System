@@ -1,4 +1,4 @@
-name: User Profiles CI and Delivery
+name: User Admin Stories 1-12 CI and Delivery
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   profile-tests:
-    name: Profile tests (${{ matrix.database }})
+    name: User Admin tests (${{ matrix.database }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -55,7 +55,7 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Check installed dependencies
         run: python -m pip check
-      - name: Run profile tests
+      - name: Run stories 1-12 tests
         id: tests
         run: python scripts/run_profile_tests.py
       - name: Show every test result in the run summary
@@ -93,7 +93,7 @@ jobs:
       - name: Deliver source ZIP as a workflow artifact
         uses: actions/upload-artifact@v7
         with:
-          name: nestora-profiles-tested-source
-          path: dist/nestora-user-profiles.zip
+          name: nestora-user-admin-tested-source
+          path: dist/nestora-user-admin.zip
           if-no-files-found: error
           retention-days: 14
