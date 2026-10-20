@@ -112,8 +112,55 @@ def account_assignment(app):
     def assign(profile_id, table_name='user_account', status='Active'):
         assert table_name in ('user_account', 'user_accounts')
         with app.app_context():
-            db.session.execute(text(f'CREATE TABLE {table_name} (account_id INTEGER PRIMARY KEY, profile_id INTEGER NOT NULL, status VARCHAR(20))'))
-            db.session.execute(text(f'INSERT INTO {table_name} (account_id, profile_id, status) VALUES (1, :id, :status)'),
-                               {'id': profile_id, 'status': status})
+            if table_name == 'user_account':
+                from entity.user_account import UserAccount
+                username = 'fixture_' + uuid4().hex[:12]
+                assert UserAccount.createUserAccount(username, 'Fixture-Password-123', 'Fixture Account',
+                    username+'@example.com', '+65 6123 4567', profile_id)
+                account = UserAccount.getByUsername(username)
+                account.status = status
+            else:
+                db.session.execute(text(f'CREATE TABLE {table_name} (account_id INTEGER PRIMARY KEY, profile_id INTEGER NOT NULL, status VARCHAR(20))'))
+                db.session.execute(text(f'INSERT INTO {table_name} (account_id, profile_id, status) VALUES (1, :id, :status)'),
+                                   {'id': profile_id, 'status': status})
             db.session.commit()
     return assign
+
+
+ADMIN_PASSWORD = 'Review-Administrator-Password-123'
+
+def login_client(client, username, password=ADMIN_PASSWORD):
+    page = client.get('/login')
+    assert page.status_code == 200
+    token = re.search(r'name="csrf_token"[^>]*value="([^"]+)"', page.get_data(as_text=True)).group(1)
+    return client.post('/login', data={'username':username, 'password':password, 'csrf_token':token})
+
+@pytest.fixture
+def admin_client(app, client):
+    app.config.update(PROFILE_DEVELOPMENT_PREVIEW=False, PROFILE_ACTOR_LOADER=None)
+    result = app.test_cli_runner().invoke(args=['bootstrap-admin', '--username','admin', '--email','admin@example.com',
+        '--full-name','Review Administrator', '--phone-number','+65 6123 4567'], env={'NESTORA_ADMIN_PASSWORD':ADMIN_PASSWORD})
+    assert result.exit_code == 0, result.output
+    assert login_client(client, 'admin').status_code == 302
+    return client
+
+@pytest.fixture
+def create_account(app, admin_client, submit):
+    def create(username='customer1', role='Customer'):
+        with app.app_context():
+            profile_id = UserProfile.getProfile(role).profile_id
+        data = dict(username=username, password=ADMIN_PASSWORD, confirm_password=ADMIN_PASSWORD,
+            full_name='Name '+username, email=username+'@example.com', phone_number='+65 6123 4567', profile_id=profile_id)
+        response = submit('/accounts/create', data)
+        assert response.status_code == 302, response.get_data(as_text=True)
+        with app.app_context():
+            from entity.user_account import UserAccount
+            return UserAccount.getByUsername(username).account_id
+    return create
+
+@pytest.fixture
+def sign_in(app):
+    def sign_in(username, password=ADMIN_PASSWORD):
+        client = app.test_client()
+        return client, login_client(client, username, password)
+    return sign_in

@@ -1,4 +1,4 @@
-"""Permission values stored by profiles. Other modules are not implemented here."""
+"""Permission values stored by profiles. Only stories 1–12 are implemented here."""
 
 PERMISSION_OPTIONS = {
     'profile.create': 'Create user profiles',
@@ -35,4 +35,13 @@ PERMISSION_OPTIONS = {
     'report.daily': 'Generate daily platform reports',
     'report.weekly': 'Generate weekly platform reports',
     'report.monthly': 'Generate monthly platform reports',
+}
+
+ADMIN_PERMISSIONS = {code for code in PERMISSION_OPTIONS if code.startswith(('profile.', 'account.'))}
+DEFAULT_PROFILES = {
+    'User Admin': sorted(ADMIN_PERMISSIONS),
+    'Customer': ['project.browse', 'shortlist.save', 'shortlist.view', 'shortlist.search'],
+    'Interior Designer': [code for code in PERMISSION_OPTIONS if code.startswith(('company.', 'interest.'))
+                         or code.startswith('project.') and code != 'project.browse'],
+    'Platform Management': [code for code in PERMISSION_OPTIONS if code.startswith(('category.', 'report.'))],
 }

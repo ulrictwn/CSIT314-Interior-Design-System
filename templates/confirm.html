@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% from 'macros.html' import form_errors %}{% block content %}
+<header class="page-heading"><div><h1>{{ title }}</h1><p>Review this action before continuing.</p></div></header>
+<section class="form-card narrow-card"><h2>{{ record_name }}</h2><p class="preserve-lines">{{ message }}</p>{{ form_errors(form) }}<form method="post">{{ form.hidden_tag() }}<div class="form-actions"><button class="button button-danger" type="submit">{{ button_label }}</button><a class="button button-secondary" href="{{ cancel_url }}">Cancel</a></div></form></section>
+{% endblock %}

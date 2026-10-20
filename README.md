@@ -1,85 +1,88 @@
-# Nestora — user stories 1–5 only
+# Nestora — User Admin stories 1–12
 
-This is the corrected, limited package. Use this ZIP instead of the earlier 48-story ZIP.
+This package adds seven stories to the existing five profile stories: create, view, update, suspend and search user accounts; User Admin login; and logout. It contains the combined Flask application, PostgreSQL models, BCE classes, templates, tests and GitHub Actions workflow. Later stories from the report are outside this package.
 
-## Included scope
+## Add this to your existing Codespace
 
-1. Create a user profile with name, description, status and selected permission strings.
-2. View existing profiles and their details.
-3. Update profile information and permissions.
-4. Suspend a profile only when no accounts are assigned to it.
-5. Search profiles by name or description.
-
-The application uses Boundary, Control and Entity classes. Profile permissions are Python lists, stored as PostgreSQL `text[]`. Checkboxes appear inside a dropdown. Empty selections are allowed and mean no feature permissions. Permissions for future modules can be stored as role data; those modules are not implemented in this package.
-
-No account CRUDS, login/logout, company management, projects, shortlists, categories, reports, test cases or test suite are included.
-
-## Use in your existing Codespace
-
-Keep your existing working `.devcontainer` configuration, `.env`, `.postgres-data`, unrelated code and existing test files. This package contains no replacement container configuration and no real database or credentials. Save or commit your current work before integrating the files.
-
-1. Extract the ZIP. Copy the contents of `nestora-first-five` into your project root, preserving the folder structure. Review overlapping files before replacing them, especially `app.py` and shared infrastructure.
-2. Activate your existing virtual environment and install the libraries:
+1. Save your current work and use a working branch. Extract the ZIP outside your repository, then merge its files into the repository root (the folder containing `app.py`). Review the diff before committing, especially if teammates have changed the same files.
+2. Keep your existing `.env`, `.postgres-data`, `.venv` and `.devcontainer` configuration. This package does not replace your working container setup or contain your database. Do not delete or reinitialize the database. Back up your existing database before changing its schema.
+3. In the Codespace terminal, from the repository root, install the application and test dependencies:
 
    ```bash
-   source .venv/bin/activate
-   python -m pip install -r requirements.lock
+   .venv/bin/python -m pip install -r requirements-dev.txt
    ```
 
-   If there is no virtual environment yet, first run `python -m venv .venv`.
+   If this is a fresh Codespace without a virtual environment, first run `python -m venv .venv`. The new application dependency is `email-validator`; the requirements files install it automatically.
 
-3. Keep your current database connection settings. To add missing settings without replacing existing values:
+4. Check the existing `.env`. Keep the same database credentials and `SECRET_KEY`. Set `PROFILE_DEVELOPMENT_PREVIEW=false`. The normal application now requires a real account; the old preview setting cannot bypass login. Use `COOKIE_SECURE=true` with your HTTPS Codespaces forwarded URL, or `false` for local HTTP.
+5. With the database service running, apply the non-destructive upgrade:
 
    ```bash
-   python scripts/setup_env.py
+   .venv/bin/python -m flask --app app upgrade-db
    ```
 
-   PostgreSQL uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, and `POSTGRES_PORT`. Inside your Compose setup the host is normally `db`. An existing `DATABASE_URL` overrides those settings. Keep a stable generated `SECRET_KEY` in `.env`. Do not commit `.env`.
+   This keeps profile records and creates the account/authentication tables. It supports the earlier four-column profile table and adds `status` when missing. An unfamiliar existing account schema stops the upgrade rather than deleting or converting records silently. Review a migration if that message appears.
 
-4. Prepare the profile table:
+6. Create the first administrator from the terminal:
 
    ```bash
-   python -m flask --app app upgrade-db
+   .venv/bin/python -m flask --app app bootstrap-admin
    ```
 
-   This creates only `user_profile` on a new database. It preserves existing records, adds `status` if missing, and creates a case-insensitive unique-name index. A legacy `user_profiles` table is renamed only if `user_profile` is absent. Duplicate names or an unfamiliar structure stop the upgrade for review. Other existing tables are not deleted.
+   Enter a username, email, phone number and a private password of 12–128 characters. Password input is hidden. This command creates any missing standard roles and explicitly activates the `User Admin` profile with the ten profile/account permissions. Other existing profiles keep their permissions. There is no default administrator password. Run it once per initial account, not every time you start the app.
 
-5. To try these five screens before an account/login module exists, add this line to your local `.env`:
-
-   ```dotenv
-   PROFILE_DEVELOPMENT_PREVIEW=true
-   ```
-
-   This explicitly enables an unauthenticated development preview. Keep the forwarded Codespaces port **Private**. It is not an implemented login or an authenticated administrator. Leave it `false` when connecting the real authentication described below.
-
-6. Start Flask:
+7. Start the app:
 
    ```bash
-   python -m flask --app app run --host=0.0.0.0 --port=5000
+   .venv/bin/python -m flask --app app run --host=0.0.0.0 --port=5000
    ```
 
-   Open port 5000 from the Codespaces Ports tab. Visit `/profiles` or `/profiles/create`. Set `COOKIE_SECURE=true` for the HTTPS forwarded URL; use `false` only for local HTTP.
+   Open the forwarded **5000** port and sign in at `/login`. Use the sidebar to manage accounts and profiles. You do not need to rebuild the container for Python, HTML or CSS edits. Rebuild only when its configuration or container-level dependencies change.
 
-## Existing authentication integration
+For a completely fresh Codespace, your gitignored `.env` will not be copied from another Codespace. Restore the correct database settings before rebuilding your existing Compose setup. `python scripts/setup_env.py` can add missing settings but cannot recover an existing database password. It preserves values already present, including old preview values that you should set to false yourself. Keep `.env` out of Git.
 
-The report lists “User Admin must be logged in” as a precondition. Implementing account login is outside the requested five stories, so this package provides an integration hook rather than adding that later story. With preview disabled, access is denied until `app.config['PROFILE_ACTOR_LOADER']` is set to a callable that returns your authenticated user, or `None` when signed out. That user must expose `has_permission(code)`. The hook runs on every request. A signed-in admin needs the relevant `profile.create`, `.view`, `.update`, `.suspend`, and `.search` permissions. Register the hook in application setup before serving requests. Do not use a hardcoded user as production authentication.
+## What changes in the application
 
-## Suspension and existing accounts
+| Story | Feature | Main screen |
+| --- | --- | --- |
+| 1–5 | Create, view, update, suspend and search profiles | `/profiles` |
+| 6 | Create account and assign an active profile | `/accounts/create` |
+| 7 | View account details | `/accounts/<account_id>` |
+| 8 | Update full name, email and assigned profile | `/accounts/<account_id>/update` |
+| 9 | Confirm and suspend an account | `/accounts/<account_id>/suspend` |
+| 10 | Search by account ID, username or full name | `/accounts/search` |
+| 11 | Authenticate an active User Admin | `/login` |
+| 12 | End the current authenticated session | Sidebar **Sign out** (POST `/logout`) |
 
-Story 4 still needs to inspect account assignments. The small adapter in `infrastructure/profile_assignments.py` reads existing `user_account` or `user_accounts` tables with a `profile_id` column. It does not define or create account models, screens, or records. Any assigned account blocks suspension, including a suspended account. The Update status field uses the same guard. When no account table exists yet, there are no stored assignments to block suspension. If your real account table uses another name or foreign-key column, change this adapter before integrating. Future account-assignment code must also lock the profile row and reject a suspended profile.
+Account creation collects username, password/confirmation, full name, email, phone number and assigned profile. The server generates the ID and an `Active` status. IDs use independent counters starting at 101: `CU` for Customer, `ID` for Interior Designer and `PM` for Platform Management. This implementation uses `UA` for User Admin and `UP` for a custom role. IDs remain unchanged when a role is reassigned.
 
-## Code map
+Update follows the report's editable fields: full name, email and assigned profile. Username, password, ID, status and stored phone number are not changed through this form. Suspension keeps the account record. Repeated suspension is rejected. A suspended account or profile loses access on the next request.
 
-| Story | Boundary | Controller | URL |
-| --- | --- | --- | --- |
-| 1 | CreateUserProfilePage | CreateUserProfileController | `/profiles/create` |
-| 2 | ViewUserProfilePage | ViewUserProfileController | `/profiles`, `/profiles/<id>` |
-| 3 | UpdateUserProfilePage | UpdateUserProfileController | `/profiles/<id>/update` |
-| 4 | SuspendUserProfilePage | SuspendUserProfileController | `/profiles/<id>/suspend` |
-| 5 | SearchUserProfilePage | SearchUserProfileController | `/profiles/search` |
+The profile Search screen retains the requested behavior: all profiles appear initially beneath the search bar, and a submitted query filters that table. An empty submitted profile query shows the existing validation message and all profiles. Account search has its own report requirement: blank or whitespace lists all accounts.
 
-The classes are grouped in `boundary/profile_pages.py` and `control/profile_controllers.py`; matching individual module names re-export them. `entity/user_profile.py` defines persistence. `boundary/forms.py` defines validation. HTML lives in `templates/profiles/` and shared styling in `static/`.
+Story 11 covers **User Admin login only**. Customer, Interior Designer and Platform Management accounts can be created and assigned roles; their login/portals belong to later stories. Permissions are still checked separately for each admin operation. Profile suspension remains blocked when any account is assigned, including a suspended account. The final fully authorized User Admin cannot be suspended, reassigned, or stripped of access through profile edits.
 
-Create/update/suspend use POST and CSRF tokens. Success redirects prevent refresh resubmission. Cancel never saves. Search uses escaped, parameterized matching. Profile names are unique without regard to capitalization. Status is `Active` or `Suspended`. A missing record gives 404; validation gives a visible error and preserves form values. An assigned profile cannot be suspended through either the suspension form or the Update status field.
+Passwords are hashed. Login failures use a generic message, and five failed attempts per username/address in 15 minutes trigger temporary throttling. Sessions last 30 minutes. Logout revokes the current server-side session token, including a copied old cookie; another browser's session remains valid. Password reset or role reassignment invalidates previous sessions. All modifying forms use CSRF protection.
 
-Local checks cover the five request flows, validation, CSRF, assignment guard, and schema upgrade. No test files or fixtures are shipped. PostgreSQL `text[]` schema compilation was checked; verify the live PostgreSQL connection in your own Codespace. Your GitHub repository has not been edited or pushed.
+Trusted terminal recovery commands:
+
+```bash
+.venv/bin/python -m flask --app app reset-password
+.venv/bin/python -m flask --app app prune-auth-records
+```
+
+The latter removes expired session/failure records and can be run periodically. Neither command prints passwords.
+
+## Tests and GitHub Actions
+
+```bash
+.venv/bin/python scripts/run_profile_tests.py
+```
+
+The historical script and `tests/profiles` folder names are retained for compatibility; they now cover all twelve stories. Open `reports/test-results.html` to see each pass or failure. `reports/summary.md` lists individual test IDs, including TC01.1–TC01.4. TC08 and TC09 remain omitted, as requested. See [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) and [TEST_CASES.md](docs/TEST_CASES.md).
+
+The workflow `.github/workflows/profile-ci.yml` runs a SQLite/PostgreSQL matrix on push and pull requests. Its run Summary shows every result. Download `profile-reports-SQLite` or `profile-reports-PostgreSQL` for the HTML reports. After successful CI on the repository's default branch, it publishes a tested source ZIP as an Actions artifact; it does not deploy the application.
+
+Local verification of this package passed **114 tests on SQLite**. PostgreSQL table/index definitions compile with the PostgreSQL dialect; an actual PostgreSQL execution must be confirmed by the supplied CI job. This package has not been pushed, merged or deployed to your GitHub repository.
+
+See [STORIES_1_12.md](docs/STORIES_1_12.md) for BCE mappings and [CHANGES_FROM_5.md](docs/CHANGES_FROM_5.md) for integration notes.

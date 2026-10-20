@@ -8,6 +8,13 @@ def upgrade_database():
     from entity import models  # Register all tables.
     dialect = db.engine.dialect.name
     tables = inspect(db.engine).get_table_names()
+    if 'user_account' in tables:
+        columns = {column['name']: column for column in inspect(db.engine).get_columns('user_account')}
+        from sqlalchemy import String
+        required_account = {'account_id', 'username', 'password_hash', 'full_name', 'email', 'phone_number',
+                            'profile_id', 'status', 'auth_version', 'created_at'}
+        if not required_account.issubset(columns) or not isinstance(columns['account_id']['type'], String):
+            raise RuntimeError('The existing user_account table is not the twelve-story account schema. Back it up and review a migration; no account records were deleted.')
     if 'user_profiles' in tables and 'user_profile' not in tables:
         with db.engine.begin() as connection:
             connection.execute(text('ALTER TABLE user_profiles RENAME TO user_profile'))

@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% from 'macros.html' import field, form_errors, status %}{% block content %}
+<header class="page-heading"><div><h1>{{ title }}</h1><p>Assign an active profile to determine the account's role and permissions.</p></div></header>
+<section class="form-card">{% if editing %}<div class="section-heading"><div><h2>{{ account.username }}</h2><p>Account ID: {{ account.account_id }}</p></div>{{ status(account.status) }}</div>{% else %}<h2>Account details</h2><p class="muted">New accounts receive an automatically generated ID and an Active status.</p>{% endif %}
+{{ form_errors(form) }}<form method="post">{{ form.hidden_tag() }}
+{% if not editing %}{{ field(form.username, 'e.g. customer1') }}<div class="form-row">{{ field(form.password) }}{{ field(form.confirm_password) }}</div><p class="field-help">Use 12–128 characters.</p>{% endif %}
+{{ field(form.full_name) }}{{ field(form.email) }}{% if not editing %}{{ field(form.phone_number, 'e.g. +65 6123 4567') }}{% endif %}{{ field(form.profile_id) }}
+{% if not form.profile_id.choices %}<p class="message error">Create an active user profile before creating or assigning an account.</p>{% endif %}
+<div class="form-actions"><button class="button button-primary" type="submit">{{ 'Update Account' if editing else 'Create' }}</button><a class="button button-secondary" href="{{ url_for('user_accounts') }}">Cancel</a></div></form></section>{% endblock %}
