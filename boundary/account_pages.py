@@ -30,7 +30,7 @@ class CreateUserAccountPage(Page):
         form = self.form()
         if form.validate_on_submit():
             try:
-                self.clickCreate(form.username.data, form.password.data, form.full_name.data,
+                self.clickCreate(form.username.data, form.full_name.data,
                                  form.email.data, form.phone_number.data, form.profile_id.data)
                 return self.rendered_page
             except AccessError:
@@ -39,8 +39,8 @@ class CreateUserAccountPage(Page):
                 return self.displayError('accounts/form.html', form, str(error), editing=False, account=None, title='Create User Accounts')
         return self.displayError('accounts/form.html', form, 'Please correct the errors below.', editing=False, account=None, title='Create User Accounts')
 
-    def clickCreate(self, username, password, fullName, email, phoneNumber, profileId) -> None:
-        CreateUserAccountController(self.actor).createUserAccount(username, password, fullName, email, phoneNumber, profileId)
+    def clickCreate(self, username, fullName, email, phoneNumber, profileId) -> None:
+        CreateUserAccountController(self.actor).createUserAccount(username, fullName, email, phoneNumber, profileId)
         self.displaySuccess()
 
     def displaySuccess(self) -> None:

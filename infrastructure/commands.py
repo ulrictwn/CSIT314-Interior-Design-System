@@ -46,7 +46,7 @@ def register_commands(app):
             profile.status = 'Active'
             profile.permissions = sorted(set(profile.permissions or []) | ADMIN_PERMISSIONS)
             db.session.flush()
-            if not UserAccount.createUserAccount(username, password, full_name, email, phone_number, profile.profile_id):
+            if not UserAccount.createUserAccount(username, full_name, email, phone_number, profile.profile_id, password=password):
                 raise DomainError('The account could not be created because its username or email exists.')
             account = UserAccount.getByUsername(username)
         except DomainError as error:

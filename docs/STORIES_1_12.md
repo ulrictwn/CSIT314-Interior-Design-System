@@ -40,7 +40,7 @@ For example, `boundary/search_user_account_page.py` contains an import, while th
 
 | Story | Boundary method (returns `None` / UML void) | Control/entity operation |
 | --- | --- | --- |
-| 6 | `clickCreate(username, password, fullName, email, phoneNumber, profileId)` | `createUserAccount(...) -> bool`, `userAccountExists(username) -> bool`; entity `generateAccountId(profileId) -> str` |
+| 6 | `clickCreate(username, fullName, email, phoneNumber, profileId)` | `createUserAccount(...) -> bool`, `userAccountExists(username) -> bool`; entity `generateAccountId(profileId) -> str` |
 | 7 | `onView(accountId)`, `displayAccount(account)` | `getUserAccount(accountId) -> UserAccount` or a not-found error |
 | 8 | `onUpdate(accountId, fullName, email, profileId)` | `updateUserAccount(...) -> bool` |
 | 9 | `onSuspend(accountId)` | `suspendUserAccount(accountId) -> bool` |
@@ -56,4 +56,9 @@ The existing singular `user_profile` table retains its permissions list (`text[]
 
 The five `account.*` codes mirror the five existing `profile.*` operations. Existing permission choices for future features remain in the catalog so old selected values are not lost; they do not add those future features to this application. Bootstrap grants the initial User Admin all ten implemented codes.
 
-`User Admin` is the canonical admin role name used by this twelve-story portal. Additional admin accounts should be assigned that role. `UA` and custom-role `UP` prefixes, 12-character minimum passwords, email uniqueness, and the final-admin access guard are implementation choices; the report explicitly supplies the Customer/Designer/Platform Management examples. Counters are updated in the account creation transaction, and IDs are immutable after creation.
+`User Admin` is the canonical admin role name used by this twelve-story portal. Additional admin accounts should be assigned that role. The later requested account-ID format supersedes the report's letter-prefix examples: use the actual profile ID followed by a shared account number padded to at least two digits (`101`, `202`, `303`, `204`). Password length, email uniqueness and the final-admin guard are unchanged.
+
+The existing `account_id_counter` schema is reused. Its `*` row supplies one global sequence starting at `1` on an empty database; older per-role rows are retained but unused. On an existing installation, the initial shared number starts at the current account count plus one. PostgreSQL row locks serialize allocation, and the account creation transaction commits or rolls back both the counter and account together. Existing IDs are retained, and IDs stay fixed after role reassignment. Numbers can grow beyond 99; occupied complete IDs are skipped to handle ambiguity from concatenating variable-length numbers.
+
+
+The later password-free creation request also supersedes the Password field in the original wireframe. The boundary/controller creation methods take username, fullName, email, phoneNumber and profileId only. The entity has the same required arguments plus an optional keyword-only `password` for trusted bootstrap code. Web input never supplies that keyword. Accounts created without it receive an unusable-password marker in the existing non-null password_hash column; no schema alteration is required. Login rejects those accounts until the trusted reset-password command sets a real hash. The final-admin guard requires a configured password when counting usable administrators.

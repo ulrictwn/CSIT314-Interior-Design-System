@@ -49,12 +49,11 @@ Scope: the original five profile stories and seven additional account/authentica
 | TC42 | Suspend with an existing account table lacking assignment mapping | Error; profile remains Active |
 | TC43 | Inspect permission column and reload stored values | PostgreSQL ARRAY / SQLite JSON as appropriate; list round-trips |
 | TC44 | Request an unsupported directory operation | HTTP 400 |
-
 | TC45 | Open profile search, then search Customer | All profiles initially; only matching rows after search |
-| TC46 | Create each standard role's account | Active account with CU/ID/PM/UA prefix and role assignment (4 variants) |
-| TC47 | Create two Customer accounts | Sequential IDs; phone retained; password hash verifies without storing plaintext |
+| TC46 | Create each standard role's account | Active account with actual profile ID and shared account number: 202/302/402/102 after admin 101 (4 variants) |
+| TC47 | Create two Customer accounts | Shared sequential account numbers; phone retained; account created without a usable password |
 | TC48 | Create a case-insensitive duplicate username | Rejected; no extra account |
-| TC49 | Omit each required account field | HTTP 400; no account created (6 variants) |
+| TC49 | Omit each required account field | HTTP 400; no account created (5 variants) |
 | TC50 | Assign a suspended profile on create | Rejected |
 | TC51 | View account | Correct ID, username, name, email, phone, role and status; password absent |
 | TC52 | View missing account | HTTP 404 |
@@ -75,5 +74,17 @@ Scope: the original five profile stories and seven additional account/authentica
 | TC67 | Remove each account permission | Corresponding account screen denied (5 variants) |
 | TC68 | Create/update/suspend account without CSRF | 400; account data unchanged (3 variants) |
 | TC69 | Rename, strip permission or suspend the last admin profile | Rejected; administrator role/access preserved (3 variants) |
+| TC70 | Create accounts across several roles | IDs 101, 202, 303, 204, 105 share one account sequence |
+| TC71 | Assign a custom profile with ID 12 | Account ID 1202 uses actual database profile ID |
+| TC72 | Create after an existing UA101 account and legacy counter | Old account and counter retained; new customer gets 202 |
+| TC73 | Generate a complete ID already occupied by another profile | Occupied ID skipped; existing account retained |
+| TC74 | Account sequence passes 99 | Number expands without truncating or resetting |
+| TC75 | Entity creation fails on duplicate email | Counter allocation rolls back; next valid account uses that number |
+| TC76 | Create eight accounts concurrently across two roles | Eight unique complete IDs and distinct shared numbers 02–09 |
+| TC77 | Open Create User Account | Username, full name, email, phone and profile fields render; password fields absent |
+| TC78 | Create a User Admin without a password and try signing in | Account persists; login rejected until credentials are configured |
+| TC79 | Inject password and confirm_password into the creation POST | Fields ignored; no credentials set |
+| TC80 | Reassign the last usable admin while another admin has no password | Rejected; unconfigured account cannot substitute for a usable admin |
+| TC81 | Set the new admin password through CLI, log in, then reassign the original admin | New admin signs in and remains authorized; old admin session loses access |
 
-TC08 and TC09 are intentionally omitted. The combined HTML report has **114 individual results** on each database, including parameterized inputs and TC01 sub-checks. This is an automated regression suite, not a claim that every possible scenario is covered. Local SQLite verification passed; actual PostgreSQL verification is delegated to the supplied CI job. A skipped case is not a pass. Coverage measures executed lines separately.
+TC08 and TC09 are intentionally omitted. The combined HTML report has **125 individual results** on each database, including parameterized inputs and TC01 sub-checks. This is an automated regression suite, not a claim that every possible scenario is covered. Local SQLite verification passed; actual PostgreSQL verification is delegated to the supplied CI job. A skipped case is not a pass. Coverage measures executed lines separately.

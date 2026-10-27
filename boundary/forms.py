@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, SelectMultipleField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, Regexp
+from wtforms.validators import DataRequired, Length, Email, Regexp
 from wtforms.widgets import CheckboxInput, ListWidget
 from infrastructure.permissions import PERMISSION_OPTIONS
 
@@ -20,8 +20,6 @@ class CreateUserProfileForm(FlaskForm):
 
 class CreateUserAccountForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=80), Regexp(r'^[A-Za-z0-9_.-]+$')])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=12, max=128)])
-    confirm_password = PasswordField('Confirm password', validators=[DataRequired(), EqualTo('password')])
     full_name = StringField('Full name', validators=[DataRequired(), Length(max=120)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=254)])
     phone_number = StringField('Phone number', validators=[DataRequired(), Length(max=40)])

@@ -6,19 +6,22 @@ from infrastructure.permissions import ADMIN_PERMISSIONS
 from infrastructure.time import utcnow
 
 _DUMMY_HASH = generate_password_hash('not-an-actual-account-password')
+_UNSET_PASSWORD_HASH = '!'
+_GLOBAL_ACCOUNT_COUNTER = '*'
 
 
 class AccountIdCounter(db.Model):
+    """The '*' row allocates account numbers shared by every profile."""
     __tablename__ = 'account_id_counter'
     prefix = db.Column(db.String(2), primary_key=True)
-    next_number = db.Column(db.Integer, nullable=False, default=101)
+    next_number = db.Column(db.Integer, nullable=False, default=1)
 
 
 class UserAccount(db.Model):
     __tablename__ = 'user_account'
     account_id = db.Column(db.String(32), primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False, default=_UNSET_PASSWORD_HASH)
     full_name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(254), nullable=False, unique=True)
     phone_number = db.Column(db.String(40), nullable=False)
@@ -43,11 +46,16 @@ class UserAccount(db.Model):
     def has_permission(self, permission):
         return self.active and self.is_admin and permission in (self.profile.permissions or [])
 
+    @property
+    def has_password(self):
+        return bool(self.password_hash and self.password_hash != _UNSET_PASSWORD_HASH)
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        matched = check_password_hash(self.password_hash if self.has_password else _DUMMY_HASH, password)
+        return self.has_password and matched
 
     @classmethod
     def userAccountExists(cls, username):
@@ -65,13 +73,16 @@ class UserAccount(db.Model):
 
     @classmethod
     def generateAccountId(cls, profileId):
+        """Combine the profile's actual ID with a shared, minimum-two-digit number.
+
+        The counter is locked until the account creation transaction commits.
+        Existing accounts keep their IDs; legacy per-role counters are ignored.
+        """
         from entity.user_profile import UserProfile
         profile = db.session.execute(db.select(UserProfile).where(
             UserProfile.profile_id == profileId).with_for_update()).scalar_one_or_none()
         if profile is None or profile.status != 'Active':
             raise DomainError('Assign an active user profile.')
-        prefix = {'user admin': 'UA', 'customer': 'CU', 'interior designer': 'ID',
-                  'platform management': 'PM', 'platform manager': 'PM'}.get(profile.name.strip().casefold(), 'UP')
         dialect = db.engine.dialect.name
         if dialect == 'postgresql':
             from sqlalchemy.dialects.postgresql import insert
@@ -79,21 +90,32 @@ class UserAccount(db.Model):
             from sqlalchemy.dialects.sqlite import insert
         else:
             raise RuntimeError('Use PostgreSQL or the local SQLite preview.')
-        db.session.execute(insert(AccountIdCounter).values(prefix=prefix, next_number=101)
+        # Existing installations start after their current account count. The
+        # insert-on-conflict and row lock serialize the very first allocation too.
+        initial_number = db.session.scalar(db.select(db.func.count()).select_from(cls)) + 1
+        db.session.execute(insert(AccountIdCounter).values(
+            prefix=_GLOBAL_ACCOUNT_COUNTER, next_number=initial_number)
                            .on_conflict_do_nothing(index_elements=['prefix']))
         counter = db.session.execute(db.select(AccountIdCounter).where(
-            AccountIdCounter.prefix == prefix).with_for_update().execution_options(populate_existing=True)).scalar_one()
-        account_id = f'{prefix}{counter.next_number}'
-        counter.next_number += 1
-        return account_id
+            AccountIdCounter.prefix == _GLOBAL_ACCOUNT_COUNTER).with_for_update()
+            .execution_options(populate_existing=True)).scalar_one()
+        while True:
+            account_id = f'{profile.profile_id}{counter.next_number:02d}'
+            counter.next_number += 1
+            # Beyond 99, variable-length profile IDs can form the same string
+            # (profile 11 + 01 and profile 1 + 101). Skip occupied IDs safely.
+            if db.session.get(cls, account_id) is None:
+                return account_id
 
     @classmethod
-    def createUserAccount(cls, username, password, fullName, email, phoneNumber, profileId):
+    def createUserAccount(cls, username, fullName, email, phoneNumber, profileId, *, password=None):
+        """Create account details; only trusted setup code supplies a password."""
         if cls.userAccountExists(username):
             return False
         account = cls(account_id=cls.generateAccountId(profileId), username=username,
             full_name=fullName, email=email, phone_number=phoneNumber, profile_id=profileId, status='Active')
-        account.set_password(password)
+        if password is not None:
+            account.set_password(password)
         try:
             db.session.add(account)
             db.session.commit()
@@ -123,7 +145,7 @@ class UserAccount(db.Model):
         before = after = 0
         for account in accounts:
             current = account.profile
-            full_admin = account.active and account.is_admin and ADMIN_PERMISSIONS.issubset(set(current.permissions or []))
+            full_admin = account.has_password and account.active and account.is_admin and ADMIN_PERMISSIONS.issubset(set(current.permissions or []))
             before += int(full_admin)
             role, role_name, role_status, role_permissions = current, current.name, current.status, current.permissions
             account_status = account.status
@@ -136,7 +158,7 @@ class UserAccount(db.Model):
                 role_name = profile_name if profile_name is not None else role.name
                 role_status = status if status is not None else role.status
                 role_permissions = permissions if permissions is not None else role.permissions
-            after += int(account_status == 'Active' and role_status == 'Active' and role_name.strip().casefold() == 'user admin'
+            after += int(account.has_password and account_status == 'Active' and role_status == 'Active' and role_name.strip().casefold() == 'user admin'
                          and ADMIN_PERMISSIONS.issubset(set(role_permissions or [])))
         if before and not after:
             raise DomainError('Keep at least one active User Admin with all account and profile permissions.')
@@ -182,5 +204,5 @@ class UserAccount(db.Model):
     @classmethod
     def login(cls, username, password):
         account = cls.getByUsername(username)
-        password_ok = check_password_hash(account.password_hash if account else _DUMMY_HASH, password)
+        password_ok = account.check_password(password) if account else check_password_hash(_DUMMY_HASH, password)
         return bool(account and password_ok and account.active and account.is_admin)

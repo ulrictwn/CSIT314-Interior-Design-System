@@ -115,7 +115,7 @@ def account_assignment(app):
             if table_name == 'user_account':
                 from entity.user_account import UserAccount
                 username = 'fixture_' + uuid4().hex[:12]
-                assert UserAccount.createUserAccount(username, 'Fixture-Password-123', 'Fixture Account',
+                assert UserAccount.createUserAccount(username, 'Fixture Account',
                     username+'@example.com', '+65 6123 4567', profile_id)
                 account = UserAccount.getByUsername(username)
                 account.status = status
@@ -149,7 +149,7 @@ def create_account(app, admin_client, submit):
     def create(username='customer1', role='Customer'):
         with app.app_context():
             profile_id = UserProfile.getProfile(role).profile_id
-        data = dict(username=username, password=ADMIN_PASSWORD, confirm_password=ADMIN_PASSWORD,
+        data = dict(username=username,
             full_name='Name '+username, email=username+'@example.com', phone_number='+65 6123 4567', profile_id=profile_id)
         response = submit('/accounts/create', data)
         assert response.status_code == 302, response.get_data(as_text=True)
@@ -157,6 +157,16 @@ def create_account(app, admin_client, submit):
             from entity.user_account import UserAccount
             return UserAccount.getByUsername(username).account_id
     return create
+
+
+@pytest.fixture
+def set_account_password(app):
+    def configure(username, password=ADMIN_PASSWORD):
+        result = app.test_cli_runner().invoke(args=['reset-password', '--username', username],
+            input=password + '\n' + password + '\n')
+        assert result.exit_code == 0, result.output
+    return configure
+
 
 @pytest.fixture
 def sign_in(app):

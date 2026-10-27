@@ -57,16 +57,16 @@ class CreateUserAccountController(AccountController):
         self.require('account.create')
         return UserAccount.userAccountExists(username)
 
-    def createUserAccount(self, username, password, fullName, email, phoneNumber, profileId):
+    def createUserAccount(self, username, fullName, email, phoneNumber, profileId):
         self.require('account.create')
-        username, password = username_value(username), password_value(password)
+        username = username_value(username)
         fullName, email = self.validate_details(fullName, email, profileId)
         phoneNumber = required(phoneNumber, 'Phone number', 40)
         if not re.fullmatch(r'\+?[0-9][0-9 ()-]{5,38}', phoneNumber):
             raise DomainError('Enter a valid phone number.')
         if self.userAccountExists(username):
             raise DomainError('The username is already registered.')
-        if not UserAccount.createUserAccount(username, password, fullName, email, phoneNumber, profileId):
+        if not UserAccount.createUserAccount(username, fullName, email, phoneNumber, profileId):
             raise DomainError('The username or email is already registered.')
         return True
 
