@@ -1,5 +1,5 @@
 import pytest
-from entity.user_account import UserAccount
+from entity.accounts.user_account import UserAccount
 pytestmark=pytest.mark.story9
 
 def test_TC34_suspend_retains_data_and_rejects_repeated_suspension(app,create_account,submit):

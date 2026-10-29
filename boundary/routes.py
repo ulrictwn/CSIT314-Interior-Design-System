@@ -1,9 +1,17 @@
 from boundary.dashboard_page import HomePage, DashboardPage
-from boundary.auth_pages import LoginPage, LogoutPage
-from boundary.account_pages import (UserAccountsPage, CreateUserAccountPage, ViewUserAccountPage,
-    UpdateUserAccountPage, SuspendUserAccountPage, SearchUserAccountPage)
-from boundary.profile_pages import (UserProfilesPage, CreateUserProfilePage, ViewUserProfilePage,
-    UpdateUserProfilePage, SuspendUserProfilePage, SearchUserProfilePage)
+from boundary.auth.auth_pages import LoginPage, LogoutPage
+from boundary.accounts.account_pages import UserAccountsPage
+from boundary.accounts.create_user_account_page import CreateUserAccountPage
+from boundary.accounts.view_user_account_page import ViewUserAccountPage
+from boundary.accounts.update_user_account_page import UpdateUserAccountPage
+from boundary.accounts.suspend_user_account_page import SuspendUserAccountPage
+from boundary.accounts.search_user_account_page import SearchUserAccountPage
+from boundary.profile.create_user_profile_page import CreateUserProfilePage
+from boundary.profile.view_user_profile_page import ViewUserProfilePage
+from boundary.profile.update_user_profile_page import UpdateUserProfilePage
+from boundary.profile.suspend_user_profile_page import SuspendUserProfilePage
+from boundary.profile.search_user_profile_page import SearchUserProfilePage
+from boundary.profile.profile_pages import UserProfilesPage
 
 
 def register_routes(app):

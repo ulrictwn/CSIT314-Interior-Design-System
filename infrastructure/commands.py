@@ -6,11 +6,10 @@ from infrastructure.migrations import upgrade_database
 from infrastructure.permissions import DEFAULT_PROFILES, ADMIN_PERMISSIONS
 from infrastructure.errors import DomainError
 from infrastructure.time import utcnow
-from entity.user_profile import UserProfile
-from entity.user_account import UserAccount
-from entity.login_attempt import LoginAttempt
-from entity.login_session import LoginSession
-from control.account_controllers import username_value, password_value, email_address
+from entity.profile.user_profile import UserProfile
+from entity.accounts.user_account import UserAccount, username_value, password_value, email_address
+from entity.auth.login_attempt import LoginAttempt
+from entity.auth.login_session import LoginSession
 from control.base import required
 
 
@@ -41,13 +40,16 @@ def register_commands(app):
                 raise DomainError('The username or email already exists. Use reset-password for an existing account.')
             for name, permissions in DEFAULT_PROFILES.items():
                 if UserProfile.getProfile(name) is None:
-                    UserProfile.createUserProfile(name, f'{name} platform role.', 'Active', permissions)
+                    new_profile = UserProfile()
+                    if not new_profile.createUserProfile(name, f'{name} platform role.', True, permissions):
+                        raise DomainError(new_profile.error_message)
             profile = UserProfile.getProfile('User Admin')
             profile.status = 'Active'
             profile.permissions = sorted(set(profile.permissions or []) | ADMIN_PERMISSIONS)
             db.session.flush()
-            if not UserAccount.createUserAccount(username, full_name, email, phone_number, profile.profile_id, password=password):
-                raise DomainError('The account could not be created because its username or email exists.')
+            new_account = UserAccount()
+            if not new_account.createUserAccount(username, full_name, email, phone_number, profile.profile_id, password=password):
+                raise DomainError(new_account.error_message)
             account = UserAccount.getByUsername(username)
         except DomainError as error:
             db.session.rollback()

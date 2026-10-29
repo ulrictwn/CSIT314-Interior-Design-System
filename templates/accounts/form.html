@@ -1,8 +1,60 @@
-{% extends 'base.html' %}{% from 'macros.html' import field, form_errors, status %}{% block content %}
+{% extends 'base.html' %}
+{% from 'macros.html' import status %}
+{% set labels = {'username': 'Username', 'full_name': 'Full name', 'email': 'Email', 'phone_number': 'Phone number', 'profile_id': 'Assigned profile'} %}
+
+{% macro field_errors(name) %}
+  {% for error in errors.get(name, []) %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+{% endmacro %}
+
+{% macro input_field(name, maximum, input_type='text', placeholder='') %}
+<div class="form-group">
+  <label for="{{ name }}">{{ labels[name] }}</label>
+  <input id="{{ name }}" name="{{ name }}" type="{{ input_type }}" required maxlength="{{ maximum }}"
+         {% if name == 'username' %}minlength="3"{% endif %}
+         class="form-control{{ ' invalid' if errors.get(name) else '' }}"
+         value="{{ values.get(name, '') }}" placeholder="{{ placeholder }}"
+         aria-invalid="{{ 'true' if errors.get(name) else 'false' }}">
+  {{ field_errors(name) }}
+</div>
+{% endmacro %}
+
+{% block content %}
 <header class="page-heading"><div><h1>{{ title }}</h1><p>Assign an active profile to determine the account's role and permissions.</p></div></header>
-<section class="form-card">{% if editing %}<div class="section-heading"><div><h2>{{ account.username }}</h2><p>Account ID: {{ account.account_id }}</p></div>{{ status(account.status) }}</div>{% else %}<h2>Account details</h2><p class="muted">New accounts receive an automatically generated ID and an Active status.</p>{% endif %}
-{{ form_errors(form) }}<form method="post">{{ form.hidden_tag() }}
-{% if not editing %}{{ field(form.username, 'e.g. customer1') }}{% endif %}
-{{ field(form.full_name) }}{{ field(form.email) }}{% if not editing %}{{ field(form.phone_number, 'e.g. +65 6123 4567') }}{% endif %}{{ field(form.profile_id) }}
-{% if not form.profile_id.choices %}<p class="message error">Create an active user profile before creating or assigning an account.</p>{% endif %}
-<div class="form-actions"><button class="button button-primary" type="submit">{{ 'Update Account' if editing else 'Create' }}</button><a class="button button-secondary" href="{{ url_for('user_accounts') }}">Cancel</a></div></form></section>{% endblock %}
+<section class="form-card">
+  {% if editing %}
+  <div class="section-heading"><div><h2>{{ account.username }}</h2><p>Account ID: {{ account.account_id }}</p></div>{{ status(account.status) }}</div>
+  {% else %}
+  <h2>Account details</h2><p class="muted">New accounts receive an automatically generated ID and an Active status.</p>
+  {% endif %}
+  {% if errors %}
+  <div class="message error" role="alert"><strong>Please check your entries.</strong><ul>
+    {% for name, messages in errors.items() %}
+      {% for error in messages %}<li>{{ labels.get(name, name) }}: {{ error }}</li>{% endfor %}
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+  <form method="post">
+    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+    {% if not editing %}{{ input_field('username', 80, placeholder='e.g. customer1') }}{% endif %}
+    {{ input_field('full_name', 120) }}
+    {{ input_field('email', 254, input_type='email') }}
+    {% if not editing %}{{ input_field('phone_number', 40, input_type='tel', placeholder='e.g. +65 6123 4567') }}{% endif %}
+    <div class="form-group">
+      <label for="profile_id">Assigned profile</label>
+      <select id="profile_id" name="profile_id" required class="form-control{{ ' invalid' if errors.get('profile_id') else '' }}"
+              aria-invalid="{{ 'true' if errors.get('profile_id') else 'false' }}">
+        <option value="">Select profile</option>
+        {% for profile in profiles %}
+        <option value="{{ profile.profile_id }}" {% if values.get('profile_id', '')|string == profile.profile_id|string %}selected{% endif %}>{{ profile.name }}</option>
+        {% endfor %}
+      </select>
+      {{ field_errors('profile_id') }}
+    </div>
+    {% if not profiles %}<p class="message error">Create an active user profile before creating or assigning an account.</p>{% endif %}
+    <div class="form-actions">
+      <button class="button button-primary" type="submit">{{ 'Update Account' if editing else 'Create' }}</button>
+      <a class="button button-secondary" href="{{ url_for('user_accounts') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

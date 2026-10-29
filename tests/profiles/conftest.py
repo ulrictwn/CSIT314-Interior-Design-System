@@ -15,7 +15,7 @@ os.environ['PROFILE_DEVELOPMENT_PREVIEW'] = 'false'
 
 from app import create_app
 from infrastructure.database import db
-from entity.user_profile import UserProfile
+from entity.profile.user_profile import UserProfile
 
 
 @pytest.fixture
@@ -113,9 +113,9 @@ def account_assignment(app):
         assert table_name in ('user_account', 'user_accounts')
         with app.app_context():
             if table_name == 'user_account':
-                from entity.user_account import UserAccount
+                from entity.accounts.user_account import UserAccount
                 username = 'fixture_' + uuid4().hex[:12]
-                assert UserAccount.createUserAccount(username, 'Fixture Account',
+                assert UserAccount().createUserAccount(username, 'Fixture Account',
                     username+'@example.com', '+65 6123 4567', profile_id)
                 account = UserAccount.getByUsername(username)
                 account.status = status
@@ -154,7 +154,7 @@ def create_account(app, admin_client, submit):
         response = submit('/accounts/create', data)
         assert response.status_code == 302, response.get_data(as_text=True)
         with app.app_context():
-            from entity.user_account import UserAccount
+            from entity.accounts.user_account import UserAccount
             return UserAccount.getByUsername(username).account_id
     return create
 

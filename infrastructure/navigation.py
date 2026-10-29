@@ -7,7 +7,6 @@ def navigation(actor):
         links = []
         for title, endpoint, arguments, permission in [
             ('Create '+label, 'create_'+singular, {}, prefix+'.create'),
-            ('View '+label, plural, {}, prefix+'.view'),
             ('Update '+label, plural, {'mode':'update'}, prefix+'.update'),
             ('Suspend '+label, plural, {'mode':'suspend'}, prefix+'.suspend'),
             ('Search '+label, 'search_'+plural, {}, prefix+'.search')]:

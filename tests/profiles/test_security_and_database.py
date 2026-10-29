@@ -1,11 +1,11 @@
 import pytest
 from sqlalchemy import Table, MetaData, Column, Integer, String, Text, JSON, inspect, text
 from sqlalchemy.dialects.postgresql import ARRAY
-from entity.user_profile import UserProfile
+from entity.profile.user_profile import UserProfile
 from infrastructure.database import db
 from infrastructure.migrations import upgrade_database
 from infrastructure.errors import AccessError, DomainError
-from control.profile_controllers import CreateUserProfileController
+from control.profile.profile_controllers import CreateUserProfileController
 
 
 class Actor:

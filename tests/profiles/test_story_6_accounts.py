@@ -1,6 +1,6 @@
 import pytest
-from entity.user_account import UserAccount
-from entity.user_profile import UserProfile
+from entity.accounts.user_account import UserAccount
+from entity.profile.user_profile import UserProfile
 from infrastructure.database import db
 
 pytestmark = pytest.mark.story6

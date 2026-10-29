@@ -27,7 +27,7 @@
         {% endfor %}
       </nav>
       <div class="account-footer"><span class="avatar">{{ current_user.full_name[:1]|upper }}</span><div><strong>{{ current_user.full_name }}</strong><small>{{ current_user.profile.name }}</small></div></div>
-      <form method="post" action="{{ url_for('logout') }}" class="logout-form">{{ action_form.csrf_token(id='logout-csrf-token') }}<button class="text-button" type="submit">Sign out</button></form>
+      <form method="post" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" id="logout-csrf-token" name="csrf_token" value="{{ csrf_token() }}"><button class="text-button" type="submit">Sign out</button></form>
     </aside>
     {% endif %}
     <main id="main" class="main-content">

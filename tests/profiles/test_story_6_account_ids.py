@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from entity.user_account import AccountIdCounter, UserAccount
-from entity.user_profile import UserProfile
+from entity.accounts.user_account import AccountIdCounter, UserAccount
+from entity.profile.user_profile import UserProfile
 from infrastructure.database import db
 
 pytestmark = pytest.mark.story6
@@ -36,7 +36,7 @@ def test_TC72_existing_accounts_and_legacy_counters_are_preserved(app, seed):
         legacy.set_password('Fixture-Account-Password-123')
         db.session.add_all([legacy, AccountIdCounter(prefix='UA', next_number=102)])
         db.session.commit()
-        assert UserAccount.createUserAccount('new_customer', 'New Customer',
+        assert UserAccount().createUserAccount('new_customer', 'New Customer',
             'new@example.com', '+65 6123 4567', customer_profile_id)
         assert UserAccount.getByUsername('new_customer').account_id == '202'
         assert UserAccount.getByUsername('legacy_admin').account_id == 'UA101'
@@ -70,7 +70,7 @@ def test_TC74_account_numbers_can_grow_beyond_two_digits(app, admin_client, crea
 def test_TC75_failed_creation_rolls_back_account_number(app, admin_client, create_account):
     with app.app_context():
         customer_profile_id = UserProfile.getProfile('Customer').profile_id
-        assert not UserAccount.createUserAccount('would_fail', 'Duplicate Email',
+        assert not UserAccount().createUserAccount('would_fail', 'Duplicate Email',
             'admin@example.com', '+65 6123 4567', customer_profile_id)
     assert create_account() == '202'
 
@@ -83,7 +83,7 @@ def test_TC76_concurrent_creations_allocate_distinct_shared_numbers(app, admin_c
         with app.app_context():
             username = f'concurrent{index}'
             profile_id = profile_ids[index % len(profile_ids)]
-            assert UserAccount.createUserAccount(username, username,
+            assert UserAccount().createUserAccount(username, username,
                 f'{username}@example.com', '+65 6123 4567', profile_id)
             return profile_id, UserAccount.getByUsername(username).account_id
 

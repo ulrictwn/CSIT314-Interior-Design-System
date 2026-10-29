@@ -1,26 +1,18 @@
 # Create User Account without password entry
 
-The Create screen collects username, full name, email, phone number and assigned profile. Password and Confirm Password have been removed from the form, HTML and boundary/controller creation arguments. The assigned profile remains because it defines the role, permissions and numeric account-ID prefix.
+The Create screen collects username, full name, email, phone number and assigned profile. Account story code is grouped under `boundary/accounts/`, `control/accounts/`, and `entity/accounts/`. The boundary reads HTML input directly, the controller relays the request, and the entity validates and stores it. Password and Confirm Password have been removed from the form, HTML and boundary/controller creation arguments. The assigned profile remains because it defines the role, permissions and numeric account-ID prefix.
 
 ## Apply the matching files together
 
 Stop Flask with Ctrl+C. Review any local/team edits, then copy these application files from this package into the existing project folders:
 
-- `boundary/forms.py`
-- `boundary/account_pages.py`
-- `control/account_controllers.py`
-- `entity/user_account.py`
-- `infrastructure/commands.py`
-- `templates/accounts/form.html`
+- The complete `boundary/accounts/`, `control/accounts/`, and `entity/accounts/` packages, including `__init__.py` and entity validation helpers.
+- `boundary/routes.py`, `boundary/dashboard_page.py`, and the plain HTML account forms under `templates/accounts/`.
+- `control/auth/auth_controller.py`, `entity/models.py`, and `entity/profile/user_profile.py` for updated account imports.
+- `infrastructure/auth.py` and `infrastructure/commands.py`.
+- `templates/accounts/form.html` and `templates/accounts/suspend.html`.
 
-Copy the updated tests together too:
-
-- `tests/profiles/conftest.py`
-- `tests/profiles/test_story_6_accounts.py`
-- `tests/profiles/test_story_6_account_ids.py`
-- `tests/profiles/test_story_6_password_free.py` (new)
-- `tests/profiles/test_story_9_accounts.py`
-- `tests/profiles/test_story_11_login.py`
+Copy the updated `tests/profiles/` files together too; their account imports use the new packages, and `test_accounts_bce.py` covers the separation and validation contracts. The historical test-folder name is retained.
 
 No new library or database-schema change is needed for this update to the existing twelve-story app. Preserve `.env`, the database, `.venv` and the working devcontainer configuration. Existing passwords, profile/account records and numeric ID counters continue to work. This source package has not changed your GitHub repository automatically.
 

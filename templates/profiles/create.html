@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% set title = 'Create User Profiles' %}
+{% set labels = {'profileName': 'Profile Name', 'description': 'Description', 'status': 'Status', 'permissions': 'Permissions'} %}
+
+{% macro field_errors(name) %}
+  {% for error in errors.get(name, []) %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+{% endmacro %}
+
+{% block content %}
+<header class="page-heading"><div><h1>{{ title }}</h1><p>Define a role and choose what its accounts can do.</p></div></header>
+<section class="form-card">
+  <h2>Profile details</h2>
+  <p class="muted">Add the basic information and permissions for this profile.</p>
+  {% if errors %}
+  <div class="message error" role="alert"><strong>Please check your entries.</strong><ul>
+    {% for name, messages in errors.items() %}
+      {% for error in messages %}<li>{{ labels.get(name, name) }}: {{ error }}</li>{% endfor %}
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+  <form method="post">
+    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label for="profileName">Profile Name</label>
+      <input id="profileName" name="profileName" type="text" class="form-control{{ ' invalid' if errors.get('profileName') else '' }}"
+             value="{{ values.get('profileName', '') }}" placeholder="Enter profile name" required maxlength="100"
+             aria-invalid="{{ 'true' if errors.get('profileName') else 'false' }}">
+      {{ field_errors('profileName') }}
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" class="form-control{{ ' invalid' if errors.get('description') else '' }}"
+                placeholder="Enter description" required maxlength="10000"
+                aria-invalid="{{ 'true' if errors.get('description') else 'false' }}">{{ values.get('description', '') }}</textarea>
+      {{ field_errors('description') }}
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" name="status" class="form-control{{ ' invalid' if errors.get('status') else '' }}" required
+                aria-invalid="{{ 'true' if errors.get('status') else 'false' }}">
+          <option value="">Select status</option>
+          <option value="Active" {% if values.get('status') == 'Active' %}selected{% endif %}>Active</option>
+          <option value="Suspended" {% if values.get('status') == 'Suspended' %}selected{% endif %}>Suspended</option>
+        </select>
+        {{ field_errors('status') }}
+      </div>
+      <fieldset class="form-group permissions-group">
+        <legend>Permissions</legend>
+        <details class="permissions-dropdown" {% if errors.get('permissions') %}open{% endif %}>
+          <summary><span data-permission-summary>Select permissions</span></summary>
+          <ul id="permissions" class="permission-list">
+            {% for code, label in permission_options.items() %}
+            <li><input id="permissions-{{ loop.index0 }}" name="permissions" type="checkbox" value="{{ code }}"
+                       {% if code in selected_permissions %}checked{% endif %}>
+                <label for="permissions-{{ loop.index0 }}">{{ label }}</label></li>
+            {% endfor %}
+          </ul>
+        </details>
+        {{ field_errors('permissions') }}
+        <p class="field-help">Select any supported actions. No selection means no feature access.</p>
+      </fieldset>
+    </div>
+    <div class="form-actions">
+      <button class="button button-primary" type="submit">Create</button>
+      <a class="button button-secondary" href="{{ url_for('user_profiles') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

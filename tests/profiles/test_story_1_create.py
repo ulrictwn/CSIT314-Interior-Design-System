@@ -2,7 +2,7 @@ import pytest
 from html.parser import HTMLParser
 from unittest.mock import Mock
 from infrastructure.database import db
-from entity.user_profile import UserProfile
+from entity.profile.user_profile import UserProfile
 
 pytestmark = pytest.mark.story1
 
@@ -108,3 +108,56 @@ def test_TC07_create_allows_empty_permissions(app, submit, profile_data):
     assert submit('/profiles/create', {**profile_data, 'permissions': []}).status_code == 302
     with app.app_context():
         assert UserProfile.getProfile('Customer').permissions == []
+
+
+
+def test_create_error_preserves_escaped_values_status_and_permissions(seed, submit, profile_data):
+    from markupsafe import escape
+
+    class ControlsAndOptions(FormControls):
+        selected_status = None
+
+        def handle_starttag(self, tag, attrs):
+            super().handle_starttag(tag, attrs)
+            attributes = dict(attrs)
+            if tag == 'option' and 'selected' in attributes:
+                self.selected_status = attributes['value']
+
+    name = 'Customer "<role>" & other'
+    description = 'Keep </textarea><script>alert("test")</script> as text.'
+    seed(name)
+    values = {**profile_data, 'profileName': name, 'description': description, 'status': 'Suspended'}
+    response = submit('/profiles/create', values)
+    assert response.status_code == 400
+    html = response.get_data(as_text=True)
+    controls = ControlsAndOptions()
+    controls.feed(html)
+    name_control = next(item for item in controls.controls if item.get('name') == 'profileName')
+    assert name_control['value'] == name
+    assert name_control['aria-invalid'] == 'true'
+    assert controls.selected_status == 'Suspended'
+    assert {item['value'] for item in controls.controls
+            if item.get('name') == 'permissions' and 'checked' in item} == set(values['permissions'])
+    assert str(escape(description)) in html
+    assert '<script>alert(' not in html
+    assert 'already exists' in html
+
+
+def test_create_error_form_can_be_corrected_and_resubmitted(app, client, submit, profile_data):
+    response = submit('/profiles/create', {**profile_data, 'description': ''})
+    assert response.status_code == 400
+    controls = FormControls()
+    controls.feed(response.get_data(as_text=True))
+    token = next(item['value'] for item in controls.controls if item.get('name') == 'csrf_token')
+    response = client.post('/profiles/create', data={'csrf_token': token, **profile_data})
+    assert response.status_code == 302
+    with app.app_context():
+        assert UserProfile.getProfile(profile_data['profileName']).description == profile_data['description']
+
+
+def test_create_rejects_invalid_csrf_token(app, client, profile_data):
+    assert client.get('/profiles/create').status_code == 200
+    response = client.post('/profiles/create', data={'csrf_token': 'invalid-token', **profile_data})
+    assert response.status_code == 400
+    with app.app_context():
+        assert UserProfile.listUserProfiles() == []

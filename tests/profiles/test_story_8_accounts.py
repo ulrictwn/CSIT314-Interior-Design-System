@@ -1,6 +1,6 @@
 import pytest
-from entity.user_account import UserAccount
-from entity.user_profile import UserProfile
+from entity.accounts.user_account import UserAccount
+from entity.profile.user_profile import UserProfile
 pytestmark=pytest.mark.story8
 
 def test_TC30_update_preserves_id_username_password_and_status(app,create_account,submit):

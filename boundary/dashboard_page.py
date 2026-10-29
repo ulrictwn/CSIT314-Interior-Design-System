@@ -2,8 +2,8 @@ from flask import render_template, g, redirect, url_for
 from flask.views import MethodView
 from boundary.base import Page
 from infrastructure.database import db
-from entity.user_profile import UserProfile
-from entity.user_account import UserAccount
+from entity.profile.user_profile import UserProfile
+from entity.accounts.user_account import UserAccount
 
 
 class HomePage(MethodView):

@@ -41,6 +41,8 @@ This package adds seven stories to the existing five profile stories: create, vi
 
 For a completely fresh Codespace, your gitignored `.env` will not be copied from another Codespace. Restore the correct database settings before rebuilding your existing Compose setup. `python scripts/setup_env.py` can add missing settings but cannot recover an existing database password. It preserves values already present, including old preview values that you should set to false yourself. Keep `.env` out of Git.
 
+Profile BCE modules live in `boundary/profile/`, `control/profile/`, and `entity/profile/`. Stories 6–10 use the matching `accounts/` packages in those three layers. Each story has its own page and controller file; account data and field validation live in `entity/accounts/`. Profile/account pages collect input directly from HTML, while controllers authorize and relay requests to entities.
+
 ## What changes in the application
 
 | Story | Feature | Main screen |

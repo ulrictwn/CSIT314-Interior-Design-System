@@ -54,10 +54,9 @@ def create_app(configuration=None):
 
     @app.context_processor
     def profile_context():
-        from boundary.forms import ActionForm
         actor = g.get('profile_actor')
         return dict(permission_labels=PERMISSION_OPTIONS, current_user=g.get('current_user'),
-            action_form=ActionForm(), navigation=navigation(actor),
+            navigation=navigation(actor),
             can=lambda code: bool(actor and actor.has_permission(code)))
 
     from boundary.routes import register_routes

@@ -1,7 +1,7 @@
 import pytest
 
-from entity.user_account import UserAccount
-from entity.user_profile import UserProfile
+from entity.accounts.user_account import UserAccount
+from entity.profile.user_profile import UserProfile
 
 pytestmark = pytest.mark.story6
 
@@ -21,7 +21,7 @@ def test_TC78_password_free_admin_cannot_sign_in_until_password_is_set(app, crea
     with app.app_context():
         account = UserAccount.getUserAccount(account_id)
         assert account.status == 'Active' and not account.has_password
-        assert not UserAccount.login('newadmin', 'not-an-actual-account-password')
+        assert not UserAccount().login('newadmin', 'not-an-actual-account-password')
     client, response = sign_in('newadmin')
     assert response.status_code == 400
     assert 'Invalid login details' in response.get_data(as_text=True)
@@ -37,7 +37,7 @@ def test_TC79_submitted_password_fields_cannot_set_credentials(app, admin_client
     assert response.status_code == 302
     with app.app_context():
         assert not UserAccount.getByUsername('newadmin').has_password
-        assert not UserAccount.login('newadmin', 'Injected-Password-123')
+        assert not UserAccount().login('newadmin', 'Injected-Password-123')
 
 
 def test_TC80_admin_without_password_cannot_replace_last_usable_admin(app, create_account, submit):
