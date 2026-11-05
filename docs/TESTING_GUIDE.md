@@ -9,7 +9,7 @@ From the folder containing app.py:
 .venv/bin/python scripts/run_profile_tests.py
 ```
 
-Every executed test prints a PASSED/FAILED/ERROR status. The runner covers all twelve stories; its historical filename is retained. TC01.1–TC01.4 remain separate visible sub-checks. TC08 and TC09 are omitted.
+Every executed test prints a PASSED/FAILED/ERROR status. The runner covers Stories 1–29; its historical filename is retained. TC01.1–TC01.4 remain separate visible sub-checks. TC08 and TC09 are omitted.
 
 The runner replaces stale reports at the start. Open `reports/summary.md` with **Open Preview** to see the result table. For interactive filters, download `reports/test-results.html` and open it in your browser. It is self-contained. Alternatively serve the report folder:
 
@@ -22,7 +22,7 @@ Open forwarded port **8000** and select `test-results.html`. Stop the server wit
 To run only one story, use its pytest marker, for example:
 
 ```bash
-.venv/bin/python -m pytest tests/profiles -m story6 -vv
+.venv/bin/python -m pytest tests -m story6 -vv
 ```
 
 Run the report command again afterward if you want a fresh complete report. A successful subset run does not update the earlier complete HTML report.
@@ -30,9 +30,9 @@ Run the report command again afterward if you want a fresh complete report. A su
 ## In GitHub
 
 1. Merge the package files into your working branch, commit, and push that branch. Keep `.env` and database data out of Git.
-2. Open the repository's **Actions** tab and select **User Admin Stories 1-12 CI and Delivery**.
+2. Open the repository's **Actions** tab and select **BCE Stories 1-29 CI and Delivery**.
 3. Select the run for your commit. The **Summary** contains SQLite and PostgreSQL tables with one row per executed test, its ID, area and outcome.
-4. Select **User Admin tests (SQLite)** or **User Admin tests (PostgreSQL)**, then **Run stories 1-12 tests** to inspect verbose assertion output.
+4. Select **BCE story tests (SQLite)** or **BCE story tests (PostgreSQL)**, then **Run stories 1-29 tests** to inspect verbose assertion output.
 5. Under the run's **Artifacts**, download `profile-reports-SQLite` or `profile-reports-PostgreSQL`. Extract and open `test-results.html`. Use the status filters to inspect passing or failing cases.
 
 A green job means the job succeeded; individual rows provide evidence for each test. Dependency or setup failures can prevent test results from being produced. The summary explicitly reports missing results rather than claiming a pass. Actual results exist only after the workflow runs on your repository.
@@ -49,5 +49,7 @@ If you intentionally run against your own disposable test PostgreSQL service, cr
 
 - ModuleNotFoundError: use `.venv/bin/python` for both installation and execution, then reinstall from `requirements-dev.txt`.
 - Missing app `.env`: restore your Codespace configuration; the tests have their own settings and do not create your application database.
-- Permission failure in the browser: sign in with the administrator created by `bootstrap-admin`; the former development preview is no longer a production login.
-- A failure after editing shared fixtures: account tests depend on the updated `tests/profiles/conftest.py`. Review the source and assertion output rather than deleting a failing test solely to make CI green.
+- Demo story pages do not require login or CSRF tokens. Input errors should display field messages; duplicate and saved-data errors come from the entity.
+- A failure after editing shared fixtures: account tests depend on the updated `tests/conftest.py`. Review the source and assertion output rather than deleting a failing test solely to make CI green.
+
+For company/designer/project coverage, run `.venv/bin/python -m pytest tests/company tests/designer tests/projects -q`. These tests use the JSON boundaries because designer HTML has not been supplied.

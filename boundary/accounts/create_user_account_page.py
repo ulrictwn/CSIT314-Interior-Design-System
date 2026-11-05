@@ -1,14 +1,14 @@
 from flask import render_template, request, redirect, url_for, flash
-from boundary.base import Page
+from flask.views import MethodView
+from boundary.validation import validate_account_fields
 from control.accounts.create_user_account_controller import CreateUserAccountController
 
 
-class CreateUserAccountPage(Page):
-    permission = 'account.create'
+class CreateUserAccountPage(MethodView):
 
     def get(self):
         return render_template('accounts/form.html', values={}, errors={}, account=None,
-            profiles=CreateUserAccountController(self.actor).activeProfiles(),
+            profiles=CreateUserAccountController().activeProfiles(),
             editing=False, title='Create User Accounts')
 
     def post(self):
@@ -19,7 +19,14 @@ class CreateUserAccountPage(Page):
 
     def clickCreate(self, username: str, fullName: str, email: str,
                     phoneNumber: str, profileId: int) -> None:
-        controller = CreateUserAccountController(self.actor)
+        values, self.field_errors = validate_account_fields(username, fullName, email, phoneNumber, profileId)
+        if self.field_errors:
+            self.error_message = 'Please correct the errors below.'
+            self.displayError()
+            return
+        username, fullName = values['username'], values['full_name']
+        email, phoneNumber = values['email'], values['phone_number']
+        controller = CreateUserAccountController()
         if controller.createUserAccount(username, fullName, email, phoneNumber, profileId):
             self.displaySuccess()
         else:
@@ -35,5 +42,5 @@ class CreateUserAccountPage(Page):
         flash(self.error_message, 'error')
         self.rendered_page = render_template(
             'accounts/form.html', values=request.form, errors=self.field_errors, account=None,
-            profiles=CreateUserAccountController(self.actor).activeProfiles(),
+            profiles=CreateUserAccountController().activeProfiles(),
             editing=False, title='Create User Accounts'), 400

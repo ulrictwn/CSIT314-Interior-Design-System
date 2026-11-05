@@ -19,7 +19,6 @@
   </ul></div>
   {% endif %}
   <form method="post">
-    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
     <div class="form-group">
       <label for="profileName">Profile Name</label>
       <input id="profileName" name="profileName" type="text" class="form-control{{ ' invalid' if errors.get('profileName') else '' }}"
@@ -58,7 +57,7 @@
           </ul>
         </details>
         {{ field_errors('permissions') }}
-        <p class="field-help">Select any supported actions. No selection means no feature access.</p>
+        <p class="field-help">Select any actions associated with this profile.</p>
       </fieldset>
     </div>
     <div class="form-actions">

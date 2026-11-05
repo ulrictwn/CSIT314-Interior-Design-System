@@ -33,3 +33,6 @@ def register_routes(app):
     ]
     for path, name, page in routes:
         app.add_url_rule(path, view_func=page.as_view(name))
+
+    from boundary.designer.routes import register_designer_routes
+    register_designer_routes(app)

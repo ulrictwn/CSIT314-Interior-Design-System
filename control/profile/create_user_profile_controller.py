@@ -1,18 +1,15 @@
-from control.base import Controller
 from entity.profile.user_profile import UserProfile
 from infrastructure.permissions import PERMISSION_OPTIONS
 
 
-class CreateUserProfileController(Controller):
+class CreateUserProfileController:
     PERMISSION_OPTIONS = PERMISSION_OPTIONS
 
     def userProfileExists(self, profileName: str) -> bool:
-        self.require('profile.create')
         return UserProfile.userProfileExists(profileName)
 
     def createUserProfile(self, profileName: str, description: str, status: bool,
                           permissions: list[str]) -> bool:
-        self.require('profile.create')
         profile = UserProfile()
         created = profile.createUserProfile(profileName, description, status, permissions)
         self.error_message = profile.error_message

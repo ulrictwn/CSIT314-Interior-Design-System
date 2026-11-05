@@ -1,14 +1,15 @@
 from flask import render_template, request, redirect, url_for, flash
-from boundary.base import Page
+from flask.views import MethodView
+from boundary.validation import validate_profile_fields, valid_profile_id
 from control.profile.update_user_profile_controller import UpdateUserProfileController
 from infrastructure.permissions import PERMISSION_OPTIONS
 
 
-class UpdateUserProfilePage(Page):
-    permission = 'profile.update'
+class UpdateUserProfilePage(MethodView):
 
     def get(self, profile_id):
-        profile = UpdateUserProfileController(self.actor).getUserProfile(profile_id)
+        profile = (UpdateUserProfileController().getUserProfile(profile_id)
+                   if valid_profile_id(profile_id) else None)
         if profile is None:
             self.error_message, self.error_reason = 'User profile not found.', 'not_found'
             self.displayError()
@@ -19,16 +20,25 @@ class UpdateUserProfilePage(Page):
             selected_permissions=profile.permissions, permission_options=PERMISSION_OPTIONS)
 
     def post(self, profile_id):
-        selected_status = request.form.get('status', '')
-        status = {'Active': True, 'Suspended': False}.get(selected_status, selected_status)
         self.onUpdate(profile_id, request.form.get('profileName', ''),
-                      request.form.get('description', ''), request.form.getlist('permissions'), status)
+                      request.form.get('description', ''), request.form.getlist('permissions'))
         return self.rendered_page
 
     def onUpdate(self, profileId: int, profileName: str, description: str,
-                 permissions: list[str], status: bool | None = None) -> None:
-        controller = UpdateUserProfileController(self.actor)
-        if controller.updateUserProfile(profileId, profileName, description, permissions, status):
+                 permissions: list[str]) -> None:
+        if not valid_profile_id(profileId):
+            self.error_message, self.error_reason = 'User profile not found.', 'not_found'
+            self.displayError()
+            return
+        values, self.field_errors = validate_profile_fields(
+            profileName, description, True, permissions)
+        if self.field_errors:
+            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
+            self.displayError()
+            return
+        profileName, description, _, permissions = values
+        controller = UpdateUserProfileController()
+        if controller.updateUserProfile(profileId, profileName, description, permissions):
             self.displaySuccess()
         else:
             self.error_message = controller.error_message

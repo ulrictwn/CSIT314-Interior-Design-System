@@ -1,0 +1,26 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import field, errors_summary, linked_account with context %}
+{% block content %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  {{ errors_summary() }}
+  <section class="form-card company-card">
+    <div class="card-section-heading">
+      <h2>{{ values.get("companyName") if editing and values.get('companyName') else 'Company details' }}</h2>
+    </div>
+    <form method="post"
+          action="{{ ui_url('update_company_profile' if editing else 'create_company_profile') }}">
+      <div class="form-row">{{ field('companyName', 'Company name') }}{{ field('companyRegistrationNumber','Business registration number',maxlength=100) }}</div>
+      {{ field('companyAddress','Address',maxlength=1000) }}
+      <div class="form-row">{{ field('companyContact','Contact number',type='tel',maxlength=40,placeholder='+65 6123 4567') }}{{ field('companyEmail','Email',type='email',maxlength=254) }}</div>
+      {{ linked_account(true) }}
+      <div class="form-actions">
+        <button type="submit"
+                class="button button-primary">{{ 'Save changes' if editing else 'Create company profile' }}</button>
+        <a class="button button-secondary"
+           href="{{ ui_url('view_company_profile') if editing else ui_url('designer_dashboard') }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

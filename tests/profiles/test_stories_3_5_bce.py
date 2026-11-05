@@ -12,15 +12,7 @@ from control.profile.suspend_user_profile_controller import SuspendUserProfileCo
 from control.profile.search_user_profile_controller import SearchUserProfileController
 from entity.profile.user_profile import UserProfile
 from infrastructure.database import db
-from infrastructure.errors import AccessError, DomainError
-
-
-class Actor:
-    def __init__(self, permissions=()):
-        self.permissions = set(permissions)
-
-    def has_permission(self, permission):
-        return permission in self.permissions
+from infrastructure.errors import DomainError
 
 
 @pytest.mark.story3
@@ -29,36 +21,41 @@ class Actor:
     {'profileName': ''}, {'profileName': 'x' * 101},
     {'description': None}, {'description': 'x' * 10001},
     {'permissions': ['profile.destroy']}, {'permissions': 'profile.view'},
-    {'status': 'Active'},
+    {'permissions': [None]},
 ])
-def test_update_entity_rejects_invalid_data_before_database_access(monkeypatch, profile_data, patch):
-    for operation in ('execute', 'get', 'add', 'flush', 'commit', 'rollback'):
-        monkeypatch.setattr(db.session, operation,
-            Mock(side_effect=AssertionError('Invalid update reached the database')))
-    profile = UserProfile()
-    data = {**profile_data, 'profileId': 1, 'status': True, **patch}
-    assert profile.updateUserProfile(**data) is False
-    assert profile.error_message
+def test_update_boundary_rejects_invalid_data_before_controller_access(app, monkeypatch, profile_data, patch):
+    update = Mock(side_effect=AssertionError('Invalid update reached the controller'))
+    monkeypatch.setattr(UpdateUserProfileController, 'updateUserProfile', update)
+    with app.test_request_context('/profiles/1/update', method='POST'):
+        page = UpdateUserProfilePage()
+        data = {**profile_data, 'profileId': 1, **patch}
+        data.pop('status')
+        assert page.onUpdate(**data) is None
+        assert page.error_message
+        assert page.rendered_page[1] in (400, 404)
+    update.assert_not_called()
 
 
 @pytest.mark.story3
-def test_update_diagram_arguments_preserve_status_and_normalize_fields(app, seed, snapshot):
+def test_update_boundary_normalizes_diagram_arguments_and_preserves_status(app, seed, snapshot):
     profile_id = seed('Customer', status='Suspended')
-    with app.app_context():
-        assert UserProfile().updateUserProfile(
-            profile_id, '  Customer  ', '  Changed details  ', ['profile.view', 'profile.view']) is True
-    saved = snapshot(profile_id)
-    assert saved == dict(profile_id=profile_id, name='Customer', description='Changed details',
-                         status='Suspended', permissions=['profile.view'])
+    with app.test_request_context(f'/profiles/{profile_id}/update'):
+        page = UpdateUserProfilePage()
+        assert page.onUpdate(profile_id, '  Customer  ', '  Changed details  ', ['profile.view', 'profile.view']) is None
+        assert page.rendered_page.status_code == 302
+    assert snapshot(profile_id) == dict(profile_id=profile_id, name='Customer', description='Changed details',
+                                      status='Suspended', permissions=['profile.view'])
 
 
 @pytest.mark.story3
 @pytest.mark.parametrize('initial, new_status, expected', [('Active', False, 'Suspended'), ('Suspended', True, 'Active')])
-def test_update_entity_preserves_optional_status_changes(app, seed, snapshot, initial, new_status, expected):
+def test_update_uses_diagram_arguments_and_preserves_status(app, seed, snapshot, initial, new_status, expected):
     profile_id = seed(status=initial)
-    with app.app_context():
-        assert UserProfile().updateUserProfile(profile_id, 'Customer', 'Details', [], new_status) is True
-    assert snapshot(profile_id)['status'] == expected
+    with app.test_request_context(f'/profiles/{profile_id}/update', method='POST', data={'status': expected}):
+        page = UpdateUserProfilePage()
+        assert page.onUpdate(profile_id, 'Customer', 'Details', []) is None
+        assert page.rendered_page.status_code == 302
+    assert snapshot(profile_id)['status'] == initial
 
 
 @pytest.mark.story3
@@ -81,33 +78,25 @@ def test_update_duplicate_rolls_back_and_allows_a_followup_update(app, seed, sna
 
 @pytest.mark.story3
 @pytest.mark.parametrize('status', ['', 'Unknown'])
-def test_invalid_html_update_status_is_rejected_by_entity(app, seed, submit, snapshot, profile_data, monkeypatch, status):
+def test_extra_status_input_is_ignored_by_diagram_update(app, seed, submit, snapshot, profile_data, monkeypatch, status):
     profile_id = seed()
     before = snapshot(profile_id)
-    received = []
-    update = UserProfile.updateUserProfile
-
-    def observe(self, profileId, profileName, description, permissions, status=None):
-        received.append(status)
-        return update(self, profileId, profileName, description, permissions, status)
-
-    monkeypatch.setattr(UserProfile, 'updateUserProfile', observe)
     response = submit(f'/profiles/{profile_id}/update', {**profile_data, 'status': status})
-    assert response.status_code == 400
-    assert received == [status]
-    assert 'Choose Active or Suspended.' in response.get_data(as_text=True)
-    assert snapshot(profile_id) == before
+    assert response.status_code == 302
+    assert snapshot(profile_id)['status'] == before['status']
 
 
 @pytest.mark.story4
 @pytest.mark.parametrize('profile_id', [None, True, 0, -1])
-def test_suspend_entity_validates_id_before_database_access(monkeypatch, profile_id):
-    for operation in ('execute', 'get', 'commit', 'rollback'):
-        monkeypatch.setattr(db.session, operation,
-            Mock(side_effect=AssertionError('Invalid suspension reached the database')))
-    profile = UserProfile()
-    assert profile.suspendUserProfile(profile_id) is False
-    assert profile.error_reason == 'not_found'
+def test_suspend_boundary_validates_id_before_controller_access(app, monkeypatch, profile_id):
+    suspend = Mock(side_effect=AssertionError('Invalid suspension reached the controller'))
+    monkeypatch.setattr(SuspendUserProfileController, 'suspendUserProfile', suspend)
+    with app.test_request_context('/profiles/invalid/suspend', method='POST'):
+        page = SuspendUserProfilePage()
+        assert page.onSuspend(profile_id) is None
+        assert page.error_reason == 'not_found'
+        assert page.rendered_page[1] == 404
+    suspend.assert_not_called()
 
 
 @pytest.mark.story4
@@ -132,11 +121,14 @@ def test_suspend_entity_returns_boolean_and_persists_status(app, seed, snapshot)
 
 @pytest.mark.story5
 @pytest.mark.parametrize('keyword', [None, '', '   ', 'x' * 201])
-def test_search_entity_validates_before_querying(monkeypatch, keyword):
-    lookup = Mock(side_effect=AssertionError('Invalid search reached the database'))
-    monkeypatch.setattr(db.session, 'execute', lookup)
-    with pytest.raises(DomainError):
-        UserProfile.searchUserProfiles(keyword)
+def test_search_boundary_validates_before_querying(app, monkeypatch, keyword):
+    lookup = Mock(side_effect=AssertionError('Invalid search reached the controller'))
+    monkeypatch.setattr(SearchUserProfileController, 'searchUserProfiles', lookup)
+    monkeypatch.setattr(SearchUserProfileController, 'listUserProfiles', lambda self: [])
+    with app.test_request_context('/profiles/search'):
+        page = SearchUserProfilePage()
+        assert page.onSearch(keyword) is None
+        assert 'Search text' in page.rendered_page
     lookup.assert_not_called()
 
 
@@ -146,23 +138,9 @@ def test_search_returns_a_list_and_treats_wildcards_literally(app, seed, keyword
     seed(name)
     seed('Ordinary role')
     with app.app_context():
-        profiles = SearchUserProfileController(Actor(['profile.search'])).searchUserProfiles(keyword)
+        profiles = SearchUserProfileController().searchUserProfiles(keyword)
         assert isinstance(profiles, list)
         assert [profile.name for profile in profiles] == [name]
-
-
-@pytest.mark.security
-@pytest.mark.parametrize('controller_type, method, args', [
-    (UpdateUserProfileController, 'getUserProfile', (1,)),
-    (UpdateUserProfileController, 'updateUserProfile', (1, 'Role', 'Details', [])),
-    (SuspendUserProfileController, 'getUserProfile', (1,)),
-    (SuspendUserProfileController, 'suspendUserProfile', (1,)),
-    (SearchUserProfileController, 'listUserProfiles', ()),
-    (SearchUserProfileController, 'searchUserProfiles', ('Role',)),
-])
-def test_profile_controllers_require_authorization(controller_type, method, args):
-    with pytest.raises(AccessError):
-        getattr(controller_type(Actor()), method)(*args)
 
 
 @pytest.mark.parametrize('action', ['update', 'suspend'])
@@ -171,7 +149,6 @@ def test_mutation_boundary_events_return_void_and_prepare_responses(app, seed, a
     profile_id = seed('Review role')
     requested_id = profile_id if exists else profile_id + 1
     with app.test_request_context(f'/profiles/{requested_id}/{action}', method='POST'):
-        g.profile_actor = Actor(['profile.' + action])
         if action == 'update':
             page = UpdateUserProfilePage()
             assert page.onUpdate(requested_id, 'Edited role', 'Details', []) is None
@@ -191,7 +168,6 @@ def test_mutation_boundary_events_return_void_and_prepare_responses(app, seed, a
 def test_search_boundary_event_returns_void_and_displays_results(app, seed, keyword):
     seed('Review role')
     with app.test_request_context('/profiles/search'):
-        g.profile_actor = Actor(['profile.search'])
         page = SearchUserProfilePage()
         assert page.onSearch(keyword) is None
         assert 'Review role' in page.rendered_page

@@ -25,7 +25,9 @@ def test_T38_invalid_or_unavailable_admin_login_is_generic(app,create_account,se
     client,response=sign_in(username,password)
     assert response.status_code==400
     assert 'Invalid login details' in response.get_data(as_text=True)
-    assert client.get('/dashboard').status_code==403
+    assert client.get('/dashboard').status_code==200
+    with client.session_transaction() as browser:
+        assert 'account_id' not in browser
 
 
 
@@ -35,25 +37,24 @@ def test_T38_invalid_or_unavailable_admin_login_is_generic(app,create_account,se
     ('admin', None), ('admin', ''), ('admin', 'x' * 129),
     ('admin', ' ' * 12), (123, 'Password-123456'), ('admin', []),
 ])
-def test_malformed_credentials_are_rejected_by_entity_before_database_access(monkeypatch, username, password):
+def test_malformed_credentials_are_rejected_by_boundary_before_controller_access(app, monkeypatch, username, password):
     from unittest.mock import Mock
     from control.auth.login_controller import LoginController
-    from infrastructure.errors import DomainError
-
-    query = Mock(side_effect=AssertionError('Invalid credentials reached the database'))
-    monkeypatch.setattr(db.session, 'execute', query)
-    assert UserAccount().login(username, password) is False
-    with pytest.raises(DomainError, match='Invalid login details'):
-        UserAccount.validateLoginCredentials(username, password)
-    controller = LoginController()
-    assert controller.login(username, password) is False
-    assert controller.error_message == 'Invalid login details'
-    query.assert_not_called()
+    from boundary.auth.login_page import LoginPage
+    login = Mock(side_effect=AssertionError('Invalid credentials reached the controller'))
+    monkeypatch.setattr(LoginController, 'login', login)
+    with app.test_request_context('/login', method='POST'):
+        page = LoginPage()
+        assert page.clickLogin(username, password) is None
+        assert page.error_message == 'Invalid login details'
+        assert page.rendered_page[1] == 400
+    login.assert_not_called()
 
 
 def test_credential_validation_preserves_normalization_and_length_boundaries():
-    assert UserAccount.validateLoginCredentials('  admin  ', ' Password-123456 ') == 'admin'
-    assert UserAccount.validateLoginCredentials('a' * 80, 'p' * 128) == 'a' * 80
+    from boundary.validation import validate_login_credentials
+    assert validate_login_credentials('  admin  ', ' Password-123456 ') == 'admin'
+    assert validate_login_credentials('a' * 80, 'p' * 128) == 'a' * 80
 
 
 def test_entity_login_keeps_password_whitespace_significant(app, seed):
@@ -63,5 +64,18 @@ def test_entity_login_keeps_password_whitespace_significant(app, seed):
         account = UserAccount()
         assert account.createUserAccount('spaceadmin', 'Space Admin', 'space@example.com',
             '+65 6123 4567', profile_id, password=password) is True
-        assert UserAccount().login('  spaceadmin  ', password) is True
+        assert UserAccount().login('spaceadmin', password) is True
         assert UserAccount().login('spaceadmin', password.strip()) is False
+
+
+def test_login_boundary_trims_username_but_preserves_password(app, seed):
+    from boundary.auth.login_page import LoginPage
+    profile_id = seed('User Admin')
+    password = '  Valid-Password-123  '
+    with app.app_context():
+        assert UserAccount().createUserAccount('spaceadmin', 'Space Admin', 'space@example.com',
+            '+65 6123 4567', profile_id, password=password) is True
+    with app.test_request_context('/login', method='POST'):
+        page = LoginPage()
+        assert page.clickLogin('  spaceadmin  ', password) is None
+        assert page.rendered_page.status_code == 302

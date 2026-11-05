@@ -1,0 +1,126 @@
+{% macro icon(name, size=18) -%}
+  {% set shapes = {
+    "dashboard": "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
+    "company": "M4 21V5l8-2v18 M12 9h8v12 M2 21h20 M7 8h2 M7 12h2 M7 16h2 M15 13h2 M15 17h2",
+    "projects": "M8 3H4v18h16V7h-8V3z M12 3l8 4 M8 12h8 M8 16h6",
+    "plus": "M12 5v14 M5 12h14",
+    "edit": "M15 5l4 4 M4 20l4-1L21 6a2 2 0 0 0-3-3L5 16z",
+    "search": "M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+    "trash": "M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7",
+    "logout": "M9 4H4v16h5 M13 8l4 4-4 4 M8 12h13",
+    "arrow": "M5 12h14 M14 7l5 5-5 5",
+    "chevron": "M8 5l7 7-7 7",
+    "alert": "M12 3L2 21h20z M12 9v5 M12 17v1",
+    "eye": "M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7 M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"
+  } %}
+  <svg width="{{ size }}"
+       height="{{ size }}"
+       viewBox="0 0 24 24"
+       fill="none"
+       stroke="currentColor"
+       stroke-width="1.5"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       aria-hidden="true">
+    <path d="{{ shapes.get(name, shapes.arrow) }}" />
+  </svg>
+{%- endmacro %}
+{% macro errors_summary() -%}
+  {% if error_message %}
+    <div class="message error" role="alert">
+      <strong>{{ error_message }}</strong>
+      {% if errors %}
+        <ul>
+          {% for name, messages in errors.items() %}
+            {% for message in messages %}
+              <li>
+                <a href="#{{ name }}">{{ message }}</a>
+              </li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% endif %}
+{%- endmacro %}
+{% macro field(name, label, type='text', maxlength=150, minval=none, step=none, placeholder='') -%}
+  <div class="form-group">
+    <label for="{{ name }}">{{ label }}</label>
+    <input class="form-control{{ ' invalid' if errors.get(name) else '' }}"
+           id="{{ name }}"
+           name="{{ name }}"
+           type="{{ type }}"
+           value="{{ values.get(name, '') }}"
+           placeholder="{{ placeholder }}"
+           required
+           maxlength="{{ maxlength }}"
+           {% if minval is not none %}min="{{ minval }}" {% endif %}
+           {% if step is not none %}step="{{ step }}" {% endif %}
+           aria-invalid="{{ 'true' if errors.get(name) else 'false' }}"
+           {% if errors.get(name) %}aria-describedby="{{ name }}-error" {% endif %}>
+    {% for message in errors.get(name, []) %}
+      <p id="{{ name }}-error" class="field-error">{{ message }}</p>
+    {% endfor %}
+  </div>
+{%- endmacro %}
+{% macro owner_hidden() -%}
+  {% if owner_id %}
+    <input type="hidden" name="accountId" value="{{ owner_id }}">
+  {% endif %}
+{%- endmacro %}
+{% macro linked_account(editable=false) -%}
+  {% if owner_id %}{{ owner_hidden() }}<div class="linked-account">
+    <strong>Linked account ID: {{ owner_id }}</strong>
+    <span>Connected to your workspace.</span>
+    </div>
+  {% elif editable %}
+    <div class="linked-account account-entry">
+      <label for="accountId">Linked account ID</label>
+      <input id="accountId"
+             name="accountId"
+             class="form-control"
+             maxlength="32"
+             required
+             placeholder="Enter your account ID"
+             value="{{ request.values.get('accountId', '') }}">
+      <span>Choose the account this record belongs to, or <a href="{{ ui_url('interior_designer_login') }}">sign in</a>.</span>
+      {% for message in errors.get('accountId', []) %}
+        <p class="field-error">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+{%- endmacro %}
+{% macro project_summary(project) -%}
+  <dl class="project-facts">
+    <div>
+      <dt>Project ID</dt>
+      <dd>
+        #{{ project.projectId }}
+      </dd>
+    </div>
+    <div>
+      <dt>Area</dt>
+      <dd>
+        {{ project.area }}
+      </dd>
+    </div>
+    <div>
+      <dt>Property type</dt>
+      <dd>
+        {{ project.propertyType }}
+      </dd>
+    </div>
+    <div>
+      <dt>Category ID</dt>
+      <dd>
+        {{ project.categoryId }}
+      </dd>
+    </div>
+    <div>
+      <dt>{{ 'Final' if phase == 'past' else 'Estimated' }} renovation cost</dt>
+      <dd>
+        S${{ '{:,.2f}'.format(project.renovationCost|float) }}
+      </dd>
+    </div>
+  </dl>
+{%- endmacro %}

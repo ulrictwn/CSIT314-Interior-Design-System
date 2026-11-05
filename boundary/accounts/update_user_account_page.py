@@ -1,14 +1,14 @@
 from flask import render_template, request, redirect, url_for, flash
-from boundary.base import Page
+from flask.views import MethodView
+from boundary.validation import validate_account_details, valid_account_id
 from control.accounts.update_user_account_controller import UpdateUserAccountController
 
 
-class UpdateUserAccountPage(Page):
-    permission = 'account.update'
+class UpdateUserAccountPage(MethodView):
 
     def get(self, account_id):
-        controller = UpdateUserAccountController(self.actor)
-        account = controller.getUserAccount(account_id)
+        controller = UpdateUserAccountController()
+        account = controller.getUserAccount(account_id) if valid_account_id(account_id) else None
         if account is None:
             self.error_message, self.error_reason = 'User account not found.', 'not_found'
             self.displayError()
@@ -23,7 +23,20 @@ class UpdateUserAccountPage(Page):
         return self.rendered_page
 
     def onUpdate(self, accountId: str, fullName: str, email: str, profileId: int) -> None:
-        controller = UpdateUserAccountController(self.actor)
+        if not valid_account_id(accountId):
+            self.error_message, self.error_reason = 'User account not found.', 'not_found'
+            self.displayError()
+            return
+        values, self.field_errors = validate_account_details(fullName, email, profileId)
+        if self.field_errors:
+            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
+            self.account = UpdateUserAccountController().getUserAccount(accountId)
+            if self.account is None:
+                self.error_message, self.error_reason = 'User account not found.', 'not_found'
+            self.displayError()
+            return
+        fullName, email = values['full_name'], values['email']
+        controller = UpdateUserAccountController()
         if controller.updateUserAccount(accountId, fullName, email, profileId):
             self.displaySuccess()
         else:
@@ -48,5 +61,5 @@ class UpdateUserAccountPage(Page):
             flash(self.error_message, 'error')
             self.rendered_page = render_template('accounts/form.html', account=self.account,
                 values=request.form, errors=self.field_errors,
-                profiles=UpdateUserAccountController(self.actor).activeProfiles(),
+                profiles=UpdateUserAccountController().activeProfiles(),
                 editing=True, title='Update User Accounts'), 400

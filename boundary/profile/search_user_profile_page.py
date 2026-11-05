@@ -2,32 +2,31 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from flask import render_template, request, flash
-from boundary.base import Page
+from flask.views import MethodView
+from boundary.validation import search_text
 from control.profile.search_user_profile_controller import SearchUserProfileController
-from infrastructure.errors import DomainError, AccessError
+from infrastructure.errors import DomainError
 
 if TYPE_CHECKING:
     from entity.profile.user_profile import UserProfile
 
 
-class SearchUserProfilePage(Page):
-    permission = 'profile.search'
+class SearchUserProfilePage(MethodView):
 
     def get(self):
         self.keyword = request.args.get('q', '')
         if 'q' in request.args:
             self.onSearch(self.keyword)
         else:
-            self.displayResults(SearchUserProfileController(self.actor).listUserProfiles())
+            self.displayResults(SearchUserProfileController().listUserProfiles())
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
         self.keyword = keyword
-        controller = SearchUserProfileController(self.actor)
+        controller = SearchUserProfileController()
         try:
+            keyword = search_text(keyword, required=True)
             profiles = controller.searchUserProfiles(keyword)
-        except AccessError:
-            raise
         except DomainError as error:
             flash(str(error), 'error')
             profiles = controller.listUserProfiles()

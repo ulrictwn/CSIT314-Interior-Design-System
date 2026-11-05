@@ -1,0 +1,82 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import icon, owner_hidden, linked_account, errors_summary with context %}
+{% block content %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+    <a class="button button-outline"
+       href="{{ ui_url('create_' ~ phase ~ '_project') }}">{{ icon('plus', 16) }} Create {{ phase }} project</a>
+  </header>
+  {{ errors_summary() }}
+  <section class="form-card search-card">
+    <form method="get" action="{{ ui_url(phase ~ '_projects') }}">
+      {{ owner_hidden() }}<input type="hidden" name="mode" value="{{ mode }}">
+      <label class="search-label" for="project-query">Search by project name</label>
+      <div class="search-bar">
+        <div class="search-input">
+          {{ icon('search', 17) }}<input class="form-control"
+                                         id="project-query"
+                                         name="q"
+                                         maxlength="200"
+                                         value="{{ data.get('query',request.args.get('q','')) or '' }}"
+                                         placeholder="Enter a project name">
+        </div>
+        <button class="button button-primary">Search</button>
+        <a class="button button-outline"
+           href="{{ ui_url(phase ~ '_projects',mode=mode) }}">Show all</a>
+      </div>
+    </form>
+  </section>
+  <div class="section-heading">
+    <h2>
+      {{ 'Matching projects' if data.get("query") else 'Your projects' }} <small>{{ data.get('projects', [])|length }} projects</small>
+    </h2>
+  </div>
+  {% if data.get("projects") %}
+    <div class="table-wrap project-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Area</th>
+            <th>{{ 'Final' if phase == 'past' else 'Renovation' }} cost</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in data.projects %}
+            <tr>
+              <td>
+                <a class="project-row-name"
+                   href="{{ ui_url('view_' ~ phase ~ '_project',project_id=project.projectId) }}">
+                  <span class="project-thumbnail">{{ icon('projects', 23) }}</span>
+                  <span>
+                    <strong>{{ project.projectName }}</strong>
+                    <small>{{ project.propertyType }} · #{{ project.projectId }}</small>
+                  </span>
+                </a>
+              </td>
+              <td>{{ project.area }}</td>
+              <td>S${{ '{:,.2f}'.format(project.renovationCost|float) }}</td>
+              <td>
+                <a class="button button-outline button-small"
+                   href="{{ ui_url((mode if mode in ['update','delete'] else 'view') ~ '_' ~ phase ~ '_project',project_id=project.projectId) }}">{{ mode|title if mode in ['update','delete'] else 'View' }}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="results-footer">
+        <span>{{ data.projects|length }} projects shown</span>
+        <span>{{ phase_label }} projects</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>No projects found</h2>
+      <p>{{ 'Try another project name.' if data.get("query") else 'Create a project to start building this workspace.' }}</p>
+      <a class="button button-primary"
+         href="{{ ui_url('create_' ~ phase ~ '_project') }}">Create {{ phase }} project</a>
+    </div>
+  {% endif %}
+  <div class="page-linked-account">{{ linked_account() }}</div>
+{% endblock %}

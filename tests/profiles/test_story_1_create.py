@@ -26,7 +26,6 @@ def test_TC01_create_form_checks(app, client, submit, profile_data, monkeypatch,
         html = response.get_data(as_text=True)
         assert '<h1>Create User Profiles</h1>' in html
         assert '<form method="post">' in html
-        assert 'name="csrf_token"' in html
 
     elif check_id == 'TC01.2':
         parser = FormControls()
@@ -148,16 +147,7 @@ def test_create_error_form_can_be_corrected_and_resubmitted(app, client, submit,
     assert response.status_code == 400
     controls = FormControls()
     controls.feed(response.get_data(as_text=True))
-    token = next(item['value'] for item in controls.controls if item.get('name') == 'csrf_token')
-    response = client.post('/profiles/create', data={'csrf_token': token, **profile_data})
+    response = client.post('/profiles/create', data=profile_data)
     assert response.status_code == 302
     with app.app_context():
         assert UserProfile.getProfile(profile_data['profileName']).description == profile_data['description']
-
-
-def test_create_rejects_invalid_csrf_token(app, client, profile_data):
-    assert client.get('/profiles/create').status_code == 200
-    response = client.post('/profiles/create', data={'csrf_token': 'invalid-token', **profile_data})
-    assert response.status_code == 400
-    with app.app_context():
-        assert UserProfile.listUserProfiles() == []

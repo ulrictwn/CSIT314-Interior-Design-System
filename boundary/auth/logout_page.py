@@ -1,17 +1,18 @@
-from flask import session, redirect, url_for
-from boundary.base import Page
-from control.auth.logout_controller import LogoutController
+from flask import session, flash, redirect, url_for
+from flask.views import MethodView
+from boundary.designer.presentation import wants_html
 
 
-class LogoutPage(Page):
+class LogoutPage(MethodView):
     def post(self):
         self.logout()
         return self.rendered_page
 
     def logout(self) -> None:
-        LogoutController().logout(session.get('session_token'))
         session.clear()
         self.displayLoginPage()
 
     def displayLoginPage(self) -> None:
+        if wants_html():
+            flash('You have signed out successfully.', 'success')
         self.rendered_page = redirect(url_for('login'))

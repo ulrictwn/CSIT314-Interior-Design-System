@@ -1,8 +1,9 @@
-"""Profile creation rules must hold without the boundary's form checks."""
+"""Boundary input validation and entity duplicate/persistence contracts."""
 import pytest
 from unittest.mock import Mock
 
 from control.profile.create_user_profile_controller import CreateUserProfileController
+from boundary.profile.create_user_profile_page import CreateUserProfilePage
 from entity.profile.user_profile import UserProfile
 from infrastructure.database import db
 
@@ -23,28 +24,23 @@ pytestmark = pytest.mark.story1
     ({'permissions': 'profile.view'}, 'permissions'),
     ({'permissions': [None]}, 'permissions'),
 ])
-def test_entity_rejects_invalid_input_before_database_access(app, monkeypatch, profile_data, patch, field):
-    guards = {}
-    for operation in ('execute', 'add', 'flush', 'commit', 'rollback'):
-        guard = Mock(side_effect=AssertionError('Invalid data reached the database'))
-        monkeypatch.setattr(db.session, operation, guard)
-        guards[operation] = guard
-    profile = UserProfile()
-    assert profile.createUserProfile(**{**profile_data, 'status': True, **patch}) is False
-    assert field in profile.field_errors
-    assert profile.error_message
-    for guard in guards.values():
-        guard.assert_not_called()
+def test_boundary_rejects_invalid_input_before_controller_access(app, monkeypatch, profile_data, patch, field):
+    create = Mock(side_effect=AssertionError('Invalid data reached the controller'))
+    monkeypatch.setattr(CreateUserProfileController, 'createUserProfile', create)
+    with app.test_request_context('/profiles/create', method='POST'):
+        page = CreateUserProfilePage()
+        assert page.onCreate(**{**profile_data, 'status': True, **patch}) is None
+        assert field in page.field_errors
+        assert page.rendered_page[1] == 400
+    create.assert_not_called()
 
 
 @pytest.mark.parametrize('status, stored_status', [(True, 'Active'), (False, 'Suspended')])
-def test_entity_saves_boolean_status_trimmed_fields_and_unique_permissions(app, profile_data, status, stored_status):
+def test_boundary_trims_fields_and_permissions_before_entity_saves(app, submit, status, stored_status):
+    response = submit('/profiles/create', dict(profileName='  Customer  ', description='  Customer role  ',
+        status=stored_status, permissions=['profile.view', 'profile.view', 'profile.search']))
+    assert response.status_code == 302
     with app.app_context():
-        profile = UserProfile()
-        assert profile.createUserProfile(
-            '  Customer  ', '  Customer role  ', status,
-            ['profile.view', 'profile.view', 'profile.search']) is True
-        db.session.expire_all()
         saved = UserProfile.getProfile('customer')
         assert (saved.name, saved.description, saved.status) == ('Customer', 'Customer role', stored_status)
         assert saved.permissions == ['profile.view', 'profile.search']
@@ -66,12 +62,9 @@ def test_entity_rejects_duplicates_and_keeps_session_usable(app, seed, monkeypat
 
 
 def test_controller_relays_boolean_result_and_entity_errors(app, profile_data):
-    class Actor:
-        def has_permission(self, permission):
-            return permission == 'profile.create'
 
     with app.app_context():
-        controller = CreateUserProfileController(Actor())
+        controller = CreateUserProfileController()
         assert controller.createUserProfile(**{**profile_data, 'status': True}) is True
         assert controller.userProfileExists('customer') is True
         assert controller.createUserProfile(**{**profile_data, 'status': True}) is False
@@ -79,7 +72,7 @@ def test_controller_relays_boolean_result_and_entity_errors(app, profile_data):
         assert 'profileName' in controller.field_errors
 
 
-def test_web_invalid_input_reaches_entity_and_redisplays_values(app, submit, monkeypatch, profile_data):
+def test_web_invalid_input_stops_at_boundary_and_redisplays_values(app, submit, monkeypatch, profile_data):
     received = []
     create = UserProfile.createUserProfile
 
@@ -91,7 +84,7 @@ def test_web_invalid_input_reaches_entity_and_redisplays_values(app, submit, mon
     response = submit('/profiles/create', {
         **profile_data, 'profileName': '', 'status': 'Unknown', 'permissions': ['profile.destroy']})
     assert response.status_code == 400
-    assert received == [('', None, ['profile.destroy'])]
+    assert received == []
     html = response.get_data(as_text=True)
     assert 'Profile name is required.' in html
     assert 'Choose Active or Suspended.' in html

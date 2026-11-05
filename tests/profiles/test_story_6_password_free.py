@@ -10,7 +10,7 @@ def test_TC77_create_form_has_details_and_no_password_fields(admin_client):
     response = admin_client.get('/accounts/create')
     html = response.get_data(as_text=True)
     assert response.status_code == 200
-    for name in ('username', 'full_name', 'email', 'phone_number', 'profile_id', 'csrf_token'):
+    for name in ('username', 'full_name', 'email', 'phone_number', 'profile_id'):
         assert f'name="{name}"' in html
     assert 'name="password"' not in html
     assert 'name="confirm_password"' not in html
@@ -25,7 +25,9 @@ def test_TC78_password_free_admin_cannot_sign_in_until_password_is_set(app, crea
     client, response = sign_in('newadmin')
     assert response.status_code == 400
     assert 'Invalid login details' in response.get_data(as_text=True)
-    assert client.get('/dashboard').status_code == 403
+    assert client.get('/dashboard').status_code == 200
+    with client.session_transaction() as browser:
+        assert 'account_id' not in browser
 
 
 def test_TC79_submitted_password_fields_cannot_set_credentials(app, admin_client, submit):
@@ -40,16 +42,15 @@ def test_TC79_submitted_password_fields_cannot_set_credentials(app, admin_client
         assert not UserAccount().login('newadmin', 'Injected-Password-123')
 
 
-def test_TC80_admin_without_password_cannot_replace_last_usable_admin(app, create_account, submit):
+def test_TC80_password_free_accounts_do_not_prevent_demo_role_changes(app, create_account, submit):
     create_account('newadmin', 'User Admin')
     with app.app_context():
         profile_id = UserProfile.getProfile('Customer').profile_id
     response = submit('/accounts/101/update', dict(full_name='Original Admin',
         email='admin@example.com', profile_id=profile_id))
-    assert response.status_code == 400
-    assert 'Keep at least one active User Admin' in response.get_data(as_text=True)
+    assert response.status_code == 302
     with app.app_context():
-        assert UserAccount.getByUsername('admin').is_admin
+        assert UserAccount.getByUsername('admin').profile_id == profile_id
 
 
 def test_TC81_setting_password_enables_login_and_provides_another_usable_admin(
@@ -65,5 +66,5 @@ def test_TC81_setting_password_enables_login_and_provides_another_usable_admin(
     response = submit('/accounts/101/update', dict(full_name='Original Admin',
         email='admin@example.com', profile_id=profile_id))
     assert response.status_code == 302
-    assert admin_client.get('/dashboard').status_code == 403
+    assert admin_client.get('/dashboard').status_code == 200
     assert other.get('/dashboard').status_code == 200

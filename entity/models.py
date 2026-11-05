@@ -1,6 +1,7 @@
 from entity.profile.user_profile import UserProfile
 from entity.accounts.user_account import UserAccount, AccountIdCounter
-from entity.auth.login_session import LoginSession
-from entity.auth.login_attempt import LoginAttempt
 
-__all__ = ['UserProfile', 'UserAccount', 'AccountIdCounter', 'LoginSession', 'LoginAttempt']
+from entity.company.company_profile import CompanyProfile
+from entity.projects.interior_design_project import InteriorDesignProject
+
+__all__ = ['UserProfile', 'UserAccount', 'AccountIdCounter', 'CompanyProfile', 'InteriorDesignProject']

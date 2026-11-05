@@ -28,8 +28,9 @@ def test_TC32_cancel_is_navigation_and_does_not_update(app,admin_client,create_a
     admin_client.get('/accounts')
     with app.app_context():assert UserAccount.getUserAccount(account_id).full_name=='Name customer1'
 
-def test_TC33_last_admin_cannot_be_reassigned(app,admin_client,submit):
+def test_TC33_demo_allows_reassigning_admin_profile(app,admin_client,submit):
     with app.app_context():pid=UserProfile.getProfile('Customer').profile_id
     response=submit('/accounts/101/update',dict(full_name='Admin',email='admin@example.com',profile_id=pid))
-    assert response.status_code==400
-    assert 'Keep at least one active User Admin' in response.get_data(as_text=True)
+    assert response.status_code==302
+    with app.app_context():
+        assert UserAccount.getUserAccount('101').profile_id == pid

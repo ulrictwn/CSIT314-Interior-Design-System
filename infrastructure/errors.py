@@ -4,7 +4,3 @@ class DomainError(ValueError):
 
 class NotFoundError(DomainError):
     pass
-
-
-class AccessError(DomainError):
-    pass

@@ -1,12 +1,12 @@
 # Create User Account without password entry
 
-The Create screen collects username, full name, email, phone number and assigned profile. Account story code is grouped under `boundary/accounts/`, `control/accounts/`, and `entity/accounts/`. The boundary reads HTML input directly, the controller relays the request, and the entity validates and stores it. Password and Confirm Password have been removed from the form, HTML and boundary/controller creation arguments. The assigned profile remains because it defines the role, permissions and numeric account-ID prefix.
+The Create screen collects username, full name, email, phone number and assigned profile. Account code is grouped under the `accounts/` packages in boundary, control, and entity. Input cleanup and field validation belong to `boundary/validation.py` and are called by the boundary before the controller. Duplicate checks and persistence belong to `entity/accounts/user_account.py`.
 
 ## Apply the matching files together
 
 Stop Flask with Ctrl+C. Review any local/team edits, then copy these application files from this package into the existing project folders:
 
-- The complete `boundary/accounts/`, `control/accounts/`, and `entity/accounts/` packages, including `__init__.py` and entity validation helpers.
+- The complete `boundary/accounts/`, `control/accounts/`, and `entity/accounts/` packages, including `__init__.py` and the shared boundary validation helpers.
 - `boundary/routes.py`, `boundary/dashboard_page.py`, and the plain HTML account forms under `templates/accounts/`.
 - `control/auth/auth_controller.py`, `entity/models.py`, and `entity/profile/user_profile.py` for updated account imports.
 - `infrastructure/auth.py` and `infrastructure/commands.py`.
@@ -38,7 +38,7 @@ Creating an account saves its details and an Active status. It does not set a us
 .venv/bin/python -m flask --app app reset-password --username newadmin
 ```
 
-Replace `newadmin` with the created username. Enter and confirm a private password of 12–128 characters. Password input is hidden. This command also invalidates earlier sessions for that account. The initial `bootstrap-admin` command still asks for a password so the first administrator can sign in immediately.
+Replace `newadmin` with the created username. Enter and confirm a private password of 12–128 characters. Password input is hidden. The initial `bootstrap-admin` command still asks for a password so the first administrator can sign in immediately.
 
 Customer/Designer/Platform Management login remains outside these twelve user stories, as before. Setting their password does not grant access to the User Admin portal.
 

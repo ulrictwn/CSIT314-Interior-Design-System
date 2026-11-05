@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from flask import render_template, request, flash
-from boundary.base import Page
+from flask.views import MethodView
+from boundary.validation import search_text
 from control.accounts.search_user_account_controller import SearchUserAccountController
-from infrastructure.errors import DomainError, AccessError
+from infrastructure.errors import DomainError
 
 if TYPE_CHECKING:
     from entity.accounts.user_account import UserAccount
 
 
-class SearchUserAccountPage(Page):
-    permission = 'account.search'
+class SearchUserAccountPage(MethodView):
 
     def get(self):
         self.onSearch(request.args.get('q', ''))
@@ -20,9 +20,8 @@ class SearchUserAccountPage(Page):
     def onSearch(self, keyword: str) -> None:
         self.keyword = keyword
         try:
-            accounts = SearchUserAccountController(self.actor).searchUserAccounts(keyword)
-        except AccessError:
-            raise
+            keyword = search_text(keyword, required=False)
+            accounts = SearchUserAccountController().searchUserAccounts(keyword)
         except DomainError as error:
             flash(str(error), 'error')
             accounts = []

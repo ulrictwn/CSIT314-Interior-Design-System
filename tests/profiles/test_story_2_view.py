@@ -4,7 +4,6 @@ from unittest.mock import Mock
 from boundary.profile.view_user_profile_page import ViewUserProfilePage
 from control.profile.view_user_profile_controller import ViewUserProfileController
 from infrastructure.database import db
-from infrastructure.errors import AccessError
 from entity.profile.user_profile import UserProfile
 
 pytestmark = pytest.mark.story2
@@ -39,14 +38,6 @@ def test_TC11_profiles_have_predictable_name_order(app, seed):
         assert [profile.name for profile in UserProfile.listUserProfiles()] == ['Alpha', 'Zebra']
 
 
-class Actor:
-    def __init__(self, permissions):
-        self.permissions = set(permissions)
-
-    def has_permission(self, permission):
-        return permission in self.permissions
-
-
 def test_sidebar_uses_search_for_profiles_and_accounts(admin_client):
     response = admin_client.get('/profiles/search')
     assert response.status_code == 200
@@ -72,33 +63,14 @@ def test_search_view_button_opens_profile_details_and_links_back(client, seed):
     assert 'href="/profiles/search">Back to search</a>' in html
 
 
-def test_view_only_actor_can_read_details_without_search_access(app, client, seed):
-    profile_id = seed()
-    app.config['PROFILE_ACTOR_LOADER'] = lambda: Actor(['profile.view'])
-    response = client.get(f'/profiles/{profile_id}')
-    assert response.status_code == 200
-    html = response.get_data(as_text=True)
-    assert 'Back to profiles' in html
-    assert 'Back to search' not in html
-    assert client.get('/profiles/search').status_code == 403
-
-
-def test_search_permission_does_not_grant_profile_view(app, client, seed):
-    profile_id = seed()
-    app.config['PROFILE_ACTOR_LOADER'] = lambda: Actor(['profile.search'])
-    response = client.get('/profiles/search')
-    assert response.status_code == 200
-    assert f'href="/profiles/{profile_id}"' not in response.get_data(as_text=True)
-    assert client.get(f'/profiles/{profile_id}').status_code == 403
-    with pytest.raises(AccessError):
-        ViewUserProfileController(Actor(['profile.search'])).getUserProfile(profile_id)
-
-
 @pytest.mark.parametrize('profile_id', [None, True, False, 0, -1, '1', 1.5, 2_147_483_648])
-def test_entity_rejects_invalid_profile_id_without_querying(monkeypatch, profile_id):
-    lookup = Mock(side_effect=AssertionError('Invalid profile ID reached the database'))
-    monkeypatch.setattr(db.session, 'get', lookup)
-    assert UserProfile.getUserProfile(profile_id) is None
+def test_boundary_rejects_invalid_profile_id_without_querying(app, monkeypatch, profile_id):
+    lookup = Mock(side_effect=AssertionError('Invalid profile ID reached the controller'))
+    monkeypatch.setattr(ViewUserProfileController, 'getUserProfile', lookup)
+    with app.test_request_context('/profiles/invalid'):
+        page = ViewUserProfilePage()
+        assert page.onView(profile_id) is None
+        assert page.rendered_page[1] == 404
     lookup.assert_not_called()
 
 
@@ -107,7 +79,6 @@ def test_on_view_returns_void_and_prepares_the_http_response(app, seed, exists):
     profile_id = seed('Review role', description='Role details')
     requested_id = profile_id if exists else profile_id + 1
     with app.test_request_context(f'/profiles/{requested_id}'):
-        g.profile_actor = Actor(['profile.view'])
         page = ViewUserProfilePage()
         assert page.onView(requested_id) is None
         if exists:

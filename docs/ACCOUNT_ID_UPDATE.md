@@ -44,7 +44,7 @@ Create an account through the normal account form. Run the combined tests with:
 
 ## Existing IDs and sequence behavior
 
-- Existing accounts retain their IDs, including IDs such as `UA101` and `CU101`. This keeps stored references and sessions valid. Future accounts use the numeric format.
+- Existing accounts retain their IDs, including IDs such as `UA101` and `CU101`. This preserves stored references. Future accounts use the numeric format.
 - On the first allocation in an existing installation, the shared number starts at the existing account count plus one. For example, one existing account means the next number is `02`. Subsequent allocations use the saved counter, even when the account's profile differs.
 - A successful bootstrap administrator creation also consumes a number. Re-running bootstrap is not needed to enable this update.
 - The suffix is at least two digits. It expands after `99`; profile 2 with number 100 gets `2100`. Existing complete IDs are skipped if concatenation would duplicate them.

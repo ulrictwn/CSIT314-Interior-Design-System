@@ -1,4 +1,4 @@
-"""Account BCE contracts, direct entity validation, and HTML form regressions."""
+"""Account BCE contracts, boundary input validation, and HTML form regressions."""
 from html.parser import HTMLParser
 from unittest.mock import Mock
 
@@ -18,15 +18,7 @@ from control.accounts.search_user_account_controller import SearchUserAccountCon
 from entity.accounts.user_account import UserAccount, AccountIdCounter
 from entity.profile.user_profile import UserProfile
 from infrastructure.database import db
-from infrastructure.errors import AccessError, DomainError
-
-
-class Actor:
-    def __init__(self, permissions=()):
-        self.permissions = set(permissions)
-
-    def has_permission(self, permission):
-        return permission in self.permissions
+from infrastructure.errors import DomainError
 
 
 class Controls(HTMLParser):
@@ -78,23 +70,31 @@ def forbid_database(monkeypatch):
     ({'profileId': 0}, 'profile_id'), ({'profileId': '1'}, 'profile_id'),
     ({'profileId': 2_147_483_648}, 'profile_id'), ({'password': 'short'}, 'password'),
 ])
-def test_create_entity_validates_before_database_access(monkeypatch, account_data, patch, field):
-    forbid_database(monkeypatch)
-    account = UserAccount()
-    assert account.createUserAccount(**{**account_data, **patch}) is False
-    assert field in account.field_errors
-    assert account.error_message
+def test_create_boundary_validates_before_controller_access(app, monkeypatch, account_data, patch, field):
+    from boundary.validation import password_value
+    create = Mock(side_effect=AssertionError('Invalid account data reached the controller'))
+    monkeypatch.setattr(CreateUserAccountController, 'createUserAccount', create)
+    monkeypatch.setattr(CreateUserAccountController, 'activeProfiles', lambda self: [])
+    if 'password' in patch:
+        # Password entry is currently a trusted CLI boundary, rather than a web field.
+        with pytest.raises(DomainError):
+            password_value(patch['password'])
+    else:
+        with app.test_request_context('/accounts/create', method='POST'):
+            page = CreateUserAccountPage()
+            assert page.clickCreate(**{**account_data, **patch}) is None
+            assert field in page.field_errors
+            assert page.rendered_page[1] == 400
+    create.assert_not_called()
 
 
 @pytest.mark.story6
-def test_create_entity_normalizes_and_saves_without_password(app, seed, account_data):
+def test_create_boundary_normalizes_and_entity_saves_without_password(app, seed, submit):
     profile_id = seed('Customer')
+    response = submit('/accounts/create', dict(username='  customer1  ', full_name='  Customer One  ',
+        email=' CUSTOMER@EXAMPLE.COM ', phone_number=' +65 6123 4567 ', profile_id=profile_id))
+    assert response.status_code == 302
     with app.app_context():
-        account = UserAccount()
-        assert account.createUserAccount(**{**account_data, 'username': '  customer1  ',
-            'fullName': '  Customer One  ', 'email': ' CUSTOMER@EXAMPLE.COM ',
-            'phoneNumber': ' +65 6123 4567 ', 'profileId': profile_id}) is True
-        db.session.expire_all()
         saved = UserAccount.getByUsername('customer1')
         assert (saved.full_name, saved.email, saved.phone_number) == (
             'Customer One', 'customer@example.com', '+65 6123 4567')
@@ -145,9 +145,14 @@ def test_entity_rejects_inactive_profile_without_allocating_id(app, seed, accoun
 
 @pytest.mark.story7
 @pytest.mark.parametrize('account_id', [None, True, 42, '', '   ', 'x' * 33])
-def test_get_entity_validates_account_id_before_lookup(monkeypatch, account_id):
-    forbid_database(monkeypatch)
-    assert UserAccount.getUserAccount(account_id) is None
+def test_view_boundary_validates_account_id_before_lookup(app, monkeypatch, account_id):
+    lookup = Mock(side_effect=AssertionError('Invalid account ID reached the controller'))
+    monkeypatch.setattr(ViewUserAccountController, 'getUserAccount', lookup)
+    with app.test_request_context('/accounts/invalid'):
+        page = ViewUserAccountPage()
+        assert page.onView(account_id) is None
+        assert page.rendered_page[1] == 404
+    lookup.assert_not_called()
 
 
 @pytest.mark.story8
@@ -156,45 +161,37 @@ def test_get_entity_validates_account_id_before_lookup(monkeypatch, account_id):
     {'fullName': ''}, {'fullName': 'x' * 121}, {'email': None}, {'email': 'invalid'},
     {'profileId': None}, {'profileId': True}, {'profileId': '1'},
 ])
-def test_update_entity_validates_before_database_access(monkeypatch, patch):
-    forbid_database(monkeypatch)
+def test_update_boundary_validates_before_controller_access(app, monkeypatch, patch):
+    from types import SimpleNamespace
+    update = Mock(side_effect=AssertionError('Invalid account update reached the controller'))
+    monkeypatch.setattr(UpdateUserAccountController, 'updateUserAccount', update)
+    monkeypatch.setattr(UpdateUserAccountController, 'getUserAccount',
+        lambda self, account_id: SimpleNamespace(account_id='101', username='original', phone_number='+65 6123 4567'))
+    monkeypatch.setattr(UpdateUserAccountController, 'activeProfiles', lambda self: [])
     data = dict(accountId='101', fullName='Updated Name', email='updated@example.com', profileId=1)
-    operation = UserAccount()
-    assert operation.updateUserAccount(**{**data, **patch}) is False
-    assert operation.error_message
+    with app.test_request_context('/accounts/101/update', method='POST'):
+        page = UpdateUserAccountPage()
+        assert page.onUpdate(**{**data, **patch}) is None
+        assert page.error_message
+        assert page.rendered_page[1] in (400, 404)
+    update.assert_not_called()
 
 
 @pytest.mark.story8
-def test_update_entity_normalizes_and_preserves_immutable_values(app, saved_account):
+def test_update_boundary_normalizes_and_entity_preserves_immutable_values(app, saved_account, submit):
     account_id, profile_id = saved_account
     with app.app_context():
         account = UserAccount.getUserAccount(account_id)
         before = (account.account_id, account.username, account.password_hash,
                   account.status, account.phone_number, account.auth_version)
-        assert UserAccount().updateUserAccount(account_id, '  Changed Name  ',
-                                               ' CHANGED@EXAMPLE.COM ', profile_id) is True
-        db.session.expire_all()
+    response = submit(f'/accounts/{account_id}/update', dict(full_name='  Changed Name  ',
+        email=' CHANGED@EXAMPLE.COM ', profile_id=profile_id))
+    assert response.status_code == 302
+    with app.app_context():
         account = UserAccount.getUserAccount(account_id)
         assert (account.full_name, account.email) == ('Changed Name', 'changed@example.com')
         assert (account.account_id, account.username, account.password_hash,
                 account.status, account.phone_number, account.auth_version) == before
-
-
-@pytest.mark.security
-@pytest.mark.parametrize('action', ['update', 'suspend'])
-def test_entity_alone_protects_the_last_usable_admin(app, admin_client, action):
-    with app.app_context():
-        original = UserAccount.getUserAccount('101')
-        profile_id, version = original.profile_id, original.auth_version
-        operation = UserAccount()
-        if action == 'update':
-            target_id = UserProfile.getProfile('Customer').profile_id
-            assert operation.updateUserAccount('101', 'Admin', 'admin@example.com', target_id) is False
-        else:
-            assert operation.suspendUserAccount('101') is False
-        assert 'Keep at least one active User Admin' in operation.error_message
-        saved = UserAccount.getUserAccount('101')
-        assert (saved.profile_id, saved.status, saved.auth_version) == (profile_id, 'Active', version)
 
 
 @pytest.mark.story9
@@ -207,45 +204,30 @@ def test_suspend_entity_returns_boolean_preserves_data_and_rejects_repeat(app, s
         assert UserAccount().suspendUserAccount(account_id) is True
         db.session.expire_all()
         account = UserAccount.getUserAccount(account_id)
-        assert account.status == 'Suspended' and account.auth_version == version + 1
+        assert account.status == 'Suspended' and account.auth_version == version
         assert (account.username, account.full_name, account.email, account.phone_number, account.password_hash) == before
         operation = UserAccount()
         assert operation.suspendUserAccount(account_id) is False
         assert operation.error_message == 'This account is already suspended'
-        assert UserAccount.getUserAccount(account_id).auth_version == version + 1
+        assert UserAccount.getUserAccount(account_id).auth_version == version
 
 
 @pytest.mark.story10
 @pytest.mark.parametrize('keyword', [None, 42, 'x' * 201])
-def test_search_entity_validates_before_querying(monkeypatch, keyword):
-    forbid_database(monkeypatch)
-    with pytest.raises(DomainError):
-        UserAccount.searchUserAccounts(keyword)
-
-
-@pytest.mark.security
-@pytest.mark.parametrize('controller_type, method, args', [
-    (CreateUserAccountController, 'activeProfiles', ()),
-    (CreateUserAccountController, 'userAccountExists', ('customer',)),
-    (CreateUserAccountController, 'createUserAccount', ('customer', 'Name', 'a@example.com', '+65 6123 4567', 1)),
-    (ViewUserAccountController, 'getUserAccount', ('101',)),
-    (UpdateUserAccountController, 'getUserAccount', ('101',)),
-    (UpdateUserAccountController, 'activeProfiles', ()),
-    (UpdateUserAccountController, 'updateUserAccount', ('101', 'Name', 'a@example.com', 1)),
-    (SuspendUserAccountController, 'getUserAccount', ('101',)),
-    (SuspendUserAccountController, 'suspendUserAccount', ('101',)),
-    (SearchUserAccountController, 'searchUserAccounts', ('customer',)),
-])
-def test_account_controller_authorization(controller_type, method, args):
-    with pytest.raises(AccessError):
-        getattr(controller_type(Actor()), method)(*args)
+def test_search_boundary_validates_before_querying(app, monkeypatch, keyword):
+    lookup = Mock(side_effect=AssertionError('Invalid search reached the controller'))
+    monkeypatch.setattr(SearchUserAccountController, 'searchUserAccounts', lookup)
+    with app.test_request_context('/accounts/search'):
+        page = SearchUserAccountPage()
+        assert page.onSearch(keyword) is None
+        assert 'Search text' in page.rendered_page
+    lookup.assert_not_called()
 
 
 @pytest.mark.parametrize('action', ['create', 'view', 'update', 'suspend', 'search'])
 def test_boundary_event_methods_return_void(app, saved_account, action):
     account_id, profile_id = saved_account
     with app.test_request_context('/accounts'):
-        g.profile_actor = Actor(['account.' + action])
         if action == 'create':
             page = CreateUserAccountPage()
             assert page.clickCreate('second', 'Second User', 'second@example.com', '+65 6123 4567', profile_id) is None
@@ -269,9 +251,8 @@ def test_boundary_event_methods_return_void(app, saved_account, action):
 
 
 @pytest.mark.story6
-def test_create_html_errors_reach_entity_and_keep_escaped_values(app, client, submit, seed, monkeypatch):
+def test_create_html_errors_stop_at_boundary_and_keep_escaped_values(app, client, submit, seed, monkeypatch):
     profile_id = seed('Customer')
-    app.config['PROFILE_ACTOR_LOADER'] = lambda: Actor(['account.create'])
     received = []
     create = UserAccount.createUserAccount
 
@@ -284,7 +265,7 @@ def test_create_html_errors_reach_entity_and_keep_escaped_values(app, client, su
     response = submit('/accounts/create', dict(username='customer1', full_name=full_name,
         email='invalid-email', phone_number='+65 6123 4567', profile_id=profile_id))
     assert response.status_code == 400
-    assert received == [('customer1', full_name, 'invalid-email', profile_id)]
+    assert received == []
     html = response.get_data(as_text=True)
     controls = Controls(html)
     assert controls.value('full_name') == full_name
@@ -300,7 +281,6 @@ def test_create_html_errors_reach_entity_and_keep_escaped_values(app, client, su
 def test_update_html_loads_saved_values_and_keeps_failed_edits(app, client, saved_account, submit, seed):
     account_id, profile_id = saved_account
     designer_id = seed('Designer')
-    app.config['PROFILE_ACTOR_LOADER'] = lambda: Actor(['account.update'])
     response = client.get(f'/accounts/{account_id}/update')
     assert response.status_code == 200
     controls = Controls(response.get_data(as_text=True))
@@ -316,19 +296,3 @@ def test_update_html_loads_saved_values_and_keeps_failed_edits(app, client, save
     with app.app_context():
         account = UserAccount.getUserAccount(account_id)
         assert account.full_name == 'Customer One' and account.profile_id == profile_id
-
-
-@pytest.mark.security
-@pytest.mark.parametrize('action', ['create', 'update', 'suspend'])
-def test_plain_account_forms_reject_forged_csrf(app, client, saved_account, action):
-    account_id, profile_id = saved_account
-    app.config['PROFILE_ACTOR_LOADER'] = lambda: Actor(['account.' + action])
-    path = '/accounts/create' if action == 'create' else f'/accounts/{account_id}/{action}'
-    assert client.get(path).status_code == 200
-    response = client.post(path, data=dict(csrf_token='forged', username='second',
-        full_name='Changed', email='second@example.com', phone_number='+65 6123 4567', profile_id=profile_id))
-    assert response.status_code == 400
-    with app.app_context():
-        account = UserAccount.getUserAccount(account_id)
-        assert account.status == 'Active' and account.full_name == 'Customer One'
-        assert len(UserAccount.searchUserAccounts()) == 1

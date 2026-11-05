@@ -19,7 +19,6 @@
   </ul></div>
   {% endif %}
   <form method="post">
-    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
     <div class="form-group">
       <label for="profileName">Profile Name</label>
       <input id="profileName" name="profileName" type="text" class="form-control{{ ' invalid' if errors.get('profileName') else '' }}"
@@ -35,16 +34,6 @@
       {{ field_errors('description') }}
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label for="status">Status</label>
-        <select id="status" name="status" class="form-control{{ ' invalid' if errors.get('status') else '' }}" required
-                aria-invalid="{{ 'true' if errors.get('status') else 'false' }}">
-          <option value="">Select status</option>
-          <option value="Active" {% if values.get('status') == 'Active' %}selected{% endif %}>Active</option>
-          <option value="Suspended" {% if values.get('status') == 'Suspended' %}selected{% endif %}>Suspended</option>
-        </select>
-        {{ field_errors('status') }}
-      </div>
       <fieldset class="form-group permissions-group">
         <legend>Permissions</legend>
         <details class="permissions-dropdown" {% if errors.get('permissions') %}open{% endif %}>
@@ -58,7 +47,7 @@
           </ul>
         </details>
         {{ field_errors('permissions') }}
-        <p class="field-help">Select any supported actions. No selection means no feature access.</p>
+        <p class="field-help">Select any actions associated with this profile.</p>
       </fieldset>
     </div>
     <div class="form-actions">

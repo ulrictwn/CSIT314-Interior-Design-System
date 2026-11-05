@@ -15,7 +15,7 @@ def main():
     for filename in ('tests.xml', 'test-results.html', 'summary.md', 'coverage.xml'):
         (reports / filename).unlink(missing_ok=True)
     shutil.rmtree(reports / 'coverage', ignore_errors=True)
-    command = [sys.executable, '-m', 'pytest', 'tests/profiles', '-vv',
+    command = [sys.executable, '-m', 'pytest', 'tests', '-vv',
         '--cov=boundary', '--cov=control', '--cov=entity', '--cov=infrastructure', '--cov=app',
         '--cov-report=term-missing', '--cov-report=xml:reports/coverage.xml',
         '--cov-report=html:reports/coverage', '--junitxml=reports/tests.xml',

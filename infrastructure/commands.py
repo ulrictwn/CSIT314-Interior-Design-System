@@ -1,22 +1,18 @@
 import click
-from datetime import timedelta
 from sqlalchemy import inspect
 from infrastructure.database import db
 from infrastructure.migrations import upgrade_database
 from infrastructure.permissions import DEFAULT_PROFILES, ADMIN_PERMISSIONS
 from infrastructure.errors import DomainError
-from infrastructure.time import utcnow
 from entity.profile.user_profile import UserProfile
-from entity.accounts.user_account import UserAccount, username_value, password_value, email_address
-from entity.auth.login_attempt import LoginAttempt
-from entity.auth.login_session import LoginSession
-from control.base import required
+from entity.accounts.user_account import UserAccount
+from boundary.validation import username_value, password_value, email_address, required_text as required
 
 
 def register_commands(app):
     @app.cli.command('upgrade-db')
     def upgrade_db():
-        """Preserve the profile table and create the new account/authentication tables."""
+        """Preserve existing data and create the profile/account tables."""
         try:
             upgrade_database()
         except RuntimeError as error:
@@ -66,15 +62,7 @@ def register_commands(app):
             if account is None:
                 raise DomainError('User account not found.')
             account.set_password(password)
-            account.auth_version += 1
             db.session.commit()
         except DomainError as error:
             raise click.ClickException(str(error)) from error
-        click.echo('Password changed; previous sessions invalidated.')
-
-    @app.cli.command('prune-auth-records')
-    def prune_auth_records():
-        db.session.execute(db.delete(LoginAttempt).where(LoginAttempt.created_at < utcnow() - timedelta(minutes=15)))
-        db.session.execute(db.delete(LoginSession).where(LoginSession.expires_at <= utcnow()))
-        db.session.commit()
-        click.echo('Expired authentication records removed.')
+        click.echo('Password changed.')

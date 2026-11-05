@@ -34,7 +34,6 @@
   </ul></div>
   {% endif %}
   <form method="post">
-    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
     {% if not editing %}{{ input_field('username', 80, placeholder='e.g. customer1') }}{% endif %}
     {{ input_field('full_name', 120) }}
     {{ input_field('email', 254, input_type='email') }}

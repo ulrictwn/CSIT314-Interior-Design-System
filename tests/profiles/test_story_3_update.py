@@ -29,7 +29,7 @@ def test_TC14_duplicate_update_preserves_original_record(seed, submit, snapshot,
     assert snapshot(profile_id) == before
 
 
-@pytest.mark.parametrize('field', ['profileName', 'description', 'status'])
+@pytest.mark.parametrize('field', ['profileName', 'description'])
 def test_TC15_invalid_update_preserves_original_record(seed, submit, snapshot, profile_data, field):
     profile_id = seed()
     before = snapshot(profile_id)
@@ -39,3 +39,11 @@ def test_TC15_invalid_update_preserves_original_record(seed, submit, snapshot, p
 
 def test_TC16_update_missing_profile_returns_404(client):
     assert client.get('/profiles/999999/update').status_code == 404
+
+
+def test_update_preserves_status_and_has_no_status_input(client, seed, submit, snapshot, profile_data):
+    profile_id = seed(status='Suspended')
+    html = client.get(f'/profiles/{profile_id}/update').get_data(as_text=True)
+    assert 'name="status"' not in html
+    assert submit(f'/profiles/{profile_id}/update', {**profile_data, 'status': 'Active'}).status_code == 302
+    assert snapshot(profile_id)['status'] == 'Suspended'
