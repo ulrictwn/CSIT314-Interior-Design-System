@@ -35,7 +35,17 @@
           {% endfor %}
         </div>
       </div>
-      <div class="form-row">{{ field('renovationCost',('Final' if phase == 'past' else 'Estimated') ~ ' renovation cost (SGD)',type='number',minval=0,step='any',placeholder='65000') }}{{ field('categoryId','Category ID',type='number',minval=1,step=1,placeholder='1') }}</div>
+      <div class="form-row">
+        {{ field('renovationCost',('Final' if phase == 'past' else 'Estimated') ~ ' renovation cost (SGD)',type='number',minval=0,step='any',placeholder='65000') }}
+        <div class="form-group"><label for="categoryId">Category</label>
+          <select class="form-control{{ ' invalid' if errors.get('categoryId') else '' }}" id="categoryId" name="categoryId" required>
+            <option value="">Choose a category</option>
+            {% for category in categories %}<option value="{{ category.category_id }}" {% if values.get('categoryId','')|string == category.category_id|string %}selected{% endif %}>{{ category.category_name }} · CAT{{ category.category_id }}</option>{% endfor %}
+          </select>
+          {% for message in errors.get('categoryId',[]) %}<p class="field-error">{{ message }}</p>{% endfor %}
+          {% if not categories %}<p class="field-help">No categories yet. <a href="{{ ui_url('create_category') }}">Create a category</a> before adding a project.</p>{% endif %}
+        </div>
+      </div>
       <div class="form-group">
         <label for="description">Project description</label>
         <textarea id="description"
@@ -50,7 +60,7 @@
       </div>
       {{ linked_account(true) }}
       <div class="form-actions">
-        <button class="button button-primary" type="submit">{{ 'Save changes' if editing else ('Add to portfolio' if phase == 'past' else 'Create project') }}</button>
+        <button class="button button-primary" type="submit" {% if not categories %}disabled{% endif %}>{{ 'Save changes' if editing else ('Add to portfolio' if phase == 'past' else 'Create project') }}</button>
         <a class="button button-secondary"
            href="{{ ui_url('view_' ~ phase ~ '_project', project_id=data.project.projectId) if editing and data.get('project') else ui_url(phase ~ '_projects',mode='view') }}">Cancel</a>
       </div>

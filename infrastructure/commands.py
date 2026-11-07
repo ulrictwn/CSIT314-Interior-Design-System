@@ -12,7 +12,7 @@ from boundary.validation import username_value, password_value, email_address, r
 def register_commands(app):
     @app.cli.command('upgrade-db')
     def upgrade_db():
-        """Preserve existing data and create the profile/account tables."""
+        """Preserve existing data and upgrade all Stories 1–48 tables."""
         try:
             upgrade_database()
         except RuntimeError as error:

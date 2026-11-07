@@ -3,12 +3,13 @@ from flask.views import MethodView
 from boundary.validation import validate_login_credentials
 from control.auth.login_controller import LoginController
 from infrastructure.errors import DomainError
+from infrastructure.navigation import dashboard_endpoint
 
 
 class LoginPage(MethodView):
     def get(self):
         if g.current_user:
-            return redirect(url_for('designer_dashboard' if g.current_user.profile.name.casefold() == 'interior designer' else 'dashboard'))
+            return redirect(url_for(dashboard_endpoint(g.current_user)))
         return render_template('auth/login.html', values={}, errors={}, login_role='admin', title='User Admin Login')
 
     def post(self):

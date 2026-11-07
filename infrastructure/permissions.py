@@ -1,4 +1,4 @@
-"""Permission values stored by profiles. Only stories 1–12 are implemented here."""
+"""Permission values stored by profiles for the Stories 1–48 classroom demonstration."""
 
 PERMISSION_OPTIONS = {
     'profile.create': 'Create user profiles',

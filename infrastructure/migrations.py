@@ -39,3 +39,50 @@ def upgrade_database():
     # create_all intentionally skips indexes for an already-existing table.
     with db.engine.begin() as connection:
         connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_profile_name_lower ON user_profile (LOWER(name))'))
+    upgrade_sprints_4_5()
+
+
+def upgrade_sprints_4_5():
+    """Add counts and category relationships while retaining project/category IDs."""
+    dialect = db.engine.dialect.name
+    with db.engine.begin() as connection:
+        inspector = inspect(connection)
+        columns = {column['name'] for column in inspector.get_columns('interior_design_project')}
+        if 'view_count' not in columns:
+            connection.execute(text('ALTER TABLE interior_design_project ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0'))
+        # Earlier stories stored category IDs before the category use cases existed.
+        # Retain those IDs and their projects, giving managers editable category records.
+        missing = connection.execute(text('SELECT DISTINCT p.category_id FROM interior_design_project p '
+            'LEFT JOIN category c ON c.category_id = p.category_id WHERE c.category_id IS NULL')).scalars().all()
+        for category_id in missing:
+            name = f'Existing category {category_id}'
+            while connection.execute(text('SELECT 1 FROM category WHERE LOWER(category_name) = LOWER(:name)'),
+                                     {'name':name}).first():
+                name += ' (imported)'
+            connection.execute(text('INSERT INTO category (category_id, category_name, description) '
+                'VALUES (:id, :name, :description)'), dict(id=category_id, name=name,
+                    description='Category retained for existing projects.'))
+        if dialect == 'postgresql':
+            maximum = connection.execute(text('SELECT MAX(category_id) FROM category')).scalar()
+            if maximum is not None:
+                sequence = connection.execute(text("SELECT pg_get_serial_sequence('category', 'category_id')")).scalar()
+                # The server returns a quoted, qualified sequence identifier.
+                last_value = connection.execute(text('SELECT last_value FROM ' + sequence)).scalar()
+                connection.execute(text("SELECT setval(pg_get_serial_sequence('category', 'category_id'), :maximum, true)"),
+                                   {'maximum':max(maximum, last_value)})
+            foreign_keys = inspector.get_foreign_keys('interior_design_project')
+            if not any(fk['referred_table'] == 'category' and fk['constrained_columns'] == ['category_id'] for fk in foreign_keys):
+                connection.execute(text('ALTER TABLE interior_design_project ADD CONSTRAINT fk_project_category '
+                    'FOREIGN KEY (category_id) REFERENCES category(category_id) ON DELETE RESTRICT'))
+        elif dialect == 'sqlite':
+            # SQLite cannot add a foreign key to an existing table with ALTER.
+            # These triggers also cover upgraded SQLite installations without a table rebuild.
+            for operation in ('INSERT', 'UPDATE OF category_id'):
+                name = 'insert' if operation == 'INSERT' else 'update'
+                connection.execute(text(f'CREATE TRIGGER IF NOT EXISTS project_category_{name} BEFORE {operation} '
+                    'ON interior_design_project FOR EACH ROW WHEN NOT EXISTS '
+                    '(SELECT 1 FROM category WHERE category_id = NEW.category_id) '
+                    "BEGIN SELECT RAISE(ABORT, 'Category not found'); END"))
+            connection.execute(text('CREATE TRIGGER IF NOT EXISTS category_in_use BEFORE DELETE ON category '
+                'FOR EACH ROW WHEN EXISTS (SELECT 1 FROM interior_design_project WHERE category_id = OLD.category_id) '
+                "BEGIN SELECT RAISE(ABORT, 'Category is used by projects'); END"))

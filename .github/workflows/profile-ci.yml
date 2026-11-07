@@ -1,4 +1,4 @@
-name: BCE Stories 1-29 CI and Delivery
+name: BCE Stories 1-48 CI and Delivery
 
 on:
   push:
@@ -55,7 +55,7 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Check installed dependencies
         run: python -m pip check
-      - name: Run stories 1-29 tests
+      - name: Run stories 1-48 tests
         id: tests
         run: python scripts/run_profile_tests.py
       - name: Show every test result in the run summary

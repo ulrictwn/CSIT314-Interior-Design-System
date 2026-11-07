@@ -1,4 +1,4 @@
-"""Stories 1–29: profile/account administration and designer BCE demonstration."""
+"""Stories 1–48: administration, designer/customer portals and platform management."""
 import os
 from pathlib import Path
 from dotenv import load_dotenv

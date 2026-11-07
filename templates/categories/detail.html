@@ -1,0 +1,46 @@
+{% extends "portal/base.html" %}
+{% block content %}
+  {% set category = data.category %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  <section class="form-card">
+    <div class="category-detail-hero">
+      <figure class="project-inspiration">
+        <img src="{{ url_for('static',filename='images/login-interior.png') }}"
+             alt="Warm minimalist interior inspiration">
+        <figcaption>Interior inspiration</figcaption>
+      </figure>
+      <div>
+        <h2>{{ category.categoryName }}</h2>
+        <p class="muted preserve-lines">{{ category.description }}</p>
+      </div>
+    </div>
+    <dl class="summary-list">
+      <div>
+        <dt>Category ID</dt>
+        <dd>
+          CAT{{ category.categoryId }}
+        </dd>
+      </div>
+      <div>
+        <dt>Linked projects</dt>
+        <dd>
+          {{ category.projectCount }} projects
+        </dd>
+      </div>
+      <div>
+        <dt>Description</dt>
+        <dd class="preserve-lines">
+          {{ category.description }}
+        </dd>
+      </div>
+    </dl>
+    <div class="form-actions">
+      <a class="button button-primary"
+         href="{{ ui_url('update_category',category_id=category.categoryId) }}">Update category</a>
+      <a class="button button-secondary"
+         href="{{ ui_url('search_categories') }}">Back to categories</a>
+    </div>
+  </section>
+{% endblock %}

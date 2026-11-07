@@ -13,7 +13,7 @@ def cell(value):
 
 def render(xml_path, label, run_result):
     if not xml_path.is_file():
-        return f'## BCE story tests — {cell(label)}\n\n**No test results were produced.** Check dependency installation and the Run stories 1-29 tests log. This is not a passing run.\n', False
+        return f'## BCE story tests — {cell(label)}\n\n**No test results were produced.** Check dependency installation and the Run stories 1-48 tests log. This is not a passing run.\n', False
     try:
         root = ET.parse(xml_path).getroot()
     except ET.ParseError:

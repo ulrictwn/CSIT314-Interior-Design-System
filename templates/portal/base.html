@@ -1,0 +1,140 @@
+{% from 'designer/components.html' import icon with context %}
+{% set dashboard = {'customer':'customer_dashboard','manager':'platform_manager_dashboard','designer':'designer_dashboard'}[portal] %}
+{% set login = {'customer':'customer_login','manager':'platform_manager_login','designer':'interior_designer_login'}[portal] %}
+{% set logout = {'customer':'customer_logout','manager':'platform_manager_logout','designer':'interior_designer_logout'}[portal] %}
+{% set portal_label = {'customer':'Customer Portal','manager':'Platform Manager Portal','designer':'Interior Designer Portal'}[portal] %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} · Nestora</title>
+    <link rel="icon"
+          href="{{ url_for('static',filename='favicon.svg') }}"
+          type="image/svg+xml">
+    <link rel="stylesheet"
+          href="{{ url_for('static',filename='css/app.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static',filename='css/designer.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static',filename='css/portals.css') }}">
+    <script src="{{ url_for('static',filename='js/app.js') }}" defer></script>
+    <script src="{{ url_for('static',filename='js/portals.js') }}" defer></script>
+  </head>
+  <body class="designer-body portal-body">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-layout designer-shell">
+      <aside class="sidebar designer-sidebar">
+        <a class="brand" href="{{ ui_url(dashboard) }}">
+          <span class="brand-mark">{{ icon('company', 21) }}</span>
+          <span>Nestora<small>{{ portal_label }}</small>
+          </span>
+        </a>
+        <button class="nav-toggle button button-secondary"
+                type="button"
+                aria-controls="portal-navigation"
+                aria-expanded="false">Menu</button>
+        <nav id="portal-navigation"
+             class="designer-nav"
+             aria-label="{{ portal_label }} navigation">
+          <p class="nav-heading">Workspace</p>
+          <a class="nav-item{{ ' active' if active_endpoint == dashboard else '' }}"
+             href="{{ ui_url(dashboard) }}">{{ icon('dashboard', 15) }} Dashboard</a>
+          {% if portal == "customer" %}
+            {% for short,heading,first,second in [('discover','Discover Projects','search_idps','customer_projects'),('shortlist','My Shortlist','search_shortlist_idps','search_shortlist_idps')] %}
+              <details class="nav-section" open>
+                <summary>{{ icon('search' if short == 'discover' else 'projects',15) }}<span>{{ heading }}</span>{{ icon('chevron', 13) }}</summary>
+                <div class="nav-submenu">
+                  <a class="nav-item{{ ' active' if active_endpoint == first and request.args.get('mode') != 'view' else '' }}"
+                     href="{{ ui_url(first) }}">{{ 'Search Projects' if short == 'discover' else 'Search Shortlisted IDPs' }}</a>
+                  <a class="nav-item{{ ' active' if (request.args.get('mode') == 'view' and active_endpoint == second) or active_endpoint == ('view_idp' if short == 'discover' else 'view_shortlist_idp') else '' }}"
+                     href="{{ ui_url(second,mode='view') }}">{{ 'View Projects' if short == 'discover' else 'View Shortlisted IDPs' }}</a>
+                </div>
+              </details>
+            {% endfor %}
+          {% elif portal == "manager" %}
+            <details class="nav-section"
+                     {% if 'categor' in active_endpoint %} open {% endif %}>
+              <summary>{{ icon('projects', 15) }}<span>IDP Categories</span>{{ icon('chevron', 13) }}</summary>
+              <div class="nav-submenu">
+                {% for action,label in [('create','Create'),('view','View'),('update','Update'),('delete','Delete'),('search','Search')] %}
+                  <a class="nav-item{{ ' active' if (active_endpoint == action ~ '_category') or (active_endpoint in ['categories','search_categories'] and data.get('mode', 'search') == action) else '' }}"
+                     href="{{ ui_url('create_category') if action == 'create' else ui_url('search_categories',mode=action) }}">{{ label }} Project {{ 'Categories' if action in ['view','search'] else 'Category' }}</a>
+                {% endfor %}
+              </div>
+            </details>
+            <details class="nav-section"
+                     {% if 'report' in active_endpoint %} open {% endif %}>
+              <summary>{{ icon('dashboard', 15) }}<span>Reports</span>{{ icon('chevron', 13) }}</summary>
+              <div class="nav-submenu">
+              {% for kind in ['daily','weekly','monthly'] %}<a class="nav-item{{ ' active' if data.get('kind') == kind else '' }}"
+                                                               href="{{ ui_url('generate_' ~ kind ~ '_report') }}">Generate {{ kind|title }} Report</a>
+          {% endfor %}
+        </div>
+      </details>
+    {% else %}
+      <a class="nav-item" href="{{ ui_url('search_company_profile') }}">{{ icon('company', 15) }} Company profile</a>
+      <a class="nav-item" href="{{ ui_url('new_projects') }}">{{ icon('projects', 15) }} New projects</a>
+      <a class="nav-item" href="{{ ui_url('past_projects') }}">{{ icon('projects', 15) }} Past projects</a>
+      <p class="nav-heading interest-nav-heading">Project interest</p>
+      <a class="nav-item{{ ' active' if active_endpoint in ['project_view_counts','view_count'] else '' }}"
+         href="{{ ui_url('project_view_counts') }}">{{ icon('eye', 15) }} View Counts</a>
+      <a class="nav-item{{ ' active' if active_endpoint in ['project_shortlist_counts','view_shortlist_count'] else '' }}"
+         href="{{ ui_url('project_shortlist_counts') }}">{{ icon('projects', 15) }} Shortlist Counts</a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="account-footer">
+      <span class="avatar">{{ current_user.full_name[:1]|upper if current_user else 'N' }}</span>
+      <div>
+        <strong>{{ current_user.full_name if current_user else 'Nestora workspace' }}</strong>
+        <small>{{ current_user.profile.name if current_user else portal_label }}</small>
+      </div>
+    </div>
+    {% if current_user %}
+      <form class="logout-form" method="post" action="{{ url_for(logout) }}">
+        <button class="text-button" type="submit">{{ icon('logout', 14) }} Log out</button>
+      </form>
+    {% else %}
+      <a class="text-button sign-in-link" href="{{ url_for(login) }}">{{ icon('logout', 14) }} Sign in</a>
+    {% endif %}
+  </div>
+</aside>
+<main id="main" class="main-content">
+  <header class="topbar designer-topbar">
+    <div>
+      <a href="{{ ui_url(dashboard) }}">Dashboard</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ title }}</span>
+    </div>
+    <span class="portal-label">{{ portal_label }}</span>
+  </header>
+  <div class="page-content designer-content">
+    {% with messages=get_flashed_messages(with_categories=true) %}
+      {% for category,message in messages %}
+        <div class="message {{ category }}"
+             role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% if not owner_id and portal in ["customer","designer"] %}
+      <details class="context-picker">
+        <summary>Choose an account for this workspace</summary>
+        <form method="get">
+          <label for="workspace-account">Account ID</label>
+          <input class="form-control"
+                 id="workspace-account"
+                 name="accountId"
+                 maxlength="32"
+                 required
+                 placeholder="Existing account ID">
+          <button class="button button-secondary">Use account</button>
+        </form>
+        <p>Or <a href="{{ url_for(login) }}">sign in</a> to use your account.</p>
+      </details>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+</div>
+</body>
+</html>

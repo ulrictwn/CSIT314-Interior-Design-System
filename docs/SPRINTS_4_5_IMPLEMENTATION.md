@@ -1,0 +1,130 @@
+# Sprints 4 and 5 — Stories 30–48
+
+The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (3).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
+
+## Diagram map
+
+| Story | Boundary class | Controller operation | Entity operation |
+| --- | --- | --- | --- |
+| 30 | `SearchIDPPage.onSearch(keyword)` | `SearchIDPController.search_all_IDPs(keyword)` | `InteriorDesignProject.search_all_IDPs(keyword)` |
+| 31 | `ViewIDPPage.onView(projectId)` | `ViewIDPController.getIDP(projectId)` | `InteriorDesignProject.getIDP(projectId)` |
+| 32 | `SaveShortlistIDPPage.onSave(projectId)` | `SaveShortlistIDPController.saveShortlist(accountId, projectId)` | `Shortlist.saveShortlist(accountId, projectId)` |
+| 33 | `SearchShortlistIDPPage.onSearch(keyword)` | `SearchShortlistIDPController.search_shortlist_IDP(accountId, keyword)` | `InteriorDesignProject.search_shortlist_IDP(accountId, keyword)` |
+| 34 | `ViewShortlistIDPPage.onView(projectId)` | `ViewShortlistIDPController.getIDP(projectId)` | `InteriorDesignProject.getIDP(projectId)` after checking the saved relationship |
+| 35 | `CustomerLoginPage.onLogin(username, password)` | `CustomerLoginController.login(username, password)` | `UserAccount.login(username, password, profileName)` |
+| 36 | `LogoutPage.logout()` in `boundary/customer/` | None specified | None specified |
+| 37 | `ViewCountPage.onView(projectId)` | `ViewCountController.getViewCount(projectId)` | `InteriorDesignProject.getViewCount(projectId)` |
+| 38 | `ViewShortlistCountPage.onView(projectId)` | `ViewShortlistCountController.getShortlistCount(projectId)` | `Shortlist.getShortlistCount(projectId)` |
+| 39 | `PlatformManagerLoginPage.onLogin(username, password)` | `PlatformManagerLoginController.login(username, password)` | `UserAccount.login(username, password, profileName)` |
+| 40 | `PlatformManagerLogoutPage.logout()` | None specified | None specified |
+| 41 | `CreateCategoryPage.onCreate(categoryName, description)` | `CreateCategoryController.createCategory(...)` | `Category.createCategory(...)`, `categoryExists(categoryName)` |
+| 42 | `ViewCategoryPage.onView(categoryId)` | `ViewCategoryController.getCategory(categoryId)` | `Category.getCategory(categoryId)` |
+| 43 | `UpdateCategoryPage.onUpdate(categoryId, categoryName, description)` | `UpdateCategoryController.updateCategory(...)` | `Category.updateCategory(...)` |
+| 44 | `DeleteCategoryPage.onDelete(categoryId)` | `DeleteCategoryController.deleteCategory(categoryId)` | `Category.deleteCategory(categoryId)` |
+| 45 | `SearchCategoryPage.onSearch(keyword)` | `SearchCategoryController.searchCategories(keyword)` | `Category.searchCategories(keyword)` |
+| 46 | `GenerateDailyReportPage.onGenerate(startDate, endDate)` | `GenerateDailyReportController.generateDailyReport(...)` | `Report.generateDailyReport(...)` |
+| 47 | `GenerateWeeklyReportPage.onGenerate(startDate, endDate)` | `GenerateWeeklyReportController.generateWeeklyReport(...)` | `Report.generateWeeklyReport(...)` |
+| 48 | `GenerateMonthlyReportPage.onGenerate(startDate, endDate)` | `GenerateMonthlyReportController.generateMonthlyReport(...)` | `Report.generateMonthlyReport(...)` |
+
+Stories 46–48 have blank BCE diagrams in the supplied document. Their class/method names are inferred from the established naming pattern and report wireframes. They should be used when completing those diagrams; they are not presented as existing diagram text.
+
+All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries clean `.strip()` text and validate required fields, lengths, identifiers, credentials' input format, and report dates. Entities handle existing records, duplicates, saved relationships, counts and transactions.
+
+## Folder layout
+
+- `boundary/customer/` and `control/customer/`: discovery, shortlist, customer login/logout, dashboard.
+- `boundary/categories/`, `control/categories/`, `entity/categories/`: category operations.
+- `boundary/platform_manager/`, `control/platform_manager/`: manager login/logout and dashboard.
+- `boundary/reports/`, `control/reports/`, `entity/reports/`: report pages, stored snapshots, activity data.
+- `entity/shortlist/`: customer/project saved relationships.
+- `boundary/designer/` and `control/designer/`: the additional view/shortlist count stories.
+- `templates/customer/`, `templates/categories/`, `templates/platform_manager/`, `templates/reports/`, `templates/interest/`: corresponding HTML.
+- `templates/portal/`, `boundary/portal.py`, `static/css/portals.css`, `static/js/portals.js`: shared portal presentation.
+
+The root test-output directory `/reports/` is ignored by Git. The ignore rule is anchored so application source folders named `reports` are included in the repository.
+
+## Login and dashboards
+
+The animated selector now has **Staff** and **Customer** sides. Staff has a role selector for User Admin, Interior Designer, and Platform Manager. Its form submits to `StaffLoginPage`, which selects the role-specific boundary event; each event still calls its own controller and the existing account entity. The controls work with keyboard navigation, reduced motion, or JavaScript disabled.
+
+| Role | Login | Dashboard | Logout (POST) |
+| --- | --- | --- | --- |
+| User Admin | `/login` or `/staff/login` | `/dashboard` | `/logout` |
+| Interior Designer | `/designer/login` | `/designer` | `/designer/logout` |
+| Customer | `/customer/login` | `/customer` | `/customer/logout` |
+| Platform Manager | `/manager/login` | `/manager` | `/manager/logout` |
+
+The existing `Platform Management` profile name and `Platform Manager` are both accepted by the manager login. Saved profile names and account IDs are preserved. Admin-created accounts remain password-free; configure a login password using the existing terminal command:
+
+```bash
+.venv/bin/python -m flask --app app reset-password --username YOUR_USERNAME
+```
+
+The previously approved classroom security simplification remains: pages can be demonstrated without signing in; explicit `?accountId=...` supplies account context. No permission gates, CSRF, rate limiting, or server-side session token system was added. Existing passwords remain hashed.
+
+## Customer and designer flows
+
+Customers can browse both New and Past projects across designers. Search matches project name, ID (`IDP1`), category name, property type, area/location, or description. Blank searches show all relevant projects; `%` and `_` are literal characters. Shortlist searches are scoped to the supplied/current account.
+
+A shortlist has a unique `(account_id, project_id)` key. Duplicate saves and missing accounts/projects are rejected by the entity. The saved relationship is checked before opening a shortlisted project. **Remove shortlist** is an extra boundary/controller/entity operation to support the supplied Story 34 screenshot. Removing a save keeps the project. Deleting a project removes its saved relationships through the database foreign key.
+
+`getIDP(projectId)` calls `incrementViewCount(projectId)` as shown in Stories 31 and 34. Each successful customer detail-page request increments the count atomically. Searches, designer project reads, count pages, and report generation do not increment it. Shortlist counts show the number of customers currently saving a project. Designers can open the two Project Interest links in their sidebar.
+
+Project photos were not added to the diagram model. Detail-page images remain captioned **Interior inspiration**; list rows use project icons.
+
+## Categories
+
+Category names are required, at most 100 characters, and unique ignoring case. Descriptions are required and at most 10,000 characters. Numeric category IDs remain stable; `CAT1` is their display label. Search includes name, description, and displayed ID. GET update/delete requests prefill/show confirmation; only POST writes.
+
+Now that the later category stories exist, designer project forms select from saved categories. Entities reject nonexistent categories. A category used by projects cannot be deleted; assign those projects another category first. Projects are preserved.
+
+## Reports
+
+Daily reports cover one day, weekly reports seven consecutive days, and monthly reports a complete calendar month. The boundary validates ISO date input, supported years (1900–9998), and the selected interval. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
+
+Reports store an immutable snapshot for the selected period. CSV downloads read that snapshot, so later activity does not change an existing report. Generate another report to include new activity.
+
+The three summary totals are successful logins, account registrations (from the existing account creation timestamp), and projects created. Rows show new/past projects added, project updates/deletions, category changes, customer views, and shortlist saves. The screenshots' “Projects published” row is represented as **Past projects added**, because the supplied project model has New/Past states and no publication operation.
+
+Successful logins and business activity are recorded from this implementation onward. Historical login/view/project-change activity cannot be reconstructed from tables that never stored it; those periods show the available recorded data. Existing account creation dates remain usable for registration totals. New activity is recorded in the same transaction as its database change; failed operations do not create successful activity records.
+
+## Database upgrade
+
+The upgrade uses the existing `flask --app app upgrade-db` command. It creates company/project tables if the earlier backend upgrade was not applied, and adds:
+
+| Table/change | Purpose |
+| --- | --- |
+| `category` | Category names, descriptions, unique name index |
+| `shortlist` | Unique customer/project saves and saved timestamps |
+| `activity_event` | Successful business activity used by reports |
+| `report` | Generated period, totals, rows, owner and generation timestamp |
+| `interior_design_project.view_count` | Atomic customer view counter |
+| Project/category foreign key | Prevent missing category references and deletion of used categories |
+
+For older projects with stored category IDs, the upgrade creates editable `Existing category N` records using the same IDs. It preserves project/account/profile data and advances the PostgreSQL category ID sequence correctly. PostgreSQL receives a foreign key; upgraded SQLite installations also receive equivalent integrity triggers without a table rebuild. Repeating the upgrade is safe.
+
+A PostgreSQL custom-format backup is created under the gitignored `backups/` folder before applying the development upgrade. Existing table row fingerprints are compared afterward. Legacy unused authentication tables are retained. No database reset is performed.
+
+## Validation
+
+The regression suite includes the existing 404 cases and 80 Sprint 4–5 cases: diagram signatures, boundaries before controller calls, category/shortlist duplicates, owner scoping, cascade behavior, view counters, all login roles, date limits, Singapore day boundaries, report snapshots, CSV, and repeatable legacy upgrades.
+
+```bash
+.venv/bin/python -m pytest tests -q
+```
+
+The existing CI command `python scripts/run_profile_tests.py` discovers all feature folders. Chromium also exercises Staff/Customer switching, every staff role, JavaScript-free login, customer discovery/save/remove, category create/update/delete/Cancel, designer project category selection, interest counts, all three report downloads, and desktop/tablet/mobile layouts.
+
+## Applied development upgrade
+
+The PostgreSQL development upgrade was applied successfully on 5 November 2026 (Singapore time). The backup is `backups/before-sprints-4-5-20261105T152649Z.dump`. Its custom archive manifest was checked with `pg_restore --list`.
+
+The original table fingerprints are identical after the upgrade: 4 profiles, 1 account, 1 account-counter row, 3 legacy session rows, and the empty legacy login-attempt table. The six company/project/category/shortlist/activity/report feature tables are ready. No sample accounts or projects were inserted. Thirteen HTML GET routes were checked against the development database after upgrading.
+
+All 484 tests passed on PostgreSQL using the dedicated `nestora_test` database and unique temporary schemas. The working database was not used for test data.
+
+The previously deleted `boundary/profile/create_user_profile_page.py` was restored from its committed contents because `boundary/routes.py` still imports it; the existing profile flow passes its regression tests.
+
+The final SQLite run also passed all 484 tests. After the final migration adjustment, focused SQLite/PostgreSQL migration checks passed, including preservation of increasing category IDs after deletion and another upgrade. The final Chromium run completed 41 page checks, 13 screenshots and all interactive flows without JavaScript errors, HTTP 500s, or missing assets.
+
+Restart the running Flask process to load the new routes. Start at `/login`, choose Staff or Customer, and select the staff role when applicable. Create a saved category from the manager portal before creating a designer project.

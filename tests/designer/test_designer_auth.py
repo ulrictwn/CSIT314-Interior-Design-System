@@ -91,6 +91,8 @@ def test_upgrade_adds_new_tables_and_preserves_accounts(app, designer_accounts):
         before = (account.username, account.email, account.password_hash)
         db.session.remove()
         # Disposable test database only: simulate a pre-Stories-13–29 installation.
+        from entity.shortlist.shortlist import Shortlist
+        Shortlist.__table__.drop(db.engine)
         InteriorDesignProject.__table__.drop(db.engine)
         CompanyProfile.__table__.drop(db.engine)
         upgrade_database()

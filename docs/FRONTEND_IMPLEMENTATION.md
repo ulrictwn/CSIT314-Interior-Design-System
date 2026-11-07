@@ -2,7 +2,7 @@
 
 The missing HTML for Stories 13–29 is implemented using the screenshots in `Nothinghere/` as layout references: cream backgrounds, white cards, a narrow sidebar, company forms, project tables, and terracotta action buttons. The outer screenshot montage frames are not part of the application.
 
-Open `/designer/login` in the running application. The sliding Interior designer / User admin selector switches between two forms with separate submission handlers. It also supports arrow keys, reduced motion, and normal links when JavaScript is unavailable. Password visibility can be toggled. Failed sign-in keeps the username and clears the password; logout displays a confirmation at sign-in.
+Open `/designer/login` in the running application. The slider now switches between Staff and Customer. Staff has a role selector for User Admin, Interior Designer, and Platform Manager, dispatching to each role-specific BCE boundary. It also supports arrow keys, reduced motion, and normal links when JavaScript is unavailable. Password visibility can be toggled. Failed sign-in keeps the username and clears the password; logout displays a confirmation at sign-in.
 
 The designer dashboard links to company create/view/update/search/delete and new/past project create/view/update/search/delete. Forms display boundary errors and submitted values, update screens prefill stored data, and delete screens require a POST confirmation with a Cancel link. Successful submissions redirect to saved records or lists to avoid repeating a mutation on refresh. Search and sidebar navigation preserve account context.
 
@@ -10,9 +10,9 @@ The company, designer, and projects folders retain the previous BCE structure. T
 
 ## Scope decisions
 
-- Category lookup remains deferred. The existing positive integer `categoryId` field appears as Category ID.
+- Stories 41–45 now supply saved categories. The project form selects a category, and entity operations check that it exists.
 - Project photo uploads were left out, following the current diagram fields. The detail-page image is explicitly captioned **Interior inspiration**, and is not a saved project photo.
-- The final reference screenshot shows later analytics stories (37–38); those screens are outside Stories 13–29.
+- Stories 37–38 are now implemented, with View Counts and Shortlist Counts links in the designer sidebar. See the Sprint 4–5 implementation notes.
 - Admin-created accounts remain password-free. To demonstrate designer login, assign the Interior Designer profile and use the existing terminal command `flask --app app reset-password --username YOUR_USERNAME` to configure its password.
 
 ## Files

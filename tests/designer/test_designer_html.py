@@ -30,8 +30,8 @@ def test_login_html_has_separate_submission_handlers(client, path, role):
     text = response.get_data(as_text=True)
     assert response.status_code == 200 and response.mimetype == 'text/html'
     assert f'data-role="{role}"' in text
-    assert 'action="/login"' in text and 'action="/designer/login"' in text
-    assert 'data-login-role="admin"' in text and 'data-login-role="designer"' in text
+    assert 'action="/staff/login"' in text and 'action="/customer/login"' in text
+    assert 'data-login-audience="staff"' in text and 'data-login-audience="customer"' in text
     assert 'login.js' in text
 
 

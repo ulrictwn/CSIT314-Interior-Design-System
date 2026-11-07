@@ -190,6 +190,14 @@ def company_data():
 
 
 @pytest.fixture
-def project_data():
+def project_data(app):
+    from entity.categories.category import Category
+    with app.app_context():
+        for category_id, name in [(1,'Scandinavian'),(2,'Japandi'),(999,'Contemporary')]:
+            db.session.add(Category(category_id=category_id, category_name=name, description=name+' interior design.'))
+        db.session.commit()
+        if db.engine.dialect.name == 'postgresql':
+            db.session.execute(text("SELECT setval(pg_get_serial_sequence('category','category_id'),999,true)"))
+            db.session.commit()
     return dict(projectName='Seaside Home', categoryId=1, propertyType='Apartment',
         area='120 sqm', renovationCost=80000.5, description='A bright renovation project.')

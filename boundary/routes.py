@@ -36,3 +36,5 @@ def register_routes(app):
 
     from boundary.designer.routes import register_designer_routes
     register_designer_routes(app)
+    from boundary.sprint_routes import register_sprint_routes
+    register_sprint_routes(app)

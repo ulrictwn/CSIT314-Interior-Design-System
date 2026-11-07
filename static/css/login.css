@@ -14,7 +14,7 @@
 .auth-card { width: 100%; max-width: 390px; }
 .role-switch { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; margin-bottom: 42px; border: 1px solid #e7e1d8; border-radius: 30px; background: #f3f0ea; }
 .role-switch-thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 25px; background: #ae513d; box-shadow: 0 2px 6px rgb(89 49 31 / 12%); transition: transform .32s cubic-bezier(.2,.7,.3,1); }
-.auth-layout[data-role='admin'] .role-switch-thumb { transform: translateX(100%); }
+.auth-layout[data-audience='customer'] .role-switch-thumb { transform: translateX(100%); }
 .role-switch > a { position: relative; z-index: 1; padding: 10px 9px; color: #636b5e; border-radius: 25px; text-decoration: none; text-align: center; font-size: 11px; font-weight: 600; transition: color .22s ease; }
 .role-switch > a[aria-selected='true'] { color: white; }
 .login-form-panel[hidden] { display: none; }

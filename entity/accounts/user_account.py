@@ -222,8 +222,14 @@ class UserAccount(db.Model):
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         self.authenticated_account = None
         account = self.getByUsername(username)
+        roles = {profileName.casefold()}
+        if profileName.casefold() in ('platform manager', 'platform management'):
+            roles = {'platform manager', 'platform management'}
         if not (account and account.check_password(password) and account.active
-                and account.profile.name.casefold() == profileName.casefold()):
+                and account.profile.name.casefold() in roles):
             return self._reject('Invalid login details')
         self.authenticated_account = account
+        from entity.reports.activity_event import ActivityEvent
+        ActivityEvent.record('login_success', account.account_id)
+        db.session.commit()
         return True

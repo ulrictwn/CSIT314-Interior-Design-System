@@ -9,3 +9,10 @@ def navigation():
             dict(label='Search '+label, endpoint='search_'+plural, arguments={}),
         ]))
     return groups
+
+
+def dashboard_endpoint(account):
+    """Choose the dashboard associated with the saved profile name."""
+    return {'interior designer':'designer_dashboard', 'customer':'customer_dashboard',
+            'platform manager':'platform_manager_dashboard', 'platform management':'platform_manager_dashboard'}.get(
+                account.profile.name.casefold(),'dashboard')

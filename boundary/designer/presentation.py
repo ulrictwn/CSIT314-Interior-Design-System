@@ -2,6 +2,7 @@
 from flask import flash, g, has_request_context, redirect, render_template, request, url_for
 from boundary.designer.context import account_id
 from infrastructure.errors import DomainError
+from control.categories.search_category_controller import SearchCategoryController
 
 
 def wants_html():
@@ -55,6 +56,8 @@ def present(payload, status=200):
         owner_id=owner, ui_url=link, phase=phase, phase_label=phase_label, mode=mode,
         current_user=g.get('current_user'), active_endpoint=endpoint,
         property_types=['Apartment', 'Condominium', 'Landed property', '3-room HDB', '4-room HDB', '5-room HDB'])
+    if endpoint.startswith(('create_', 'update_')) and endpoint.endswith('_project'):
+        context['categories'] = SearchCategoryController().searchCategories('')
     if status == 404 or (status >= 400 and not payload.get('values') and 'search' not in endpoint
                           and endpoint not in ('new_projects', 'past_projects')):
         template = 'designer/error.html'

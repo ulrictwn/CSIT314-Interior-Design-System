@@ -1,0 +1,38 @@
+from flask import request
+from flask.views import MethodView
+from boundary.validation import search_text
+from boundary.designer.context import account_id, request_values
+from boundary.portal import optional_account_id, present, error_response
+from control.customer.search_idp_controller import SearchIDPController
+from control.customer.dashboard_controller import CustomerDashboardController
+from entity.projects.interior_design_project import InteriorDesignProject
+from infrastructure.errors import DomainError
+
+
+class SearchIDPPage(MethodView):
+    def __init__(self, accountId=None):
+        self.accountId = accountId
+
+    def get(self):
+        self.onSearch(request.args.get('q',''))
+        return self.rendered_page
+
+    def post(self):
+        self.onSearch(request_values().get('keyword', request_values().get('q','')))
+        return self.rendered_page
+
+    def onSearch(self, keyword: str) -> None:
+        try:
+            self.keyword = search_text(keyword)
+            self.owner = optional_account_id()
+        except DomainError as error:
+            self.rendered_page = error_response(str(error),'customer',{'keyword':[str(error)]})
+            return
+        idps = SearchIDPController().search_all_IDPs(self.keyword)
+        self.displayResults(idps)
+
+    def displayResults(self, idps: list[InteriorDesignProject]) -> None:
+        saved = CustomerDashboardController().savedProjectIds(self.owner)
+        self.rendered_page = present(dict(ok=True, projects=[p.as_public_dict() for p in idps],
+            query=self.keyword, savedIds=saved, shortlisted=False),
+            'customer/projects.html', 'Search Interior Design Projects', 'customer')

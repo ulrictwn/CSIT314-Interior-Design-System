@@ -131,12 +131,12 @@ def test_project_search_filters_owner_phase_and_literal_name(app, designer_accou
         assert search(owner, 'no-match') == []
 
 
-def test_category_lookup_is_deferred_as_requested(client, designer_accounts, project_data):
+def test_category_lookup_is_required_now_that_sprint_5_categories_exist(client, designer_accounts, project_data):
     owner, _ = designer_accounts
     response = client.post('/designer/projects/new/create', json=dict(accountId=owner,
         **dict(project_data, categoryId=999999)))
-    assert response.status_code == 201 and response.json['project']['categoryId'] == 999999
-    assert 'category' not in db.metadata.tables
+    assert response.status_code == 400 and response.json['errors']['categoryId']
+    assert 'category' in db.metadata.tables
 
 
 def test_invalid_project_edit_preserves_saved_values(app, client, designer_accounts, project_data):

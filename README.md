@@ -1,6 +1,6 @@
-# Nestora — BCE stories 1–29
+# Nestora — BCE stories 1–48
 
-This application implements Stories 1–29: profile and account administration, admin/designer login and logout, company profiles, and new/past design projects. It contains the combined Flask application, PostgreSQL models, BCE classes, HTML templates, tests and GitHub Actions workflow. Stories after 29 remain outside this implementation.
+This application implements Stories 1–48: profile/account administration; staff/customer login; company profiles; design projects; customer discovery and shortlists; designer interest counts; categories; and platform activity reports. It contains the combined Flask application, PostgreSQL models, BCE classes, HTML templates, tests and GitHub Actions workflow. Sprint 4–5 screens follow the supplied customer and platform manager wireframes.
 
 ## Add this to your existing Codespace
 
@@ -37,7 +37,7 @@ This application implements Stories 1–29: profile and account administration, 
    .venv/bin/python -m flask --app app run --host=0.0.0.0 --port=5000
    ```
 
-   Open the forwarded **5000** port and sign in at `/login` for admins or `/designer/login` for designers. The login selector slides between the two roles. Use the corresponding sidebar to manage accounts/profiles or company details/projects. You do not need to rebuild the container for Python, HTML or CSS edits. Rebuild only when its configuration or container-level dependencies change.
+   Open the forwarded **5000** port and sign in at `/login` for admins or `/designer/login` for designers. The login selector slides between Staff and Customer; Staff includes an Admin, Interior Designer, or Platform Manager role selector. Use the corresponding sidebar to manage accounts/profiles or company details/projects. You do not need to rebuild the container for Python, HTML or CSS edits. Rebuild only when its configuration or container-level dependencies change.
 
 For a fresh Codespace, restore the correct database settings in the gitignored `.env`. `python scripts/setup_env.py` adds missing settings and preserves existing values; it cannot recover a previous database password.
 
@@ -89,12 +89,20 @@ The historical script name is retained; it now discovers all feature tests under
 
 The workflow `.github/workflows/profile-ci.yml` runs a SQLite/PostgreSQL matrix on push and pull requests. Its run Summary shows every result. Download `profile-reports-SQLite` or `profile-reports-PostgreSQL` for the HTML reports. After successful CI on the repository's default branch, it publishes a tested source ZIP as an Actions artifact; it does not deploy the application.
 
-Local verification passed **404 tests on SQLite**, including HTML integration cases. Chromium also exercised the designer flows at desktop and mobile sizes. PostgreSQL table/index definitions compile with the PostgreSQL dialect; an actual PostgreSQL execution must be confirmed by the supplied CI job. This package has not been pushed, merged or deployed to your GitHub repository.
+Verification covers Stories 1–48 on SQLite and PostgreSQL, with Chromium checks for desktop, tablet, mobile, and JavaScript-free login. See [the Sprint 4–5 notes](docs/SPRINTS_4_5_IMPLEMENTATION.md). This package has not been pushed, merged or deployed to your GitHub repository.
 
 See [STORIES_1_12.md](docs/STORIES_1_12.md) for BCE mappings and [CHANGES_FROM_5.md](docs/CHANGES_FROM_5.md) for integration notes.
 
 ## Designer stories 13–29
 
-Company profiles, designer login/logout, and new/past projects have BCE Python classes, working HTML screens based on the screenshots in `Nothinghere/`, and retained JSON request/display adapters. Code is grouped into `company/`, `designer/`, and `projects/` packages in the relevant layers; see [the class/method map and endpoint guide](docs/STORIES_13_29.md). Category lookup is deferred as requested. Open `/designer/login` to use the sliding role selector, or `/designer` for the dashboard. See [the frontend notes](docs/FRONTEND_IMPLEMENTATION.md) for page organization and screenshot scope.
+Company profiles, designer login/logout, and new/past projects have BCE Python classes, working HTML screens based on the screenshots in `Nothinghere/`, and retained JSON request/display adapters. Code is grouped into `company/`, `designer/`, and `projects/` packages in the relevant layers; see [the class/method map and endpoint guide](docs/STORIES_13_29.md). The later category stories are now implemented: designers select a saved category, and entities reject nonexistent categories. Open `/designer/login` for Staff sign-in or `/designer` for the dashboard. See [the frontend notes](docs/FRONTEND_IMPLEMENTATION.md) for page organization and screenshot scope.
 
 Run `.venv/bin/python -m flask --app app upgrade-db` to create the two new tables in the intended development database without resetting existing records. Run `.venv/bin/python -m pytest tests -q` to check all stories. Existing Stories 1–12 HTML routes remain available.
+
+## Customer and platform manager stories 30–48
+
+Open `/login` or `/staff/login` for Staff sign-in, with User Admin, Interior Designer, and Platform Manager roles. Choose Customer on the slider or open `/customer/login`. Customer and manager dashboards are `/customer` and `/manager`. Designer view/shortlist counts are linked in the designer sidebar.
+
+Customer search/view/save/remove flows, category management, and daily/weekly/monthly report snapshots with CSV downloads are implemented from the Word document and wireframes. Code uses matching `customer/`, `platform_manager/`, `categories/`, `reports/`, and `shortlist/` feature folders. Boundaries validate inputs, controllers relay, and entities own saved data and duplicate checks. See [SPRINTS_4_5_IMPLEMENTATION.md](docs/SPRINTS_4_5_IMPLEMENTATION.md) for exact diagram mappings, report assumptions, routes, and database changes.
+
+The database upgrade preserves existing records. Create a category from the manager portal before adding a designer project. Admin-created accounts still need a password configured with the existing `reset-password` terminal command before their first login.
