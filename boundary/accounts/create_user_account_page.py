@@ -12,12 +12,12 @@ class CreateUserAccountPage(MethodView):
             editing=False, title='Create User Accounts')
 
     def post(self):
-        self.clickCreate(request.form.get('username', ''), request.form.get('full_name', ''),
+        self.onCreate(request.form.get('username', ''), request.form.get('full_name', ''),
                          request.form.get('email', ''), request.form.get('phone_number', ''),
                          request.form.get('profile_id', type=int))
         return self.rendered_page
 
-    def clickCreate(self, username: str, fullName: str, email: str,
+    def onCreate(self, username: str, fullName: str, email: str,
                     phoneNumber: str, profileId: int) -> None:
         values, self.field_errors = validate_account_fields(username, fullName, email, phoneNumber, profileId)
         if self.field_errors:

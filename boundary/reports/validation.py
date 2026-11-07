@@ -17,15 +17,22 @@ def default_dates(kind):
     return dict(startDate=start.isoformat(), endDate=end.isoformat())
 
 
-def validate_report_dates(kind, startDate, endDate):
+def validate_report_dates(kind, startDate, endDate=None):
     values, errors = {}, {}
     for name, raw in [('startDate',startDate), ('endDate',endDate)]:
         try:
-            if not isinstance(raw,str):
+            if name == 'endDate' and raw is None and kind in ('daily', 'weekly') and 'startDate' in values:
+                value = values['startDate'] + timedelta(days=6 if kind == 'weekly' else 0)
+            elif type(raw) is date:
+                value = raw
+            elif isinstance(raw, str):
+                cleaned = raw.strip()
+                value = date.fromisoformat(cleaned)
+                if cleaned != value.isoformat():
+                    raise ValueError()
+            else:
                 raise ValueError()
-            cleaned = raw.strip()
-            value = date.fromisoformat(cleaned)
-            if cleaned != value.isoformat() or not 1900 <= value.year <= 9998:
+            if not 1900 <= value.year <= 9998:
                 raise ValueError()
             values[name] = value
         except (ValueError, TypeError):

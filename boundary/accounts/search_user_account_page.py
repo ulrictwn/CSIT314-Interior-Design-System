@@ -1,14 +1,10 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 from flask import render_template, request, flash
 from flask.views import MethodView
 from boundary.validation import search_text
 from control.accounts.search_user_account_controller import SearchUserAccountController
 from infrastructure.errors import DomainError
 
-if TYPE_CHECKING:
-    from entity.accounts.user_account import UserAccount
+from entity.accounts.user_account import UserAccount
 
 
 class SearchUserAccountPage(MethodView):

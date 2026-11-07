@@ -12,13 +12,13 @@ class CreateUserProfilePage(MethodView):
                                selected_permissions=[], permission_options=PERMISSION_OPTIONS)
 
     def post(self):
-        status = {'Active': True, 'Suspended': False}.get(request.form.get('status', ''))
+        status = request.form.get('status', '')
         self.onCreate(request.form.get('profileName', ''),
                       request.form.get('description', ''), status,
                       request.form.getlist('permissions'))
         return self.rendered_page
 
-    def onCreate(self, profileName: str, description: str, status: bool,
+    def onCreate(self, profileName: str, description: str, status: str,
                  permissions: list[str]) -> None:
         values, self.field_errors = validate_profile_fields(profileName, description, status, permissions)
         if self.field_errors:

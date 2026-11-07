@@ -1,6 +1,6 @@
 # Sprints 4 and 5 — Stories 30–48
 
-The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (3).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
+The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (4).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
 
 ## Diagram map
 
@@ -22,11 +22,11 @@ The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project R
 | 43 | `UpdateCategoryPage.onUpdate(categoryId, categoryName, description)` | `UpdateCategoryController.updateCategory(...)` | `Category.updateCategory(...)` |
 | 44 | `DeleteCategoryPage.onDelete(categoryId)` | `DeleteCategoryController.deleteCategory(categoryId)` | `Category.deleteCategory(categoryId)` |
 | 45 | `SearchCategoryPage.onSearch(keyword)` | `SearchCategoryController.searchCategories(keyword)` | `Category.searchCategories(keyword)` |
-| 46 | `GenerateDailyReportPage.onGenerate(startDate, endDate)` | `GenerateDailyReportController.generateDailyReport(...)` | `Report.generateDailyReport(...)` |
-| 47 | `GenerateWeeklyReportPage.onGenerate(startDate, endDate)` | `GenerateWeeklyReportController.generateWeeklyReport(...)` | `Report.generateWeeklyReport(...)` |
-| 48 | `GenerateMonthlyReportPage.onGenerate(startDate, endDate)` | `GenerateMonthlyReportController.generateMonthlyReport(...)` | `Report.generateMonthlyReport(...)` |
+| 46 | `DailyReportPage.onGenerateDailyReport(startDate)` | `DailyReportController.generateDailyReport(startDate)` | `Report.generateReport(reportType, startDate, endDate)` |
+| 47 | `WeeklyReportPage.onGenerateWeeklyReport(startDate)` | `WeeklyReportController.generateWeeklyReport(startDate)` | `Report.generateReport(reportType, startDate, endDate)` |
+| 48 | `MonthlyReportPage.onGenerateMonthlyReport(startDate, endDate)` | `MonthlyReportController.generateMonthlyReport(startDate, endDate)` | `Report.generateReport(reportType, startDate, endDate)` |
 
-Stories 46–48 have blank BCE diagrams in the supplied document. Their class/method names are inferred from the established naming pattern and report wireframes. They should be used when completing those diagrams; they are not presented as existing diagram text.
+The updated report (4) now includes the BCE diagrams for Stories 46–48. The classes, event names, displayReport(report) methods, and date parameters match those diagrams. Daily/weekly accept startDate; monthly accepts startDate and endDate. All three use the entity operation generateReport(reportType, startDate, endDate). See [the full 48-story audit](BCE_AUDIT_1_48.md).
 
 All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries clean `.strip()` text and validate required fields, lengths, identifiers, credentials' input format, and report dates. Entities handle existing records, duplicates, saved relationships, counts and transactions.
 
@@ -80,7 +80,7 @@ Now that the later category stories exist, designer project forms select from sa
 
 ## Reports
 
-Daily reports cover one day, weekly reports seven consecutive days, and monthly reports a complete calendar month. The boundary validates ISO date input, supported years (1900–9998), and the selected interval. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
+Daily reports cover one day, weekly reports seven consecutive days, and monthly reports a complete calendar month. The boundary validates ISO date input (or date objects in direct BCE calls), supported years (1900–9998), and the selected interval. Daily/weekly end dates are read-only and derived from startDate; monthly accepts both dates. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
 
 Reports store an immutable snapshot for the selected period. CSV downloads read that snapshot, so later activity does not change an existing report. Generate another report to include new activity.
 

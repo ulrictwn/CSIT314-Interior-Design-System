@@ -16,9 +16,9 @@ from boundary.categories.view_category_page import ViewCategoryPage
 from boundary.categories.update_category_page import UpdateCategoryPage
 from boundary.categories.delete_category_page import DeleteCategoryPage
 from boundary.categories.search_category_page import SearchCategoryPage
-from boundary.reports.generate_daily_report_page import GenerateDailyReportPage
-from boundary.reports.generate_weekly_report_page import GenerateWeeklyReportPage
-from boundary.reports.generate_monthly_report_page import GenerateMonthlyReportPage
+from boundary.reports.daily_report_page import DailyReportPage
+from boundary.reports.weekly_report_page import WeeklyReportPage
+from boundary.reports.monthly_report_page import MonthlyReportPage
 from boundary.reports.view_report_page import ViewReportPage, DownloadReportPage
 from boundary.designer.view_count_page import ViewCountPage
 from boundary.designer.view_shortlist_count_page import ViewShortlistCountPage
@@ -47,9 +47,9 @@ def register_sprint_routes(app):
         ('/manager/categories/<int:category_id>','view_category',ViewCategoryPage),
         ('/manager/categories/<int:category_id>/update','update_category',UpdateCategoryPage),
         ('/manager/categories/<int:category_id>/delete','delete_category',DeleteCategoryPage),
-        ('/manager/reports/daily','generate_daily_report',GenerateDailyReportPage),
-        ('/manager/reports/weekly','generate_weekly_report',GenerateWeeklyReportPage),
-        ('/manager/reports/monthly','generate_monthly_report',GenerateMonthlyReportPage),
+        ('/manager/reports/daily','generate_daily_report',DailyReportPage),
+        ('/manager/reports/weekly','generate_weekly_report',WeeklyReportPage),
+        ('/manager/reports/monthly','generate_monthly_report',MonthlyReportPage),
         ('/manager/reports/<int:report_id>','view_report',ViewReportPage),
         ('/manager/reports/<int:report_id>/download','download_report',DownloadReportPage),
         ('/designer/projects/<int:project_id>/views','view_count',ViewCountPage),

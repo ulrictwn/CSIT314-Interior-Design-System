@@ -53,14 +53,14 @@ def validate_profile_fields(profileName, description, status, permissions):
         elif len(value.strip()) > maximum:
             errors[field] = [f'{label} must be at most {maximum} characters.']
         values.append(value.strip() if isinstance(value, str) else value)
-    if not isinstance(status, bool):
+    if not isinstance(status, str) or status.strip() not in ('Active', 'Suspended'):
         errors['status'] = ['Choose Active or Suspended.']
     if not isinstance(permissions, list) or any(
             not isinstance(p, str) or p not in PERMISSION_OPTIONS for p in permissions):
         errors['permissions'] = ['Choose permissions from the supported list.']
     if errors:
         return None, errors
-    return (values[0], values[1], status,
+    return (values[0], values[1], status.strip(),
             list(dict.fromkeys(permissions))), {}
 
 

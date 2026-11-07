@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 from infrastructure.database import db
 from infrastructure.errors import DomainError
@@ -9,7 +9,7 @@ SINGAPORE = ZoneInfo('Asia/Singapore')
 
 
 class Report(db.Model):
-    """Stored report snapshots. Stories 46–48 have no completed BCE diagrams."""
+    """Stored report snapshots shared by the three report BCE controllers."""
     __tablename__ = 'report'
 
     report_id = db.Column(db.Integer, primary_key=True)
@@ -20,11 +20,14 @@ class Report(db.Model):
     account_id = db.Column(db.String(32), db.ForeignKey('user_account.account_id', ondelete='SET NULL'))
     totals = db.Column(db.JSON, nullable=False)
     rows = db.Column(db.JSON, nullable=False)
+    __table_args__ = (
+        db.CheckConstraint("report_type IN ('daily', 'weekly', 'monthly')", name='ck_report_type'),
+        db.CheckConstraint('end_date >= start_date', name='ck_report_date_range'),
+    )
 
-    @classmethod
-    def _generate(cls, kind, startDate, endDate, accountId):
+    def generateReport(self, reportType: str, startDate: date, endDate: date) -> 'Report':
         from entity.accounts.user_account import UserAccount
-        if accountId and UserAccount.getUserAccount(accountId) is None:
+        if self.account_id and UserAccount.getUserAccount(self.account_id) is None:
             raise DomainError('Account not found.')
         start = datetime.combine(startDate, time.min, SINGAPORE).astimezone(timezone.utc)
         stop = datetime.combine(endDate + timedelta(days=1), time.min, SINGAPORE).astimezone(timezone.utc)
@@ -46,23 +49,16 @@ class Report(db.Model):
             ('Customer activity', 'Project views', 'project_viewed'),
             ('Customer activity', 'Projects shortlisted', 'shortlist_saved'),
         ]]
-        report = cls(report_type=kind, start_date=startDate, end_date=endDate,
-                     account_id=accountId, totals=totals, rows=rows)
+        report = Report(report_type=reportType, start_date=startDate, end_date=endDate,
+                        account_id=self.account_id, totals=totals, rows=rows)
         db.session.add(report)
         db.session.commit()
         return report
 
-    @classmethod
-    def generateDailyReport(cls, startDate, endDate, accountId=None):
-        return cls._generate('daily', startDate, endDate, accountId)
-
-    @classmethod
-    def generateWeeklyReport(cls, startDate, endDate, accountId=None):
-        return cls._generate('weekly', startDate, endDate, accountId)
-
-    @classmethod
-    def generateMonthlyReport(cls, startDate, endDate, accountId=None):
-        return cls._generate('monthly', startDate, endDate, accountId)
+    @staticmethod
+    def periodEndDate(reportType: str, startDate: date) -> date:
+        """Derive the stored reporting period in the entity layer."""
+        return startDate + timedelta(days=6) if reportType == 'weekly' else startDate
 
     @classmethod
     def getReport(cls, reportId):

@@ -1,13 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 from flask import render_template
 from flask.views import MethodView
 from boundary.validation import valid_account_id
 from control.accounts.view_user_account_controller import ViewUserAccountController
 
-if TYPE_CHECKING:
-    from entity.accounts.user_account import UserAccount
+from entity.accounts.user_account import UserAccount
 
 
 class ViewUserAccountPage(MethodView):

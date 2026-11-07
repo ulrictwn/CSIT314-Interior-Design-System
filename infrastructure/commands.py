@@ -37,7 +37,7 @@ def register_commands(app):
             for name, permissions in DEFAULT_PROFILES.items():
                 if UserProfile.getProfile(name) is None:
                     new_profile = UserProfile()
-                    if not new_profile.createUserProfile(name, f'{name} platform role.', True, permissions):
+                    if not new_profile.createUserProfile(name, f'{name} platform role.', 'Active', permissions):
                         raise DomainError(new_profile.error_message)
             profile = UserProfile.getProfile('User Admin')
             profile.status = 'Active'

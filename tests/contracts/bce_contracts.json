@@ -1,0 +1,2299 @@
+{
+  "source": "Nothinghere/CSIT314 Group Project Report (4).docx",
+  "stories": [
+    {
+      "story": 1,
+      "boundary": {
+        "module": "boundary.profile.create_user_profile_page",
+        "name": "CreateUserProfilePage",
+        "methods": {
+          "onCreate": {
+            "parameters": {
+              "profileName": "str",
+              "description": "str",
+              "status": "str",
+              "permissions": "list[str]"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.profile.create_user_profile_controller",
+        "name": "CreateUserProfileController",
+        "methods": {
+          "createUserProfile": {
+            "parameters": {
+              "profileName": "str",
+              "description": "str",
+              "status": "str",
+              "permissions": "list[str]"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.profile.user_profile",
+        "name": "UserProfile",
+        "methods": {
+          "createUserProfile": {
+            "parameters": {
+              "profileName": "str",
+              "description": "str",
+              "status": "str",
+              "permissions": "list[str]"
+            },
+            "returns": "bool"
+          },
+          "userProfileExists": {
+            "parameters": {
+              "profileName": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 2,
+      "boundary": {
+        "module": "boundary.profile.view_user_profile_page",
+        "name": "ViewUserProfilePage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "void"
+          },
+          "displayProfile": {
+            "parameters": {
+              "profile": "UserProfile"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.profile.view_user_profile_controller",
+        "name": "ViewUserProfileController",
+        "methods": {
+          "getUserProfile": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "UserProfile"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.profile.user_profile",
+        "name": "UserProfile",
+        "methods": {
+          "getUserProfile": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "UserProfile"
+          }
+        }
+      }
+    },
+    {
+      "story": 3,
+      "boundary": {
+        "module": "boundary.profile.update_user_profile_page",
+        "name": "UpdateUserProfilePage",
+        "methods": {
+          "onUpdate": {
+            "parameters": {
+              "profileId": "int",
+              "profileName": "str",
+              "description": "str",
+              "permissions": "list[str]"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.profile.update_user_profile_controller",
+        "name": "UpdateUserProfileController",
+        "methods": {
+          "updateUserProfile": {
+            "parameters": {
+              "profileId": "int",
+              "profileName": "str",
+              "description": "str",
+              "permissions": "list[str]"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.profile.user_profile",
+        "name": "UserProfile",
+        "methods": {
+          "updateUserProfile": {
+            "parameters": {
+              "profileId": "int",
+              "profileName": "str",
+              "description": "str",
+              "permissions": "list[str]"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 4,
+      "boundary": {
+        "module": "boundary.profile.suspend_user_profile_page",
+        "name": "SuspendUserProfilePage",
+        "methods": {
+          "onSuspend": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.profile.suspend_user_profile_controller",
+        "name": "SuspendUserProfileController",
+        "methods": {
+          "suspendUserProfile": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.profile.user_profile",
+        "name": "UserProfile",
+        "methods": {
+          "suspendUserProfile": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 5,
+      "boundary": {
+        "module": "boundary.profile.search_user_profile_page",
+        "name": "SearchUserProfilePage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "profiles": "list[UserProfile]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.profile.search_user_profile_controller",
+        "name": "SearchUserProfileController",
+        "methods": {
+          "searchUserProfiles": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[UserProfile]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.profile.user_profile",
+        "name": "UserProfile",
+        "methods": {
+          "searchUserProfiles": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[UserProfile]"
+          }
+        }
+      }
+    },
+    {
+      "story": 6,
+      "boundary": {
+        "module": "boundary.accounts.create_user_account_page",
+        "name": "CreateUserAccountPage",
+        "methods": {
+          "onCreate": {
+            "parameters": {
+              "username": "str",
+              "fullName": "str",
+              "email": "str",
+              "phoneNumber": "str",
+              "profileId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.accounts.create_user_account_controller",
+        "name": "CreateUserAccountController",
+        "methods": {
+          "createUserAccount": {
+            "parameters": {
+              "username": "str",
+              "fullName": "str",
+              "email": "str",
+              "phoneNumber": "str",
+              "profileId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "createUserAccount": {
+            "parameters": {
+              "username": "str",
+              "fullName": "str",
+              "email": "str",
+              "phoneNumber": "str",
+              "profileId": "int"
+            },
+            "returns": "bool"
+          },
+          "userAccountExists": {
+            "parameters": {
+              "username": "str"
+            },
+            "returns": "bool"
+          },
+          "generateAccountId": {
+            "parameters": {
+              "profileId": "int"
+            },
+            "returns": "str"
+          }
+        },
+        "allowed_keyword_only": [
+          "password"
+        ]
+      },
+      "exception": "Admin-created accounts remain password-free as explicitly requested; the diagram password input is omitted. The entity retains a keyword-only trusted password setup argument."
+    },
+    {
+      "story": 7,
+      "boundary": {
+        "module": "boundary.accounts.view_user_account_page",
+        "name": "ViewUserAccountPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "void"
+          },
+          "displayAccount": {
+            "parameters": {
+              "account": "UserAccount"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.accounts.view_user_account_controller",
+        "name": "ViewUserAccountController",
+        "methods": {
+          "getUserAccount": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "UserAccount"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "getUserAccount": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "UserAccount"
+          }
+        }
+      }
+    },
+    {
+      "story": 8,
+      "boundary": {
+        "module": "boundary.accounts.update_user_account_page",
+        "name": "UpdateUserAccountPage",
+        "methods": {
+          "onUpdate": {
+            "parameters": {
+              "accountId": "str",
+              "fullName": "str",
+              "email": "str",
+              "profileId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.accounts.update_user_account_controller",
+        "name": "UpdateUserAccountController",
+        "methods": {
+          "updateUserAccount": {
+            "parameters": {
+              "accountId": "str",
+              "fullName": "str",
+              "email": "str",
+              "profileId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "updateUserAccount": {
+            "parameters": {
+              "accountId": "str",
+              "fullName": "str",
+              "email": "str",
+              "profileId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 9,
+      "boundary": {
+        "module": "boundary.accounts.suspend_user_account_page",
+        "name": "SuspendUserAccountPage",
+        "methods": {
+          "onSuspend": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.accounts.suspend_user_account_controller",
+        "name": "SuspendUserAccountController",
+        "methods": {
+          "suspendUserAccount": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "suspendUserAccount": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 10,
+      "boundary": {
+        "module": "boundary.accounts.search_user_account_page",
+        "name": "SearchUserAccountPage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "accounts": "list[UserAccount]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.accounts.search_user_account_controller",
+        "name": "SearchUserAccountController",
+        "methods": {
+          "searchUserAccounts": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[UserAccount]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "searchUserAccounts": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[UserAccount]"
+          }
+        }
+      }
+    },
+    {
+      "story": 11,
+      "boundary": {
+        "module": "boundary.auth.user_admin_login_page",
+        "name": "UserAdminLoginPage",
+        "methods": {
+          "onLogin": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "void"
+          },
+          "displayDashboard": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.auth.user_admin_login_controller",
+        "name": "UserAdminLoginController",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str",
+              "profileName": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 12,
+      "boundary": {
+        "module": "boundary.auth.logout_page",
+        "name": "LogoutPage",
+        "methods": {
+          "logout": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayLoginPage": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": null,
+      "entity": null
+    },
+    {
+      "story": 13,
+      "boundary": {
+        "module": "boundary.company.create_company_profile_page",
+        "name": "CreateCompanyProfilePage",
+        "methods": {
+          "onCreate": {
+            "parameters": {
+              "companyName": "str",
+              "companyContact": "str",
+              "companyAddress": "str",
+              "companyEmail": "str",
+              "companyRegistrationNumber": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.company.create_company_profile_controller",
+        "name": "CreateCompanyProfileController",
+        "methods": {
+          "createCompanyProfile": {
+            "parameters": {
+              "accountId": "str",
+              "companyName": "str",
+              "companyContact": "str",
+              "companyAddress": "str",
+              "companyEmail": "str",
+              "companyRegistrationNumber": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.company.company_profile",
+        "name": "CompanyProfile",
+        "methods": {
+          "createCompanyProfile": {
+            "parameters": {
+              "accountId": "str",
+              "companyName": "str",
+              "companyContact": "str",
+              "companyAddress": "str",
+              "companyEmail": "str",
+              "companyRegistrationNumber": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 14,
+      "boundary": {
+        "module": "boundary.company.view_company_profile_page",
+        "name": "ViewCompanyProfilePage",
+        "methods": {
+          "onView": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayCompanyProfile": {
+            "parameters": {
+              "profile": "CompanyProfile"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.company.view_company_profile_controller",
+        "name": "ViewCompanyProfileController",
+        "methods": {
+          "getCompanyProfile": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "CompanyProfile"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.company.company_profile",
+        "name": "CompanyProfile",
+        "methods": {
+          "getCompanyProfile": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "CompanyProfile"
+          }
+        }
+      }
+    },
+    {
+      "story": 15,
+      "boundary": {
+        "module": "boundary.company.delete_company_profile_page",
+        "name": "DeleteCompanyProfilePage",
+        "methods": {
+          "onDelete": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.company.delete_company_profile_controller",
+        "name": "DeleteCompanyProfileController",
+        "methods": {
+          "deleteCompanyProfile": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.company.company_profile",
+        "name": "CompanyProfile",
+        "methods": {
+          "deleteCompanyProfile": {
+            "parameters": {
+              "accountId": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 16,
+      "boundary": {
+        "module": "boundary.company.update_company_profile_page",
+        "name": "UpdateCompanyProfilePage",
+        "methods": {
+          "onUpdate": {
+            "parameters": {
+              "companyName": "str",
+              "companyContact": "str",
+              "companyAddress": "str",
+              "companyEmail": "str",
+              "companyRegistrationNumber": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.company.update_company_profile_controller",
+        "name": "UpdateCompanyProfileController",
+        "methods": {
+          "updateCompanyProfile": {
+            "parameters": {
+              "accountId": "str",
+              "companyName": "str",
+              "companyContact": "str",
+              "companyAddress": "str",
+              "companyEmail": "str",
+              "companyRegistrationNumber": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.company.company_profile",
+        "name": "CompanyProfile",
+        "methods": {
+          "updateCompanyProfile": {
+            "parameters": {
+              "accountId": "str",
+              "companyName": "str",
+              "companyContact": "str",
+              "companyAddress": "str",
+              "companyEmail": "str",
+              "companyRegistrationNumber": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 17,
+      "boundary": {
+        "module": "boundary.company.search_company_profile_page",
+        "name": "SearchCompanyProfilePage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "results": "list[str]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.company.search_company_profile_controller",
+        "name": "SearchCompanyProfileController",
+        "methods": {
+          "searchCompanyProfile": {
+            "parameters": {
+              "accountId": "str",
+              "keyword": "str"
+            },
+            "returns": "list[str]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.company.company_profile",
+        "name": "CompanyProfile",
+        "methods": {
+          "searchCompanyProfile": {
+            "parameters": {
+              "accountId": "str",
+              "keyword": "str"
+            },
+            "returns": "list[str]"
+          }
+        }
+      }
+    },
+    {
+      "story": 18,
+      "boundary": {
+        "module": "boundary.designer.interior_designer_login_page",
+        "name": "InteriorDesignerLoginPage",
+        "methods": {
+          "onLogin": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "void"
+          },
+          "displayDashboard": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.designer.interior_designer_login_controller",
+        "name": "InteriorDesignerLoginController",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str",
+              "profileName": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 19,
+      "boundary": {
+        "module": "boundary.designer.interior_designer_logout_page",
+        "name": "InteriorDesignerLogoutPage",
+        "methods": {
+          "logout": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayLoginPage": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": null,
+      "entity": null
+    },
+    {
+      "story": 20,
+      "boundary": {
+        "module": "boundary.projects.create_new_project_page",
+        "name": "CreateNewProjectPage",
+        "methods": {
+          "onCreate": {
+            "parameters": {
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.create_new_project_controller",
+        "name": "CreateNewProjectController",
+        "methods": {
+          "createNewProject": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "createNewProject": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 21,
+      "boundary": {
+        "module": "boundary.projects.update_new_project_page",
+        "name": "UpdateNewProjectPage",
+        "methods": {
+          "onUpdate": {
+            "parameters": {
+              "projectId": "int",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.update_new_project_controller",
+        "name": "UpdateNewProjectController",
+        "methods": {
+          "updateNewProject": {
+            "parameters": {
+              "projectId": "int",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "updateNewProject": {
+            "parameters": {
+              "projectId": "int",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 22,
+      "boundary": {
+        "module": "boundary.projects.view_new_project_page",
+        "name": "ViewNewProjectPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displayProject": {
+            "parameters": {
+              "project": "InteriorDesignProject"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.view_new_project_controller",
+        "name": "ViewNewProjectController",
+        "methods": {
+          "getNewProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "getNewProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          }
+        }
+      }
+    },
+    {
+      "story": 23,
+      "boundary": {
+        "module": "boundary.projects.search_new_project_page",
+        "name": "SearchNewProjectPage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "projectName": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "projects": "list[InteriorDesignProject]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.search_new_project_controller",
+        "name": "SearchNewProjectController",
+        "methods": {
+          "searchNewProjects": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "searchNewProjects": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      }
+    },
+    {
+      "story": 24,
+      "boundary": {
+        "module": "boundary.projects.delete_new_project_page",
+        "name": "DeleteNewProjectPage",
+        "methods": {
+          "onDelete": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.delete_new_project_controller",
+        "name": "DeleteNewProjectController",
+        "methods": {
+          "deleteNewProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "deleteNewProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 25,
+      "boundary": {
+        "module": "boundary.projects.create_past_project_page",
+        "name": "CreatePastProjectPage",
+        "methods": {
+          "onCreate": {
+            "parameters": {
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.create_past_project_controller",
+        "name": "CreatePastProjectController",
+        "methods": {
+          "createPastProject": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "createPastProject": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 26,
+      "boundary": {
+        "module": "boundary.projects.view_past_project_page",
+        "name": "ViewPastProjectPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displayProject": {
+            "parameters": {
+              "project": "InteriorDesignProject"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.view_past_project_controller",
+        "name": "ViewPastProjectController",
+        "methods": {
+          "getPastProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "getPastProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          }
+        }
+      }
+    },
+    {
+      "story": 27,
+      "boundary": {
+        "module": "boundary.projects.update_past_project_page",
+        "name": "UpdatePastProjectPage",
+        "methods": {
+          "onUpdate": {
+            "parameters": {
+              "projectId": "int",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.update_past_project_controller",
+        "name": "UpdatePastProjectController",
+        "methods": {
+          "updatePastProject": {
+            "parameters": {
+              "projectId": "int",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "updatePastProject": {
+            "parameters": {
+              "projectId": "int",
+              "projectName": "str",
+              "categoryId": "int",
+              "propertyType": "str",
+              "area": "str",
+              "renovationCost": "float",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 28,
+      "boundary": {
+        "module": "boundary.projects.search_past_project_page",
+        "name": "SearchPastProjectPage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "projectName": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "projects": "list[InteriorDesignProject]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.search_past_project_controller",
+        "name": "SearchPastProjectController",
+        "methods": {
+          "searchPastProjects": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "searchPastProjects": {
+            "parameters": {
+              "accountId": "str",
+              "projectName": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      }
+    },
+    {
+      "story": 29,
+      "boundary": {
+        "module": "boundary.projects.delete_past_project_page",
+        "name": "DeletePastProjectPage",
+        "methods": {
+          "onDelete": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.projects.delete_past_project_controller",
+        "name": "DeletePastProjectController",
+        "methods": {
+          "deletePastProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "deletePastProject": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 30,
+      "boundary": {
+        "module": "boundary.customer.search_idp_page",
+        "name": "SearchIDPPage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "idps": "list[InteriorDesignProject]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.customer.search_idp_controller",
+        "name": "SearchIDPController",
+        "methods": {
+          "search_all_IDPs": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "search_all_IDPs": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      }
+    },
+    {
+      "story": 31,
+      "boundary": {
+        "module": "boundary.customer.view_idp_page",
+        "name": "ViewIDPPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displayIDP": {
+            "parameters": {
+              "idp": "InteriorDesignProject"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.customer.view_idp_controller",
+        "name": "ViewIDPController",
+        "methods": {
+          "getIDP": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "getIDP": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          },
+          "incrementViewCount": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          }
+        }
+      }
+    },
+    {
+      "story": 32,
+      "boundary": {
+        "module": "boundary.customer.save_shortlist_idp_page",
+        "name": "SaveShortlistIDPPage",
+        "methods": {
+          "onSave": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.customer.save_shortlist_idp_controller",
+        "name": "SaveShortlistIDPController",
+        "methods": {
+          "saveShortlist": {
+            "parameters": {
+              "accountId": "str",
+              "projectId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.shortlist.shortlist",
+        "name": "Shortlist",
+        "methods": {
+          "saveShortlist": {
+            "parameters": {
+              "accountId": "str",
+              "projectId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 33,
+      "boundary": {
+        "module": "boundary.customer.search_shortlist_idp_page",
+        "name": "SearchShortlistIDPPage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "idps": "list[InteriorDesignProject]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.customer.search_shortlist_idp_controller",
+        "name": "SearchShortlistIDPController",
+        "methods": {
+          "search_shortlist_IDP": {
+            "parameters": {
+              "accountId": "str",
+              "keyword": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "search_shortlist_IDP": {
+            "parameters": {
+              "accountId": "str",
+              "keyword": "str"
+            },
+            "returns": "list[InteriorDesignProject]"
+          }
+        }
+      }
+    },
+    {
+      "story": 34,
+      "boundary": {
+        "module": "boundary.customer.view_shortlist_idp_page",
+        "name": "ViewShortlistIDPPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displayIDP": {
+            "parameters": {
+              "idp": "InteriorDesignProject"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.customer.view_shortlist_idp_controller",
+        "name": "ViewShortlistIDPController",
+        "methods": {
+          "getIDP": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "getIDP": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "InteriorDesignProject"
+          },
+          "incrementViewCount": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          }
+        }
+      }
+    },
+    {
+      "story": 35,
+      "boundary": {
+        "module": "boundary.customer.customer_login_page",
+        "name": "CustomerLoginPage",
+        "methods": {
+          "onLogin": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "void"
+          },
+          "displayDashboard": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.customer.customer_login_controller",
+        "name": "CustomerLoginController",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str",
+              "profileName": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 36,
+      "boundary": {
+        "module": "boundary.customer.logout_page",
+        "name": "LogoutPage",
+        "methods": {
+          "logout": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayLoginPage": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": null,
+      "entity": null
+    },
+    {
+      "story": 37,
+      "boundary": {
+        "module": "boundary.designer.view_count_page",
+        "name": "ViewCountPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displayViewCount": {
+            "parameters": {
+              "viewCount": "int"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.designer.view_count_controller",
+        "name": "ViewCountController",
+        "methods": {
+          "getViewCount": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "int"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.projects.interior_design_project",
+        "name": "InteriorDesignProject",
+        "methods": {
+          "getViewCount": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "int"
+          }
+        }
+      }
+    },
+    {
+      "story": 38,
+      "boundary": {
+        "module": "boundary.designer.view_shortlist_count_page",
+        "name": "ViewShortlistCountPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "void"
+          },
+          "displayShortlistCount": {
+            "parameters": {
+              "shortlistCount": "int"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.designer.view_shortlist_count_controller",
+        "name": "ViewShortlistCountController",
+        "methods": {
+          "getShortlistCount": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "int"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.shortlist.shortlist",
+        "name": "Shortlist",
+        "methods": {
+          "getShortlistCount": {
+            "parameters": {
+              "projectId": "int"
+            },
+            "returns": "int"
+          }
+        }
+      }
+    },
+    {
+      "story": 39,
+      "boundary": {
+        "module": "boundary.platform_manager.platform_manager_login_page",
+        "name": "PlatformManagerLoginPage",
+        "methods": {
+          "onLogin": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "void"
+          },
+          "displayDashboard": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.platform_manager.platform_manager_login_controller",
+        "name": "PlatformManagerLoginController",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.accounts.user_account",
+        "name": "UserAccount",
+        "methods": {
+          "login": {
+            "parameters": {
+              "username": "str",
+              "password": "str",
+              "profileName": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 40,
+      "boundary": {
+        "module": "boundary.platform_manager.platform_manager_logout_page",
+        "name": "PlatformManagerLogoutPage",
+        "methods": {
+          "logout": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayLoginPage": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": null,
+      "entity": null
+    },
+    {
+      "story": 41,
+      "boundary": {
+        "module": "boundary.categories.create_category_page",
+        "name": "CreateCategoryPage",
+        "methods": {
+          "onCreate": {
+            "parameters": {
+              "categoryName": "str",
+              "description": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.categories.create_category_controller",
+        "name": "CreateCategoryController",
+        "methods": {
+          "createCategory": {
+            "parameters": {
+              "categoryName": "str",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.categories.category",
+        "name": "Category",
+        "methods": {
+          "createCategory": {
+            "parameters": {
+              "categoryName": "str",
+              "description": "str"
+            },
+            "returns": "bool"
+          },
+          "categoryExists": {
+            "parameters": {
+              "categoryName": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 42,
+      "boundary": {
+        "module": "boundary.categories.view_category_page",
+        "name": "ViewCategoryPage",
+        "methods": {
+          "onView": {
+            "parameters": {
+              "categoryId": "int"
+            },
+            "returns": "void"
+          },
+          "displayCategory": {
+            "parameters": {
+              "category": "Category"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.categories.view_category_controller",
+        "name": "ViewCategoryController",
+        "methods": {
+          "getCategory": {
+            "parameters": {
+              "categoryId": "int"
+            },
+            "returns": "Category"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.categories.category",
+        "name": "Category",
+        "methods": {
+          "getCategory": {
+            "parameters": {
+              "categoryId": "int"
+            },
+            "returns": "Category"
+          }
+        }
+      }
+    },
+    {
+      "story": 43,
+      "boundary": {
+        "module": "boundary.categories.update_category_page",
+        "name": "UpdateCategoryPage",
+        "methods": {
+          "onUpdate": {
+            "parameters": {
+              "categoryId": "int",
+              "categoryName": "str",
+              "description": "str"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.categories.update_category_controller",
+        "name": "UpdateCategoryController",
+        "methods": {
+          "updateCategory": {
+            "parameters": {
+              "categoryId": "int",
+              "categoryName": "str",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.categories.category",
+        "name": "Category",
+        "methods": {
+          "updateCategory": {
+            "parameters": {
+              "categoryId": "int",
+              "categoryName": "str",
+              "description": "str"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 44,
+      "boundary": {
+        "module": "boundary.categories.delete_category_page",
+        "name": "DeleteCategoryPage",
+        "methods": {
+          "onDelete": {
+            "parameters": {
+              "categoryId": "int"
+            },
+            "returns": "void"
+          },
+          "displaySuccess": {
+            "parameters": {},
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.categories.delete_category_controller",
+        "name": "DeleteCategoryController",
+        "methods": {
+          "deleteCategory": {
+            "parameters": {
+              "categoryId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.categories.category",
+        "name": "Category",
+        "methods": {
+          "deleteCategory": {
+            "parameters": {
+              "categoryId": "int"
+            },
+            "returns": "bool"
+          }
+        }
+      }
+    },
+    {
+      "story": 45,
+      "boundary": {
+        "module": "boundary.categories.search_category_page",
+        "name": "SearchCategoryPage",
+        "methods": {
+          "onSearch": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "void"
+          },
+          "displayResults": {
+            "parameters": {
+              "categories": "list[Category]"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.categories.search_category_controller",
+        "name": "SearchCategoryController",
+        "methods": {
+          "searchCategories": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[Category]"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.categories.category",
+        "name": "Category",
+        "methods": {
+          "searchCategories": {
+            "parameters": {
+              "keyword": "str"
+            },
+            "returns": "list[Category]"
+          }
+        }
+      }
+    },
+    {
+      "story": 46,
+      "boundary": {
+        "module": "boundary.reports.daily_report_page",
+        "name": "DailyReportPage",
+        "methods": {
+          "onGenerateDailyReport": {
+            "parameters": {
+              "startDate": "date"
+            },
+            "returns": "void"
+          },
+          "displayReport": {
+            "parameters": {
+              "report": "Report"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.reports.daily_report_controller",
+        "name": "DailyReportController",
+        "methods": {
+          "generateDailyReport": {
+            "parameters": {
+              "startDate": "date"
+            },
+            "returns": "Report"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.reports.report",
+        "name": "Report",
+        "methods": {
+          "generateReport": {
+            "parameters": {
+              "reportType": "str",
+              "startDate": "date",
+              "endDate": "date"
+            },
+            "returns": "Report"
+          }
+        }
+      }
+    },
+    {
+      "story": 47,
+      "boundary": {
+        "module": "boundary.reports.weekly_report_page",
+        "name": "WeeklyReportPage",
+        "methods": {
+          "onGenerateWeeklyReport": {
+            "parameters": {
+              "startDate": "date"
+            },
+            "returns": "void"
+          },
+          "displayReport": {
+            "parameters": {
+              "report": "Report"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.reports.weekly_report_controller",
+        "name": "WeeklyReportController",
+        "methods": {
+          "generateWeeklyReport": {
+            "parameters": {
+              "startDate": "date"
+            },
+            "returns": "Report"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.reports.report",
+        "name": "Report",
+        "methods": {
+          "generateReport": {
+            "parameters": {
+              "reportType": "str",
+              "startDate": "date",
+              "endDate": "date"
+            },
+            "returns": "Report"
+          }
+        }
+      }
+    },
+    {
+      "story": 48,
+      "boundary": {
+        "module": "boundary.reports.monthly_report_page",
+        "name": "MonthlyReportPage",
+        "methods": {
+          "onGenerateMonthlyReport": {
+            "parameters": {
+              "startDate": "date",
+              "endDate": "date"
+            },
+            "returns": "void"
+          },
+          "displayReport": {
+            "parameters": {
+              "report": "Report"
+            },
+            "returns": "void"
+          }
+        }
+      },
+      "controller": {
+        "module": "control.reports.monthly_report_controller",
+        "name": "MonthlyReportController",
+        "methods": {
+          "generateMonthlyReport": {
+            "parameters": {
+              "startDate": "date",
+              "endDate": "date"
+            },
+            "returns": "Report"
+          }
+        }
+      },
+      "entity": {
+        "module": "entity.reports.report",
+        "name": "Report",
+        "methods": {
+          "generateReport": {
+            "parameters": {
+              "reportType": "str",
+              "startDate": "date",
+              "endDate": "date"
+            },
+            "returns": "Report"
+          }
+        }
+      }
+    }
+  ]
+}

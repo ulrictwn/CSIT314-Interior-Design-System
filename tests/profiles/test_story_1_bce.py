@@ -18,7 +18,7 @@ pytestmark = pytest.mark.story1
     ({'description': '   '}, 'description'),
     ({'description': 'x' * 10001}, 'description'),
     ({'status': None}, 'status'),
-    ({'status': 'Active'}, 'status'),
+    ({'status': True}, 'status'),
     ({'status': 1}, 'status'),
     ({'permissions': ['profile.destroy']}, 'permissions'),
     ({'permissions': 'profile.view'}, 'permissions'),
@@ -29,7 +29,7 @@ def test_boundary_rejects_invalid_input_before_controller_access(app, monkeypatc
     monkeypatch.setattr(CreateUserProfileController, 'createUserProfile', create)
     with app.test_request_context('/profiles/create', method='POST'):
         page = CreateUserProfilePage()
-        assert page.onCreate(**{**profile_data, 'status': True, **patch}) is None
+        assert page.onCreate(**{**profile_data, 'status': 'Active', **patch}) is None
         assert field in page.field_errors
         assert page.rendered_page[1] == 400
     create.assert_not_called()
@@ -54,10 +54,10 @@ def test_entity_rejects_duplicates_and_keeps_session_usable(app, seed, monkeypat
             # Simulate a competing insert after the preliminary name check.
             monkeypatch.setattr(UserProfile, 'userProfileExists', lambda *args: False)
         profile = UserProfile()
-        assert profile.createUserProfile('cUsToMeR', 'Duplicate', True, []) is False
+        assert profile.createUserProfile('cUsToMeR', 'Duplicate', 'Active', []) is False
         assert 'already exists' in profile.error_message
         assert len(UserProfile.listUserProfiles()) == 1
-        assert UserProfile().createUserProfile('Designer', 'Another role', False, []) is True
+        assert UserProfile().createUserProfile('Designer', 'Another role', 'Suspended', []) is True
         assert len(UserProfile.listUserProfiles()) == 2
 
 
@@ -65,9 +65,9 @@ def test_controller_relays_boolean_result_and_entity_errors(app, profile_data):
 
     with app.app_context():
         controller = CreateUserProfileController()
-        assert controller.createUserProfile(**{**profile_data, 'status': True}) is True
+        assert controller.createUserProfile(**{**profile_data, 'status': 'Active'}) is True
         assert controller.userProfileExists('customer') is True
-        assert controller.createUserProfile(**{**profile_data, 'status': True}) is False
+        assert controller.createUserProfile(**{**profile_data, 'status': 'Active'}) is False
         assert 'already exists' in controller.error_message
         assert 'profileName' in controller.field_errors
 

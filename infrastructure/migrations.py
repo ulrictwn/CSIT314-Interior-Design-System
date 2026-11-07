@@ -86,3 +86,18 @@ def upgrade_sprints_4_5():
             connection.execute(text('CREATE TRIGGER IF NOT EXISTS category_in_use BEFORE DELETE ON category '
                 'FOR EACH ROW WHEN EXISTS (SELECT 1 FROM interior_design_project WHERE category_id = OLD.category_id) '
                 "BEGIN SELECT RAISE(ABORT, 'Category is used by projects'); END"))
+        report_checks = {
+            'ck_report_type': "report_type IN ('daily', 'weekly', 'monthly')",
+            'ck_report_date_range': 'end_date >= start_date',
+        }
+        if dialect == 'postgresql':
+            existing_checks = {check['name'] for check in inspector.get_check_constraints('report')}
+            for name, condition in report_checks.items():
+                if name not in existing_checks:
+                    connection.execute(text(f'ALTER TABLE report ADD CONSTRAINT {name} CHECK ({condition})'))
+        elif dialect == 'sqlite':
+            for operation in ('INSERT', 'UPDATE'):
+                connection.execute(text(f'CREATE TRIGGER IF NOT EXISTS report_valid_{operation.lower()} '
+                    f'BEFORE {operation} ON report FOR EACH ROW WHEN '
+                    "NEW.report_type NOT IN ('daily', 'weekly', 'monthly') OR NEW.end_date < NEW.start_date "
+                    "BEGIN SELECT RAISE(ABORT, 'Invalid report type or date range'); END"))

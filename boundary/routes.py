@@ -1,5 +1,5 @@
 from boundary.dashboard_page import HomePage, DashboardPage
-from boundary.auth.auth_pages import LoginPage, LogoutPage
+from boundary.auth.auth_pages import UserAdminLoginPage, LogoutPage
 from boundary.accounts.account_pages import UserAccountsPage
 from boundary.accounts.create_user_account_page import CreateUserAccountPage
 from boundary.accounts.view_user_account_page import ViewUserAccountPage
@@ -17,7 +17,7 @@ from boundary.profile.profile_pages import UserProfilesPage
 def register_routes(app):
     routes = [
         ('/', 'home', HomePage), ('/dashboard', 'dashboard', DashboardPage),
-        ('/login', 'login', LoginPage), ('/logout', 'logout', LogoutPage),
+        ('/login', 'login', UserAdminLoginPage), ('/logout', 'logout', LogoutPage),
         ('/accounts', 'user_accounts', UserAccountsPage),
         ('/accounts/create', 'create_user_account', CreateUserAccountPage),
         ('/accounts/search', 'search_user_accounts', SearchUserAccountPage),

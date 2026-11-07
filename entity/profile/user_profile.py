@@ -22,7 +22,11 @@ class UserProfile(db.Model):
         return self.name
 
     @classmethod
-    def userProfileExists(cls, profileName: str, exclude_id=None) -> bool:
+    def userProfileExists(cls, profileName: str) -> bool:
+        return cls._profile_exists(profileName)
+
+    @classmethod
+    def _profile_exists(cls, profileName, exclude_id=None):
         statement = db.select(cls.profile_id).where(db.func.lower(cls.name) == profileName.lower())
         if exclude_id is not None:
             statement = statement.where(cls.profile_id != exclude_id)
@@ -34,12 +38,11 @@ class UserProfile(db.Model):
         self.error_reason = reason
         return False
 
-    def createUserProfile(self, profileName: str, description: str, status: bool,
+    def createUserProfile(self, profileName: str, description: str, status: str,
                           permissions: list[str]) -> bool:
         """Check duplicates and save input already validated by the boundary."""
         self.error_message = None
         self.field_errors = {}
-        stored_status = 'Active' if status else 'Suspended'
         duplicate_message = 'A profile with this name already exists.'
         try:
             if self.userProfileExists(profileName):
@@ -47,7 +50,7 @@ class UserProfile(db.Model):
                 self.field_errors = {'profileName': [duplicate_message]}
                 return False
             self.name, self.description = profileName, description
-            self.status, self.permissions = stored_status, permissions
+            self.status, self.permissions = status, permissions
             db.session.add(self)
             db.session.commit()
             return True
@@ -95,7 +98,7 @@ class UserProfile(db.Model):
             if profile is None:
                 db.session.rollback()
                 return self._reject('User profile not found.', reason='not_found')
-            if self.userProfileExists(name, profileId):
+            if self._profile_exists(name, profileId):
                 db.session.rollback()
                 return self._reject(duplicate_message, {'profileName': [duplicate_message]})
             profile.name, profile.description = name, description

@@ -31,7 +31,7 @@ class UpdateUserProfilePage(MethodView):
             self.displayError()
             return
         values, self.field_errors = validate_profile_fields(
-            profileName, description, True, permissions)
+            profileName, description, 'Active', permissions)
         if self.field_errors:
             self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
             self.displayError()

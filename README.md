@@ -103,6 +103,10 @@ Run `.venv/bin/python -m flask --app app upgrade-db` to create the two new table
 
 Open `/login` or `/staff/login` for Staff sign-in, with User Admin, Interior Designer, and Platform Manager roles. Choose Customer on the slider or open `/customer/login`. Customer and manager dashboards are `/customer` and `/manager`. Designer view/shortlist counts are linked in the designer sidebar.
 
-Customer search/view/save/remove flows, category management, and daily/weekly/monthly report snapshots with CSV downloads are implemented from the Word document and wireframes. Code uses matching `customer/`, `platform_manager/`, `categories/`, `reports/`, and `shortlist/` feature folders. Boundaries validate inputs, controllers relay, and entities own saved data and duplicate checks. See [SPRINTS_4_5_IMPLEMENTATION.md](docs/SPRINTS_4_5_IMPLEMENTATION.md) for exact diagram mappings, report assumptions, routes, and database changes.
+Customer search/view/save/remove flows, category management, and daily/weekly/monthly report snapshots with CSV downloads are implemented from the Word document and wireframes. Code uses matching `customer/`, `platform_manager/`, `categories/`, `reports/`, and `shortlist/` feature folders. Boundaries validate inputs, controllers relay, and entities own saved data and duplicate checks. See [SPRINTS_4_5_IMPLEMENTATION.md](docs/SPRINTS_4_5_IMPLEMENTATION.md) for exact diagram mappings, report interfaces, routes, and database changes.
 
 The database upgrade preserves existing records. Create a category from the manager portal before adding a designer project. Admin-created accounts still need a password configured with the existing `reset-password` terminal command before their first login.
+
+## BCE diagram audit
+
+All 48 diagrams in the updated report (4) have been reviewed against the code. See [the story-by-story audit](docs/BCE_AUDIT_1_48.md) for exact class/method mappings, layer responsibilities, and the previously approved password-free Story 6 exception. Report classes now use `DailyReportPage`, `WeeklyReportPage`, and `MonthlyReportPage`, each with its diagram event and `displayReport(report)`.

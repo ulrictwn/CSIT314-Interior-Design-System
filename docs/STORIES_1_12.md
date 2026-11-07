@@ -13,12 +13,12 @@ This classroom demonstration uses ordinary HTML forms and a basic browser sessio
 | 3 | `UpdateUserProfilePage.onUpdate`, `displaySuccess`, `displayError` | `UpdateUserProfileController.getUserProfile` / `updateUserProfile`; `UserProfile.getUserProfile` / `updateUserProfile` |
 | 4 | `SuspendUserProfilePage.onSuspend`, `displaySuccess`, `displayError` | `SuspendUserProfileController.suspendUserProfile`; `UserProfile.suspendUserProfile` |
 | 5 | `SearchUserProfilePage.onSearch`, `displayResults` | `SearchUserProfileController.searchUserProfiles`; `UserProfile.searchUserProfiles` |
-| 6 | `CreateUserAccountPage.clickCreate`, `displaySuccess`, `displayError` | `CreateUserAccountController.createUserAccount` / `userAccountExists`; `UserAccount.createUserAccount` / `userAccountExists` / `generateAccountId` |
+| 6 | `CreateUserAccountPage.onCreate`, `displaySuccess`, `displayError` | `CreateUserAccountController.createUserAccount` / `userAccountExists`; `UserAccount.createUserAccount` / `userAccountExists` / `generateAccountId` |
 | 7 | `ViewUserAccountPage.onView`, `displayAccount` | `ViewUserAccountController.getUserAccount`; `UserAccount.getUserAccount` |
 | 8 | `UpdateUserAccountPage.onUpdate`, `displaySuccess`, `displayError` | `UpdateUserAccountController.getUserAccount` / `updateUserAccount`; `UserAccount.getUserAccount` / `updateUserAccount` |
 | 9 | `SuspendUserAccountPage.onSuspend`, `displaySuccess`, `displayError` | `SuspendUserAccountController.suspendUserAccount`; `UserAccount.suspendUserAccount` |
 | 10 | `SearchUserAccountPage.onSearch`, `displayResults` | `SearchUserAccountController.searchUserAccounts`; `UserAccount.searchUserAccounts` |
-| 11 | `LoginPage.clickLogin`, `displayDashboard`, `displayError` | `LoginController.login`; `UserAccount.login` |
+| 11 | `UserAdminLoginPage.onLogin`, `displayDashboard`, `displayError` | `UserAdminLoginController.login`; `UserAccount.login` |
 | 12 | `LogoutPage.logout`, `displayLoginPage` | The report leaves the control/entity methods blank; the boundary clears the browser session and redirects to login. |
 
 Event/display methods return `None` (UML void) and store the response in `self.rendered_page`. Flask's `get()`/`post()` adapters return that response. Create/update/suspend/login entity operations return Boolean results; controllers relay duplicate messages and other saved-data errors to the boundary.

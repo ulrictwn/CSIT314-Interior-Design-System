@@ -82,7 +82,7 @@ def test_create_boundary_validates_before_controller_access(app, monkeypatch, ac
     else:
         with app.test_request_context('/accounts/create', method='POST'):
             page = CreateUserAccountPage()
-            assert page.clickCreate(**{**account_data, **patch}) is None
+            assert page.onCreate(**{**account_data, **patch}) is None
             assert field in page.field_errors
             assert page.rendered_page[1] == 400
     create.assert_not_called()
@@ -230,7 +230,7 @@ def test_boundary_event_methods_return_void(app, saved_account, action):
     with app.test_request_context('/accounts'):
         if action == 'create':
             page = CreateUserAccountPage()
-            assert page.clickCreate('second', 'Second User', 'second@example.com', '+65 6123 4567', profile_id) is None
+            assert page.onCreate('second', 'Second User', 'second@example.com', '+65 6123 4567', profile_id) is None
         elif action == 'view':
             page = ViewUserAccountPage()
             assert page.onView(account_id) is None

@@ -1,13 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 from flask import render_template
 from flask.views import MethodView
 from boundary.validation import valid_profile_id
 from control.profile.view_user_profile_controller import ViewUserProfileController
 
-if TYPE_CHECKING:
-    from entity.profile.user_profile import UserProfile
+from entity.profile.user_profile import UserProfile
 
 
 class ViewUserProfilePage(MethodView):

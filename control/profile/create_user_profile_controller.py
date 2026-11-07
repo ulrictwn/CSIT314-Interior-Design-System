@@ -8,7 +8,7 @@ class CreateUserProfileController:
     def userProfileExists(self, profileName: str) -> bool:
         return UserProfile.userProfileExists(profileName)
 
-    def createUserProfile(self, profileName: str, description: str, status: bool,
+    def createUserProfile(self, profileName: str, description: str, status: str,
                           permissions: list[str]) -> bool:
         profile = UserProfile()
         created = profile.createUserProfile(profileName, description, status, permissions)

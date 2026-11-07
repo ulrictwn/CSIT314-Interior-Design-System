@@ -4,9 +4,9 @@ import re
 import pytest
 from flask import session
 
-from boundary.auth.login_page import LoginPage
+from boundary.auth.user_admin_login_page import UserAdminLoginPage
 from boundary.auth.logout_page import LogoutPage
-from control.auth.login_controller import LoginController
+from control.auth.user_admin_login_controller import UserAdminLoginController
 from entity.accounts.user_account import UserAccount
 from infrastructure.database import db
 
@@ -44,7 +44,7 @@ def test_login_error_escapes_username_and_never_redisplays_password(app, admin_c
 @pytest.mark.story11
 def test_login_controller_relays_boolean_result_and_account(app, admin_client):
     with app.app_context():
-        controller = LoginController()
+        controller = UserAdminLoginController()
         assert controller.login('admin', 'Wrong-Password-123') is False
         assert controller.account is None and controller.error_message == 'Invalid login details'
         assert controller.login('admin', PASSWORD) is True
@@ -57,8 +57,8 @@ def test_login_controller_relays_boolean_result_and_account(app, admin_client):
 def test_boundary_events_are_void_and_prepare_http_responses(app, admin_client, valid):
     password = PASSWORD if valid else 'Wrong-Password-123'
     with app.test_request_context('/login', method='POST', data=dict(username='admin', password=password)):
-        page = LoginPage()
-        assert page.clickLogin('admin', password) is None
+        page = UserAdminLoginPage()
+        assert page.onLogin('admin', password) is None
         if valid:
             assert page.rendered_page.status_code == 302 and session['account_id'] == '101'
             logout_page = LogoutPage()

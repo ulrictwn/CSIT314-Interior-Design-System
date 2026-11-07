@@ -1,14 +1,10 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 from flask import render_template, request, flash
 from flask.views import MethodView
 from boundary.validation import search_text
 from control.profile.search_user_profile_controller import SearchUserProfileController
 from infrastructure.errors import DomainError
 
-if TYPE_CHECKING:
-    from entity.profile.user_profile import UserProfile
+from entity.profile.user_profile import UserProfile
 
 
 class SearchUserProfilePage(MethodView):

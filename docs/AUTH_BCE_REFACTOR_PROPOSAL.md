@@ -4,11 +4,11 @@ Login follows the report's classes and method names. Input cleanup and field val
 
 | Class / method | Responsibility |
 | --- | --- |
-| `LoginPage.post()` | Read username/password from the HTML form and call the event method. |
-| `LoginPage.clickLogin(username, password) -> None` | Validate required fields and lengths through `boundary.validation.validate_login_credentials`, trim the username, call the controller, then choose success or error display. Password whitespace is preserved. |
-| `LoginPage.displayDashboard() -> None` | Prepare a dashboard redirect after storing the account ID in the browser session. |
-| `LoginPage.displayError() -> None` | Show field or credential errors, retain the username, and leave the password blank. |
-| `LoginController.login(username, password) -> bool` | Forward to `UserAccount().login` and relay the Boolean result, error message, and matched account. No SQL or input validation. |
+| `UserAdminLoginPage.post()` | Read username/password from the HTML form and call the event method. |
+| `UserAdminLoginPage.onLogin(username, password) -> None` | Validate required fields and lengths through `boundary.validation.validate_login_credentials`, trim the username, call the controller, then choose success or error display. Password whitespace is preserved. |
+| `UserAdminLoginPage.displayDashboard() -> None` | Prepare a dashboard redirect after storing the account ID in the browser session. |
+| `UserAdminLoginPage.displayError() -> None` | Show field or credential errors, retain the username, and leave the password blank. |
+| `UserAdminLoginController.login(username, password) -> bool` | Forward to `UserAccount().login` and relay the Boolean result, error message, and matched account. No SQL or input validation. |
 | `UserAccount.login(username, password) -> bool` | Look up the account, compare the existing password hash, and check the stored account/profile status and User Admin role. |
 | `LogoutPage.logout() -> None` | Clear the browser session and invoke `displayLoginPage`. |
 | `LogoutPage.displayLoginPage() -> None` | Prepare a login redirect. |

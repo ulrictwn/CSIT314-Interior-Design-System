@@ -33,7 +33,7 @@
           <label for="endDate">End date</label>
           <input class="form-control"
                  id="endDate"
-                 name="endDate"
+                 {% if data.kind == 'monthly' %}name="endDate"{% else %}readonly{% endif %}
                  type="date"
                  value="{{ values.get('endDate', '') }}"
                  min="1900-01-01"

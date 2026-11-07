@@ -1,3 +1,3 @@
-from control.auth.login_controller import LoginController
+from control.auth.user_admin_login_controller import UserAdminLoginController
 
-__all__ = ['LoginController']
+__all__ = ['UserAdminLoginController']

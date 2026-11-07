@@ -39,13 +39,13 @@ def test_T38_invalid_or_unavailable_admin_login_is_generic(app,create_account,se
 ])
 def test_malformed_credentials_are_rejected_by_boundary_before_controller_access(app, monkeypatch, username, password):
     from unittest.mock import Mock
-    from control.auth.login_controller import LoginController
-    from boundary.auth.login_page import LoginPage
+    from control.auth.user_admin_login_controller import UserAdminLoginController
+    from boundary.auth.user_admin_login_page import UserAdminLoginPage
     login = Mock(side_effect=AssertionError('Invalid credentials reached the controller'))
-    monkeypatch.setattr(LoginController, 'login', login)
+    monkeypatch.setattr(UserAdminLoginController, 'login', login)
     with app.test_request_context('/login', method='POST'):
-        page = LoginPage()
-        assert page.clickLogin(username, password) is None
+        page = UserAdminLoginPage()
+        assert page.onLogin(username, password) is None
         assert page.error_message == 'Invalid login details'
         assert page.rendered_page[1] == 400
     login.assert_not_called()
@@ -69,13 +69,13 @@ def test_entity_login_keeps_password_whitespace_significant(app, seed):
 
 
 def test_login_boundary_trims_username_but_preserves_password(app, seed):
-    from boundary.auth.login_page import LoginPage
+    from boundary.auth.user_admin_login_page import UserAdminLoginPage
     profile_id = seed('User Admin')
     password = '  Valid-Password-123  '
     with app.app_context():
         assert UserAccount().createUserAccount('spaceadmin', 'Space Admin', 'space@example.com',
             '+65 6123 4567', profile_id, password=password) is True
     with app.test_request_context('/login', method='POST'):
-        page = LoginPage()
-        assert page.clickLogin('  spaceadmin  ', password) is None
+        page = UserAdminLoginPage()
+        assert page.onLogin('  spaceadmin  ', password) is None
         assert page.rendered_page.status_code == 302
