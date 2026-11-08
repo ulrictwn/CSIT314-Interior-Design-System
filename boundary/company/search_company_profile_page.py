@@ -1,11 +1,10 @@
 from flask import request
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.validation import search_text
+from boundary.validation import strip_input
 from boundary.designer.context import account_id, request_values
 from boundary.designer.responses import error_response
 from control.company.search_company_profile_controller import SearchCompanyProfileController
-from infrastructure.errors import DomainError
 
 
 class SearchCompanyProfilePage(MethodView):
@@ -23,12 +22,8 @@ class SearchCompanyProfilePage(MethodView):
 
     def onSearch(self, keyword: str) -> None:
         self.keyword = keyword
-        try:
-            keyword = search_text(keyword)
-            accountId = account_id(self.accountId)
-        except DomainError as error:
-            self.rendered_page = error_response(str(error))
-            return
+        keyword = strip_input(keyword)
+        accountId = account_id(self.accountId)
         results = SearchCompanyProfileController().searchCompanyProfile(accountId, keyword)
         self.displayResults(results)
 

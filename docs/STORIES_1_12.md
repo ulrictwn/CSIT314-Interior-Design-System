@@ -1,8 +1,8 @@
 # BCE implementation map
 
-User-input validation belongs to the boundary. Controllers relay calls and results. Entities check duplicates and saved-data rules, then perform database operations.
+Boundaries receive input and strip ordinary text. Controllers relay calls/results through their entity object. Entities validate fields, formats, lengths, duplicates, references, and saved state, then perform database operations.
 
-This classroom demonstration uses ordinary HTML forms and a basic browser session for login/logout. Profile/account pages are accessible without signing in; permissions are stored profile data. See [the implemented demo scope](BCE_DEMO_SIMPLIFICATION.md).
+This classroom demonstration uses ordinary HTML forms and a basic browser session for login/logout. Profile/account pages require an active User Admin login; permissions remain stored profile data. See [the implemented demo scope](BCE_DEMO_SIMPLIFICATION.md).
 
 ## Diagram classes and methods
 
@@ -27,11 +27,11 @@ Profile update now uses the diagram's four arguments: `profileId, profileName, d
 
 ## Where validation happens
 
-- `boundary/validation.py` contains plain shared functions, not form classes. It handles whitespace cleanup, required fields, maximum lengths, username/email/phone formats, supported statuses/permission choices, identifier formats, search text, and login field checks. CLI input adapters reuse the same boundary helpers.
-- Boundary event methods call those helpers before invoking the corresponding controller operation. Invalid input is displayed with the submitted values and field errors; it does not reach a mutation or search operation in the entity. Read-only lookups may still populate form selections or an error screen.
-- Login trims the username and preserves the password exactly. Boundary checks reject missing/whitespace-only fields and overlong values. Matching a submitted password against the saved account remains an entity database responsibility.
-- Profile/account entities retain case-insensitive duplicate-name, username, and email checks, including database uniqueness constraints and rollback after competing inserts. No field-format validators remain in those entities.
-- Entities retain rules requiring saved data: an assigned profile cannot be suspended, account assignment requires an existing active profile, missing records return an unavailable result, and account updates preserve fields outside the diagram's arguments.
+- `boundary/validation.py` contains only `strip_input`. Boundary event methods trim ordinary text, call controllers, and display the submitted values and entity errors.
+- `entity/validation.py` contains shared required-field, length, format, status, permission-choice, identifier, search, and login checks. Entity operations invoke these helpers themselves, so direct calls are validated too. CLI input adapters reuse the entity helpers.
+- Login strips the username and preserves the password exactly. `UserAccount.login` validates credential input before checking the saved password, account/profile status, and role.
+- Profile/account entities handle case-insensitive duplicates, database uniqueness constraints, rollback, active profile assignment, missing records, and preservation of fields outside the diagram arguments.
+- `UserProfile.activeProfiles()` supplies the account dropdowns. Controllers relay the operation and keep `self.entity`; the boundary reads that entity's errors. Basic portal access checks use the saved session and reject wrong roles or forged account context.
 
 ## Files
 
@@ -40,7 +40,7 @@ Profile update now uses the diagram's four arguments: `profileId, profileName, d
 | Profile boundaries / controls / entity | `boundary/profile/`, `control/profile/`, `entity/profile/user_profile.py` |
 | Account boundaries / controls / entity | `boundary/accounts/`, `control/accounts/`, `entity/accounts/user_account.py` |
 | Authentication | `boundary/auth/`, `control/auth/`, `entity/accounts/user_account.py` |
-| Shared input checks | `boundary/validation.py` |
+| Input cleanup / validation | `boundary/validation.py` / `entity/validation.py` |
 | HTML | `templates/profiles/`, `templates/accounts/`, `templates/auth/` |
 | Routes | `boundary/routes.py` |
 

@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask.views import MethodView
-from boundary.validation import validate_profile_fields
+from boundary.validation import strip_input
 from control.profile.create_user_profile_controller import CreateUserProfileController
 from infrastructure.permissions import PERMISSION_OPTIONS
 
@@ -20,18 +20,12 @@ class CreateUserProfilePage(MethodView):
 
     def onCreate(self, profileName: str, description: str, status: str,
                  permissions: list[str]) -> None:
-        values, self.field_errors = validate_profile_fields(profileName, description, status, permissions)
-        if self.field_errors:
-            self.error_message = 'Please correct the errors below.'
-            self.displayError()
-            return
-        profileName, description, status, permissions = values
         controller = CreateUserProfileController()
-        if controller.createUserProfile(profileName, description, status, permissions):
+        if controller.createUserProfile(strip_input(profileName), strip_input(description), strip_input(status), permissions):
             self.displaySuccess()
         else:
-            self.error_message = controller.error_message
-            self.field_errors = controller.field_errors
+            self.error_message = controller.entity.error_message
+            self.field_errors = controller.entity.field_errors
             self.displayError()
 
     def displaySuccess(self) -> None:

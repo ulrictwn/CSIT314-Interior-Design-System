@@ -12,3 +12,5 @@ def test_interior_designer_logout_clears_login_and_returns_to_login_page(client,
     assert response.location == '/designer/login'
     with client.session_transaction() as session:
         assert 'account_id' not in session
+    protected = client.get('/designer')
+    assert protected.status_code == 302 and protected.location == '/designer/login'

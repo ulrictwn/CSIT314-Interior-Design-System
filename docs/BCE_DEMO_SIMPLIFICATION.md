@@ -1,17 +1,19 @@
 # Classroom BCE demonstration
 
-The implementation prioritizes the report's BCE classes, methods, and story flows.
+The implementation follows the report's BCE classes/methods and the latest lecturer remarks. The [8 November review changes](BCE_REVIEW_CHANGES.md) supersede the earlier public-page and boundary-validation simplification.
 
 | Layer | Responsibility |
 | --- | --- |
-| Boundary | Receive form/query values; trim input; validate required fields, lengths, formats, identifiers and supported choices; display results and errors. Shared plain functions live in `boundary/validation.py`. |
-| Control | Relay boundary requests to entities and return results/error details. Controllers have no field validation, permission gates, or SQL. |
-| Entity | Check duplicates, query/save database data, allocate account IDs, and apply rules based on saved records. Assigned profiles still cannot be suspended. |
+| Boundary | Receive form/query/JSON values, strip ordinary text, and display results/errors. `boundary/validation.py` contains only text cleanup. Password whitespace is preserved. |
+| Control | Relay entity calls/results. Operation controllers retain `self.entity`; boundaries read its errors directly. |
+| Entity | Validate fields, lengths, formats, choices, identifiers, dates, duplicates, references, and saved state; query/save data and allocate IDs. Assigned profiles cannot be suspended. |
 
-Profile update now matches the diagram's four arguments: `profileId, profileName, description, permissions`. Its controller/entity retain `getUserProfile` for prefill as requested. Update preserves status; Suspend changes it.
+Profile update follows the diagram's four arguments: `profileId, profileName, description, permissions`. The controller/entity keep `getUserProfile` for prefill. Update preserves status; Suspend changes it. `UserProfile.activeProfiles()` supplies account form dropdowns.
 
-Password-free admin account creation is retained as explicitly confirmed, along with numeric IDs based on the actual profile ID and shared account sequence. Login keeps the diagram's username/password flow and compares existing password hashes. Logout simply clears the basic browser session.
+Account creation remains password-free, with IDs based on the actual profile ID and shared sequence. Login checks the existing password hash. The existing signed browser session identifies the account; logout clears it.
 
-The approved simplification removed authorization/permission checks, CSRF protection and hidden tokens, login throttling and attempt records, server-side session tokens/rotation/expiry/revocation, auth-version enforcement, custom security headers, and final-admin protection. The corresponding unused base classes, logout controller, authentication models, settings, and dependencies were removed.
+Pages now require the matching active portal role. Logged-out users go to the appropriate login page. Request-supplied account IDs cannot override the session. Designers can access only their own company and project operations; customer shortlist operations use the customer's own account.
 
-Profile/account database columns and stored records were preserved. The unused auth_version column remains for compatibility, and legacy authentication tables are left untouched and unused. Existing password hashes and database credentials were not rewritten. No database reset or migration is needed for these code changes.
+The earlier removals of CSRF, login throttling, server-side session tokens/rotation/expiry/revocation, auth-version enforcement, custom security headers, and final-admin protection remain in effect. Profile permission choices remain stored data; the new access checks use portal roles and record ownership.
+
+Existing model columns, records, passwords, and database credentials are preserved. Legacy authentication tables and the unused auth_version column remain untouched. No migration is needed for this refactor.

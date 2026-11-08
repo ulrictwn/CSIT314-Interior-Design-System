@@ -1,10 +1,9 @@
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.company.validation import company_values
+from boundary.company.presentation import company_values
 from boundary.designer.context import account_id
 from boundary.designer.responses import error_response, entity_error
 from control.company.delete_company_profile_controller import DeleteCompanyProfileController
-from infrastructure.errors import DomainError
 
 
 class DeleteCompanyProfilePage(MethodView):
@@ -12,10 +11,7 @@ class DeleteCompanyProfilePage(MethodView):
         self.accountId = accountId
 
     def get(self):
-        try:
-            accountId = account_id(self.accountId)
-        except DomainError as error:
-            return error_response(str(error), {'accountId': [str(error)]})
+        accountId = account_id(self.accountId)
         profile = DeleteCompanyProfileController().getCompanyProfile(accountId)
         if profile is None:
             return error_response('Company profile not found.', status=404)
@@ -26,11 +22,7 @@ class DeleteCompanyProfilePage(MethodView):
         return self.rendered_page
 
     def onDelete(self) -> None:
-        try:
-            accountId = account_id(self.accountId)
-        except DomainError as error:
-            self.rendered_page = error_response(str(error), {'accountId': [str(error)]})
-            return
+        accountId = account_id(self.accountId)
         controller = DeleteCompanyProfileController()
         if controller.deleteCompanyProfile(accountId):
             self.displaySuccess()

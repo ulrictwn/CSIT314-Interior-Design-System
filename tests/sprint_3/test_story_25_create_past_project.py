@@ -5,8 +5,8 @@ from entity.projects.interior_design_project import InteriorDesignProject
 pytestmark = [pytest.mark.sprint3, pytest.mark.story25]
 
 
-def test_create_past_project_saves_project_details(app, client, designer_account, project_data):
-    response = client.post('/designer/projects/past/create', json=dict(accountId=designer_account, **project_data))
+def test_create_past_project_saves_project_details(app, designer_client, designer_account, project_data):
+    response = designer_client.post('/designer/projects/past/create', json=dict(accountId=designer_account, **project_data))
     assert response.status_code == 201
     project_id = response.json['project']['projectId']
     with app.app_context():

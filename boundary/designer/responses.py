@@ -10,5 +10,5 @@ def error_response(message, errors=None, status=400, values=None):
 
 
 def entity_error(controller, values=None):
-    status = 404 if controller.error_reason == 'not_found' else 400
-    return error_response(controller.error_message, controller.field_errors, status, values)
+    status = 404 if controller.entity.error_reason == 'not_found' else 400
+    return error_response(controller.entity.error_message, controller.entity.field_errors, status, values)

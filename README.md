@@ -14,7 +14,7 @@ This application implements Stories 1–48: profile/account administration; staf
 
    If this is a fresh Codespace without a virtual environment, first run `python -m venv .venv`. The new application dependency is `email-validator`; the requirements files install it automatically.
 
-4. Keep the existing `.env` database credentials and `SECRET_KEY`. The classroom story pages can be demonstrated without signing in. Login/logout use the configured key for a basic browser session.
+4. Keep the existing `.env` database credentials and `SECRET_KEY`. Sign in using the role associated with each portal. Login/logout use the configured key for a basic browser session.
 5. With the database service running, apply the non-destructive upgrade:
 
    ```bash
@@ -41,7 +41,7 @@ This application implements Stories 1–48: profile/account administration; staf
 
 For a fresh Codespace, restore the correct database settings in the gitignored `.env`. `python scripts/setup_env.py` adds missing settings and preserves existing values; it cannot recover a previous database password.
 
-Profile modules live in `boundary/profile/`, `control/profile/`, and `entity/profile/`; account modules use the matching `accounts/` packages. Boundaries clean and validate input through `boundary/validation.py`. Controllers relay calls. Entities handle duplicates and saved data. See [the BCE implementation map](docs/STORIES_1_12.md).
+Profile modules live in `boundary/profile/`, `control/profile/`, and `entity/profile/`; account modules use the matching `accounts/` packages. Boundaries strip ordinary text through `boundary/validation.py` and display results. Controllers relay calls through their entity object. Entities validate fields, formats, choices, duplicates, and saved data. See [the latest BCE review changes](docs/BCE_REVIEW_CHANGES.md). See [the BCE implementation map](docs/STORIES_1_12.md).
 
 ## What changes in the application
 
@@ -66,9 +66,9 @@ Update follows the report's editable fields: full name, email and assigned profi
 
 The profile Search screen retains the requested behavior: all profiles appear initially beneath the search bar, and a submitted query filters that table. An empty submitted profile query shows the existing validation message and all profiles. Account search has its own report requirement: blank or whitespace lists all accounts.
 
-Story 11 demonstrates User Admin login. Stories 18–19 provide the separate Interior Designer login/logout flow. Demo pages are available without login, and permissions are stored as profile data. Profile suspension is still blocked when any account is assigned, including a suspended account.
+Story 11 demonstrates User Admin login. Stories 18–19 provide the separate Interior Designer login/logout flow. Pages require the matching active portal role, and permissions remain stored profile data. Profile suspension is still blocked when any account is assigned, including a suspended account.
 
-Existing passwords stay hashed. Login checks entered credentials against saved account data and records only the account ID in a basic browser session. Logout clears that browser session. Admin-created accounts remain password-free. The classroom demo has no authorization gates, CSRF tokens, login rate limits, server-side session tokens, or final-admin guard.
+Existing passwords stay hashed. Login checks entered credentials against saved account data and records only the account ID in a basic browser session. Logout clears that browser session. Admin-created accounts remain password-free. Basic login, portal-role, and designer ownership checks protect the pages. CSRF tokens, login rate limits, server-side session tokens, and final-admin protection remain outside this classroom scope.
 
 Trusted terminal recovery commands:
 

@@ -4,8 +4,8 @@ import pytest
 pytestmark = [pytest.mark.sprint4, pytest.mark.story34]
 
 
-def test_customer_views_saved_project_details(client, customer_account, saved_project, project_data):
-    response = client.get(f'/customer/shortlist/{saved_project}', query_string={'accountId': customer_account})
+def test_customer_views_saved_project_details(customer_client, customer_account, saved_project, project_data):
+    response = customer_client.get(f'/customer/shortlist/{saved_project}', query_string={'accountId': customer_account})
     assert response.status_code == 200
     project = response.json['project']
     assert project['projectId'] == saved_project

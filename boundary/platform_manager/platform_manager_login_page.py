@@ -1,10 +1,9 @@
 from flask import redirect, render_template, session, url_for
 from flask.views import MethodView
-from boundary.validation import validate_login_credentials
+from boundary.validation import strip_input
 from boundary.designer.context import request_values
 from boundary.designer.presentation import wants_html
 from control.platform_manager.platform_manager_login_controller import PlatformManagerLoginController
-from infrastructure.errors import DomainError
 
 
 class PlatformManagerLoginPage(MethodView):
@@ -19,20 +18,14 @@ class PlatformManagerLoginPage(MethodView):
         return self.rendered_page
 
     def onLogin(self, username: str, password: str) -> None:
-        self.username = username
-        try:
-            username = validate_login_credentials(username, password)
-        except DomainError as error:
-            self.error_message, self.field_errors = str(error), error.field_errors
-            self.displayError()
-            return
+        self.username = strip_input(username)
         controller = PlatformManagerLoginController()
-        if controller.login(username,password):
+        if controller.login(self.username, password):
             session.clear()
-            session['account_id'] = controller.account.account_id
+            session['account_id'] = controller.entity.authenticated_account.account_id
             self.displayDashboard()
         else:
-            self.error_message, self.field_errors = controller.error_message, {}
+            self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
             self.displayError()
 
     def displayDashboard(self) -> None:

@@ -1,10 +1,10 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.company.validation import COMPANY_FIELDS, validate_company_fields, company_values
+from boundary.company.presentation import COMPANY_FIELDS, company_values
 from boundary.designer.context import account_id, request_values
 from boundary.designer.responses import error_response
 from control.company.create_company_profile_controller import CreateCompanyProfileController
-from infrastructure.errors import DomainError
 
 
 class CreateCompanyProfilePage(MethodView):
@@ -21,25 +21,15 @@ class CreateCompanyProfilePage(MethodView):
 
     def onCreate(self, companyName: str, companyContact: str, companyAddress: str,
                  companyEmail: str, companyRegistrationNumber: str) -> None:
-        self.values = dict(zip(COMPANY_FIELDS, [companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber]))
-        values, self.field_errors = validate_company_fields(companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber)
-        self.error_reason = 'invalid_data'
-        try:
-            accountId = account_id(self.accountId)
-        except DomainError as error:
-            self.field_errors['accountId'] = [str(error)]
-        if self.field_errors:
-            self.error_message = 'Please correct the errors below.'
-            self.displayError()
-            return
+        self.values = {field: strip_input(value) for field, value in zip(COMPANY_FIELDS,
+            [companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber])}
         controller = CreateCompanyProfileController()
-        if controller.createCompanyProfile(accountId, **values):
-            self.values = values
-            self.profile = controller.profile
+        if controller.createCompanyProfile(account_id(), **self.values):
+            self.profile = controller.entity
             self.displaySuccess()
         else:
-            self.error_message, self.field_errors = controller.error_message, controller.field_errors
-            self.error_reason = controller.error_reason
+            self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
+            self.error_reason = controller.entity.error_reason
             self.displayError()
 
     def displaySuccess(self) -> None:

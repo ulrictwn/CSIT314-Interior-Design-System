@@ -1,10 +1,10 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.projects.validation import PROJECT_FIELDS, validate_project_fields, positive_integer, project_values
+from boundary.projects.presentation import PROJECT_FIELDS, project_values
 from boundary.designer.context import account_id, request_values
 from boundary.designer.responses import error_response
 from control.projects.create_past_project_controller import CreatePastProjectController
-from infrastructure.errors import DomainError
 
 
 class CreatePastProjectPage(MethodView):
@@ -21,26 +21,15 @@ class CreatePastProjectPage(MethodView):
 
     def onCreate(self, projectName: str, categoryId: int, propertyType: str,
                  area: str, renovationCost: float, description: str) -> None:
-        self.values = dict(zip(PROJECT_FIELDS, [projectName, categoryId, propertyType, area, renovationCost, description]))
-        self.values['renovationCost'] = str(renovationCost) if renovationCost is not None else ''
-        values, self.field_errors = validate_project_fields(projectName, categoryId, propertyType, area, renovationCost, description)
-        self.error_reason = 'invalid_data'
-        try:
-            accountId = account_id(self.accountId)
-        except DomainError as error:
-            self.field_errors['accountId'] = [str(error)]
-        if self.field_errors:
-            self.error_message = 'Please correct the errors below.'
-            self.displayError()
-            return
+        self.values = {field: strip_input(value) for field, value in zip(PROJECT_FIELDS,
+            [projectName, categoryId, propertyType, area, renovationCost, description])}
         controller = CreatePastProjectController()
-        if controller.createPastProject(accountId, **values):
-            self.values = values
-            self.project = controller.project
+        if controller.createPastProject(account_id(), **self.values):
+            self.project = controller.entity
             self.displaySuccess()
         else:
-            self.error_message, self.field_errors = controller.error_message, controller.field_errors
-            self.error_reason = controller.error_reason
+            self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
+            self.error_reason = controller.entity.error_reason
             self.displayError()
 
     def displaySuccess(self) -> None:

@@ -3,9 +3,9 @@ from entity.reports.report import Report
 
 
 class DailyReportController:
-    def __init__(self, accountId=None):
-        self.accountId = accountId
+    def __init__(self, accountId=None, endDate=None):
+        self.entity = Report(account_id=accountId)
+        self.endDate = endDate
 
     def generateDailyReport(self, startDate: date) -> Report:
-        report = Report(account_id=self.accountId)
-        return report.generateReport('daily', startDate, startDate)
+        return self.entity.generateReport('daily', startDate, self.endDate)

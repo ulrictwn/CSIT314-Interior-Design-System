@@ -4,3 +4,7 @@ class DomainError(ValueError):
 
 class NotFoundError(DomainError):
     pass
+
+
+class AccessDeniedError(DomainError):
+    """The signed-in account cannot access this portal or record."""

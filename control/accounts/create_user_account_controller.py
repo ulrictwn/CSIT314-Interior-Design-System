@@ -1,18 +1,17 @@
+from entity.profile.user_profile import UserProfile
 from entity.accounts.user_account import UserAccount
 
 
 class CreateUserAccountController:
+    def __init__(self):
+        self.entity = UserAccount()
+
     def activeProfiles(self):
-        return UserAccount.activeProfiles()
+        return UserProfile.activeProfiles()
 
     def userAccountExists(self, username: str) -> bool:
         return UserAccount.userAccountExists(username)
 
     def createUserAccount(self, username: str, fullName: str, email: str,
                           phoneNumber: str, profileId: int) -> bool:
-        account = UserAccount()
-        created = account.createUserAccount(username, fullName, email, phoneNumber, profileId)
-        self.error_message = account.error_message
-        self.field_errors = account.field_errors
-        self.error_reason = account.error_reason
-        return created
+        return self.entity.createUserAccount(username, fullName, email, phoneNumber, profileId)

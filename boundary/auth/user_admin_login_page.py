@@ -1,8 +1,7 @@
 from flask import g, session, redirect, url_for, request, render_template
 from flask.views import MethodView
-from boundary.validation import validate_login_credentials
+from boundary.validation import strip_input
 from control.auth.user_admin_login_controller import UserAdminLoginController
-from infrastructure.errors import DomainError
 from infrastructure.navigation import dashboard_endpoint
 
 
@@ -17,19 +16,14 @@ class UserAdminLoginPage(MethodView):
         return self.rendered_page
 
     def onLogin(self, username: str, password: str) -> None:
-        try:
-            username = validate_login_credentials(username, password)
-        except DomainError as error:
-            self.error_message, self.field_errors = str(error), error.field_errors
-            self.displayError()
-            return
+        self.username = strip_input(username)
         controller = UserAdminLoginController()
-        if controller.login(username, password):
+        if controller.login(self.username, password):
             session.clear()
-            session['account_id'] = controller.account.account_id
+            session['account_id'] = controller.entity.authenticated_account.account_id
             self.displayDashboard()
         else:
-            self.error_message, self.field_errors = controller.error_message, {}
+            self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
             self.displayError()
 
     def displayDashboard(self) -> None:

@@ -12,3 +12,5 @@ def test_customer_logout_clears_login_and_returns_to_login_page(client, customer
     assert response.location == '/customer/login'
     with client.session_transaction() as session:
         assert 'account_id' not in session
+    protected = client.get('/customer')
+    assert protected.status_code == 302 and protected.location == '/customer/login'

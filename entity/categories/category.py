@@ -1,3 +1,6 @@
+from entity.categories.validation import validate_category_fields
+from entity.validation import positive_integer, search_text
+from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError
 from infrastructure.database import db
 from entity.reports.activity_event import ActivityEvent
@@ -24,6 +27,10 @@ class Category(db.Model):
             db.func.lower(cls.category_name) == categoryName.lower()).limit(1)) is not None
 
     def createCategory(self, categoryName: str, description: str) -> bool:
+        values, errors = validate_category_fields(categoryName, description)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        categoryName, description = values['categoryName'], values['description']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         if self.categoryExists(categoryName):
             return self._reject('The category name already exists.', {'categoryName':['Choose a unique category name.']})
@@ -40,9 +47,18 @@ class Category(db.Model):
 
     @classmethod
     def getCategory(cls, categoryId: int) -> 'Category | None':
+        categoryId = positive_integer(categoryId, 'Category ID')
         return db.session.get(cls, categoryId)
 
     def updateCategory(self, categoryId: int, categoryName: str, description: str) -> bool:
+        try:
+            categoryId = positive_integer(categoryId, 'Category ID')
+        except DomainError as error:
+            return self._reject(str(error), {'categoryId': [str(error)]})
+        values, errors = validate_category_fields(categoryName, description)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        categoryName, description = values['categoryName'], values['description']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         category = self.getCategory(categoryId)
         if category is None:
@@ -61,6 +77,10 @@ class Category(db.Model):
             return self._reject('The category name already exists.', {'categoryName':['Choose a unique category name.']})
 
     def deleteCategory(self, categoryId: int) -> bool:
+        try:
+            categoryId = positive_integer(categoryId, 'Category ID')
+        except DomainError as error:
+            return self._reject(str(error), {'categoryId': [str(error)]})
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         category = self.getCategory(categoryId)
         if category is None:
@@ -78,6 +98,7 @@ class Category(db.Model):
 
     @classmethod
     def searchCategories(cls, keyword: str) -> list['Category']:
+        keyword = search_text(keyword)
         return db.session.scalars(db.select(cls).where(db.or_(
             cls.category_name.icontains(keyword, autoescape=True),
             cls.description.icontains(keyword, autoescape=True),

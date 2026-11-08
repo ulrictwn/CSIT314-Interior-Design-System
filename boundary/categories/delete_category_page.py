@@ -1,10 +1,9 @@
+from boundary.validation import strip_input
 from flask import flash, redirect, url_for
 from flask.views import MethodView
 from boundary.designer.presentation import wants_html
-from boundary.projects.validation import positive_integer
 from boundary.portal import present, error_response
 from control.categories.delete_category_controller import DeleteCategoryController
-from infrastructure.errors import DomainError
 
 
 class DeleteCategoryPage(MethodView):
@@ -20,18 +19,14 @@ class DeleteCategoryPage(MethodView):
         return self.rendered_page
 
     def onDelete(self,categoryId: int) -> None:
-        try:
-            categoryId = positive_integer(categoryId,'Category ID')
-        except DomainError as error:
-            self.rendered_page = error_response(str(error),'manager')
-            return
+        categoryId = strip_input(categoryId)
         controller = DeleteCategoryController()
         if controller.deleteCategory(categoryId):
             self.displaySuccess()
         else:
             category = controller.getCategory(categoryId)
-            self.rendered_page = error_response(controller.error_message,'manager',
-                status=404 if controller.error_reason == 'not_found' else 400,
+            self.rendered_page = error_response(controller.entity.error_message,'manager',
+                status=404 if controller.entity.error_reason == 'not_found' else 400,
                 template='categories/delete.html' if category else 'portal/error.html',
                 category=category.as_dict() if category else None)
 

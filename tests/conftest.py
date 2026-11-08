@@ -189,3 +189,33 @@ def saved_project(app, customer_account, new_project):
     with app.app_context():
         assert Shortlist().saveShortlist(customer_account, new_project)
     return new_project
+
+
+@pytest.fixture
+def admin_client(client, create_account):
+    account_id = create_account('sprint_admin', 'User Admin')
+    with client.session_transaction() as session:
+        session['account_id'] = account_id
+    return client
+
+
+@pytest.fixture
+def designer_client(client, designer_account):
+    with client.session_transaction() as session:
+        session['account_id'] = designer_account
+    return client
+
+
+@pytest.fixture
+def customer_client(client, customer_account):
+    with client.session_transaction() as session:
+        session['account_id'] = customer_account
+    return client
+
+
+@pytest.fixture
+def manager_client(client, create_account):
+    account_id = create_account('manager1', 'Platform Management')
+    with client.session_transaction() as session:
+        session['account_id'] = account_id
+    return client

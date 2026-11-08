@@ -1,10 +1,11 @@
+from boundary.validation import strip_input
 from datetime import date
 from flask import flash, redirect, url_for
 from flask.views import MethodView
 from boundary.designer.context import request_values
 from boundary.designer.presentation import wants_html
 from boundary.portal import optional_account_id, present, error_response
-from boundary.reports.validation import default_dates, validate_report_dates
+from boundary.reports.presentation import default_dates
 from control.reports.weekly_report_controller import WeeklyReportController
 from entity.reports.report import Report
 from infrastructure.errors import DomainError
@@ -22,12 +23,10 @@ class WeeklyReportPage(MethodView):
         return self.rendered_page
 
     def onGenerateWeeklyReport(self, startDate: date) -> None:
-        self.values = dict(startDate=startDate, endDate=getattr(self, 'submitted_end_date', None))
+        self.values = dict(startDate=strip_input(startDate), endDate=strip_input(getattr(self, 'submitted_end_date', None)))
         try:
-            start, end = validate_report_dates('weekly', startDate, getattr(self, 'submitted_end_date', None))
-            self.values = dict(startDate=start.isoformat(), endDate=end.isoformat())
-            controller = WeeklyReportController(accountId=optional_account_id())
-            report = controller.generateWeeklyReport(start)
+            controller = WeeklyReportController(accountId=optional_account_id(), endDate=self.values['endDate'])
+            report = controller.generateWeeklyReport(self.values['startDate'])
         except DomainError as error:
             self.error_message, self.field_errors = str(error), getattr(error, 'field_errors', {})
             self.displayError()

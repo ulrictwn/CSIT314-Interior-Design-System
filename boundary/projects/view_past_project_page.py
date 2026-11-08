@@ -1,10 +1,10 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.projects.validation import positive_integer, project_values
+from boundary.projects.presentation import project_values
 from boundary.designer.responses import error_response
 from control.projects.view_past_project_controller import ViewPastProjectController
 from entity.projects.interior_design_project import InteriorDesignProject
-from infrastructure.errors import DomainError
 
 
 class ViewPastProjectPage(MethodView):
@@ -13,11 +13,7 @@ class ViewPastProjectPage(MethodView):
         return self.rendered_page
 
     def onView(self, projectId: int) -> None:
-        try:
-            projectId = positive_integer(projectId, 'Project ID')
-        except DomainError as error:
-            self.rendered_page = error_response(str(error), {'projectId': [str(error)]})
-            return
+        projectId = strip_input(projectId)
         project = ViewPastProjectController().getPastProject(projectId)
         if project is None:
             self.rendered_page = error_response('Past project not found.', status=404)

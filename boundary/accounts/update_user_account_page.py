@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask.views import MethodView
-from boundary.validation import validate_account_details, valid_account_id
+from boundary.validation import strip_input
 from control.accounts.update_user_account_controller import UpdateUserAccountController
 
 
@@ -8,7 +8,7 @@ class UpdateUserAccountPage(MethodView):
 
     def get(self, account_id):
         controller = UpdateUserAccountController()
-        account = controller.getUserAccount(account_id) if valid_account_id(account_id) else None
+        account = controller.getUserAccount(account_id)
         if account is None:
             self.error_message, self.error_reason = 'User account not found.', 'not_found'
             self.displayError()
@@ -19,33 +19,18 @@ class UpdateUserAccountPage(MethodView):
 
     def post(self, account_id):
         self.onUpdate(account_id, request.form.get('full_name', ''),
-                      request.form.get('email', ''), request.form.get('profile_id', type=int))
+                      request.form.get('email', ''), request.form.get('profile_id', ''))
         return self.rendered_page
 
     def onUpdate(self, accountId: str, fullName: str, email: str, profileId: int) -> None:
-        if not valid_account_id(accountId):
-            self.error_message, self.error_reason = 'User account not found.', 'not_found'
-            self.displayError()
-            return
-        values, self.field_errors = validate_account_details(fullName, email, profileId)
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.account = UpdateUserAccountController().getUserAccount(accountId)
-            if self.account is None:
-                self.error_message, self.error_reason = 'User account not found.', 'not_found'
-            self.displayError()
-            return
-        fullName, email = values['full_name'], values['email']
         controller = UpdateUserAccountController()
-        if controller.updateUserAccount(accountId, fullName, email, profileId):
+        if controller.updateUserAccount(strip_input(accountId), strip_input(fullName), strip_input(email), strip_input(profileId)):
             self.displaySuccess()
         else:
-            self.error_message = controller.error_message
-            self.field_errors = controller.field_errors
-            self.error_reason = controller.error_reason
+            self.error_message = controller.entity.error_message
+            self.field_errors = controller.entity.field_errors
+            self.error_reason = controller.entity.error_reason
             self.account = controller.getUserAccount(accountId)
-            if self.account is None:
-                self.error_message, self.error_reason = 'User account not found.', 'not_found'
             self.displayError()
 
     def displaySuccess(self) -> None:

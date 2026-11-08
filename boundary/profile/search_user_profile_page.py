@@ -1,6 +1,6 @@
 from flask import render_template, request, flash
 from flask.views import MethodView
-from boundary.validation import search_text
+from boundary.validation import strip_input
 from control.profile.search_user_profile_controller import SearchUserProfileController
 from infrastructure.errors import DomainError
 
@@ -21,7 +21,7 @@ class SearchUserProfilePage(MethodView):
         self.keyword = keyword
         controller = SearchUserProfileController()
         try:
-            keyword = search_text(keyword, required=True)
+            keyword = strip_input(keyword)
             profiles = controller.searchUserProfiles(keyword)
         except DomainError as error:
             flash(str(error), 'error')

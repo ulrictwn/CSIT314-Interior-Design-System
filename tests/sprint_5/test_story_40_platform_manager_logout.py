@@ -13,3 +13,5 @@ def test_platform_manager_logout_clears_login_and_returns_to_login_page(client, 
     assert response.location == '/manager/login'
     with client.session_transaction() as session:
         assert 'account_id' not in session
+    protected = client.get('/manager')
+    assert protected.status_code == 302 and protected.location == '/manager/login'

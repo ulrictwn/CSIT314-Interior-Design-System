@@ -1,14 +1,12 @@
 from flask import render_template, redirect, url_for, flash
 from flask.views import MethodView
-from boundary.validation import valid_account_id
 from control.accounts.suspend_user_account_controller import SuspendUserAccountController
 
 
 class SuspendUserAccountPage(MethodView):
 
     def get(self, account_id):
-        self.account = (SuspendUserAccountController().getUserAccount(account_id)
-                        if valid_account_id(account_id) else None)
+        self.account = (SuspendUserAccountController().getUserAccount(account_id))
         if self.account is None:
             self.error_message, self.error_reason = 'User account not found.', 'not_found'
             self.displayError()
@@ -20,17 +18,13 @@ class SuspendUserAccountPage(MethodView):
         return self.rendered_page
 
     def onSuspend(self, accountId: str) -> None:
-        if not valid_account_id(accountId):
-            self.error_message, self.error_reason = 'User account not found.', 'not_found'
-            self.displayError()
-            return
         controller = SuspendUserAccountController()
         self.account = controller.getUserAccount(accountId)
         if controller.suspendUserAccount(accountId):
             self.displaySuccess()
         else:
-            self.error_message = controller.error_message
-            self.error_reason = controller.error_reason
+            self.error_message = controller.entity.error_message
+            self.error_reason = controller.entity.error_reason
             self.displayError()
 
     def displaySuccess(self) -> None:

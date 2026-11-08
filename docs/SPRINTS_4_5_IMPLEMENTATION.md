@@ -28,7 +28,7 @@ The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project R
 
 The updated report (4) now includes the BCE diagrams for Stories 46–48. The classes, event names, displayReport(report) methods, and date parameters match those diagrams. Daily/weekly accept startDate; monthly accepts startDate and endDate. All three use the entity operation generateReport(reportType, startDate, endDate). See [the full 48-story audit](BCE_AUDIT_1_48.md).
 
-All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries clean `.strip()` text and validate required fields, lengths, identifiers, credentials' input format, and report dates. Entities handle existing records, duplicates, saved relationships, counts and transactions.
+All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries strip ordinary text and display entity results/errors. Entities validate fields, lengths, formats, identifiers, dates, references, duplicates, saved relationships, counts, and transactions.
 
 ## Folder layout
 
@@ -60,7 +60,7 @@ The existing `Platform Management` profile name and `Platform Manager` are both 
 .venv/bin/python -m flask --app app reset-password --username YOUR_USERNAME
 ```
 
-The previously approved classroom security simplification remains: pages can be demonstrated without signing in; explicit `?accountId=...` supplies account context. No permission gates, CSRF, rate limiting, or server-side session token system was added. Existing passwords remain hashed.
+The latest remarks add login, portal-role, and ownership checks. Sessions supply account context; conflicting `accountId` values are rejected. CSRF, rate limiting, and server-side session tokens remain outside the demo scope. Existing passwords remain hashed. See [the current review changes](BCE_REVIEW_CHANGES.md).
 
 ## Customer and designer flows
 
@@ -80,7 +80,7 @@ Now that the later category stories exist, designer project forms select from sa
 
 ## Reports
 
-Daily reports cover one day, weekly reports seven consecutive days, and monthly reports a complete calendar month. The boundary validates ISO date input (or date objects in direct BCE calls), supported years (1900–9998), and the selected interval. Daily/weekly end dates are read-only and derived from startDate; monthly accepts both dates. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
+Daily reports cover one day, weekly reports seven consecutive days, and monthly reports a complete calendar month. The Report entity validates ISO date input (or date objects in direct BCE calls), supported years (1900–9998), and the selected interval. Daily/weekly end dates are read-only and derived from startDate; monthly accepts both dates. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
 
 Reports store an immutable snapshot for the selected period. CSV downloads read that snapshot, so later activity does not change an existing report. Generate another report to include new activity.
 

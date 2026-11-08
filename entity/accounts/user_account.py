@@ -1,3 +1,5 @@
+from entity.validation import (validate_account_fields, validate_account_details,
+    validate_login_credentials, valid_account_id, search_text, password_value)
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import generate_password_hash, check_password_hash
 from infrastructure.database import db
@@ -47,7 +49,7 @@ class UserAccount(db.Model):
         return bool(self.password_hash and self.password_hash != _UNSET_PASSWORD_HASH)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password_value(password))
 
     def check_password(self, password):
         return self.has_password and check_password_hash(self.password_hash, password)
@@ -64,6 +66,8 @@ class UserAccount(db.Model):
 
     @classmethod
     def getUserAccount(cls, accountId: str) -> 'UserAccount | None':
+        if not valid_account_id(accountId):
+            return None
         return db.session.get(cls, accountId)
 
     def _reject(self, message, field_errors=None, reason='invalid_data') -> bool:
@@ -71,12 +75,6 @@ class UserAccount(db.Model):
         self.field_errors = field_errors or {}
         self.error_reason = reason
         return False
-
-    @classmethod
-    def activeProfiles(cls):
-        from entity.profile.user_profile import UserProfile
-        return db.session.execute(db.select(UserProfile).where(UserProfile.status == 'Active')
-            .order_by(UserProfile.name, UserProfile.profile_id)).scalars().all()
 
     @classmethod
     def _email_exists(cls, email, exclude_id=None):
@@ -123,7 +121,17 @@ class UserAccount(db.Model):
 
     def createUserAccount(self, username: str, fullName: str, email: str,
                           phoneNumber: str, profileId: int, *, password=None) -> bool:
-        """Save validated account data; trusted setup can supply a password."""
+        """Validate and save account data; trusted setup can supply a password."""
+        values, errors = validate_account_fields(username, fullName, email, phoneNumber, profileId)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        username, fullName, email = values['username'], values['full_name'], values['email']
+        phoneNumber, profileId = values['phone_number'], values['profile_id']
+        if password is not None:
+            try:
+                password_value(password)
+            except DomainError as error:
+                return self._reject(str(error), {'password': [str(error)]})
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             if self.userAccountExists(username):
@@ -156,6 +164,7 @@ class UserAccount(db.Model):
 
     @classmethod
     def searchUserAccounts(cls, keyword: str = '') -> list['UserAccount']:
+        keyword = search_text(keyword)
         query = keyword
         statement = db.select(cls)
         if query:
@@ -164,6 +173,12 @@ class UserAccount(db.Model):
         return db.session.execute(statement.order_by(cls.username, cls.account_id)).scalars().all()
 
     def updateUserAccount(self, accountId: str, fullName: str, email: str, profileId: int) -> bool:
+        if not valid_account_id(accountId):
+            return self._reject('User account not found.', reason='not_found')
+        values, errors = validate_account_details(fullName, email, profileId)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        fullName, email, profileId = values['full_name'], values['email'], values['profile_id']
         from entity.profile.user_profile import UserProfile
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
@@ -198,6 +213,8 @@ class UserAccount(db.Model):
             raise
 
     def suspendUserAccount(self, accountId: str) -> bool:
+        if not valid_account_id(accountId):
+            return self._reject('User account not found.', reason='not_found')
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             account = db.session.execute(db.select(UserAccount).where(UserAccount.account_id == accountId)
@@ -219,6 +236,11 @@ class UserAccount(db.Model):
             raise
 
     def login(self, username: str, password: str, profileName: str = 'User Admin') -> bool:
+        self.authenticated_account = None
+        try:
+            username = validate_login_credentials(username, password)
+        except DomainError as error:
+            return self._reject(str(error), error.field_errors)
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         self.authenticated_account = None
         account = self.getByUsername(username)
@@ -233,3 +255,19 @@ class UserAccount(db.Model):
         ActivityEvent.record('login_success', account.account_id)
         db.session.commit()
         return True
+
+    def portalRole(self):
+        """Resolve the portal from the saved active account and profile."""
+        if not self.active:
+            return None
+        return {'user admin': 'admin', 'interior designer': 'designer',
+                'customer': 'customer', 'platform manager': 'manager',
+                'platform management': 'manager'}.get(self.profile.name.casefold())
+
+    @staticmethod
+    def staffRole(role):
+        if not isinstance(role, str) or role not in ('admin', 'designer', 'manager'):
+            error = DomainError('Choose a supported staff role.')
+            error.field_errors = {'staffRole': [str(error)]}
+            raise error
+        return role

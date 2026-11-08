@@ -1,11 +1,10 @@
+from boundary.validation import strip_input
 from flask import flash, redirect, url_for
 from flask.views import MethodView
 from boundary.designer.context import account_id
 from boundary.designer.presentation import wants_html
-from boundary.projects.validation import positive_integer
 from boundary.portal import error_response
 from control.customer.save_shortlist_idp_controller import SaveShortlistIDPController
-from infrastructure.errors import DomainError
 
 
 class SaveShortlistIDPPage(MethodView):
@@ -17,19 +16,14 @@ class SaveShortlistIDPPage(MethodView):
         return self.rendered_page
 
     def onSave(self, projectId: int) -> None:
-        try:
-            self.projectId = positive_integer(projectId,'Project ID')
-            self.owner = account_id(self.accountId)
-        except DomainError as error:
-            self.error_message, self.status = str(error), 400
-            self.displayError()
-            return
+        self.projectId = strip_input(projectId)
+        self.owner = account_id(self.accountId)
         controller = SaveShortlistIDPController()
         if controller.saveShortlist(self.owner,self.projectId):
             self.displaySuccess()
         else:
-            self.error_message = controller.error_message
-            self.status = 404 if controller.error_reason == 'not_found' else 400
+            self.error_message = controller.entity.error_message
+            self.status = 404 if controller.entity.error_reason == 'not_found' else 400
             self.displayError()
 
     def displaySuccess(self) -> None:

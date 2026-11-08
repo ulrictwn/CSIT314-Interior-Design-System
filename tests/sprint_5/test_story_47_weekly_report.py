@@ -7,8 +7,8 @@ from entity.reports.report import Report
 pytestmark = [pytest.mark.sprint5, pytest.mark.story47]
 
 
-def test_generate_weekly_report_displays_and_saves_period_totals(app, client, report_activity):
-    response = client.post('/manager/reports/weekly', json=dict(startDate='2026-06-01'))
+def test_generate_weekly_report_displays_and_saves_period_totals(app, manager_client, report_activity):
+    response = manager_client.post('/manager/reports/weekly', json=dict(startDate='2026-06-01'))
     assert response.status_code == 201
     report = response.json['report']
     assert (report['type'], report['startDate'], report['endDate']) == (

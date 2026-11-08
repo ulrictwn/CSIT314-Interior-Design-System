@@ -1,11 +1,10 @@
 from flask import request
 from flask.views import MethodView
-from boundary.validation import search_text
+from boundary.validation import strip_input
 from boundary.designer.context import request_values
 from boundary.portal import present, error_response
 from control.categories.search_category_controller import SearchCategoryController
 from entity.categories.category import Category
-from infrastructure.errors import DomainError
 
 
 class SearchCategoryPage(MethodView):
@@ -22,11 +21,7 @@ class SearchCategoryPage(MethodView):
         return self.rendered_page
 
     def onSearch(self,keyword: str) -> None:
-        try:
-            self.keyword = search_text(keyword)
-        except DomainError as error:
-            self.rendered_page = error_response(str(error),'manager',{'keyword':[str(error)]})
-            return
+        self.keyword = strip_input(keyword)
         self.displayResults(SearchCategoryController().searchCategories(self.keyword))
 
     def displayResults(self,categories: list[Category]) -> None:

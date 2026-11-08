@@ -5,6 +5,8 @@ pytestmark = [pytest.mark.sprint4, pytest.mark.story35]
 
 
 def test_customer_login_opens_dashboard(client, create_account, credentials):
+    guest = client.get('/customer')
+    assert guest.status_code == 302 and guest.location == '/customer/login'
     account_id = create_account(credentials['username'], 'Customer', credentials['password'])
     response = client.post('/customer/login', json=credentials)
     assert response.status_code == 302
@@ -12,3 +14,5 @@ def test_customer_login_opens_dashboard(client, create_account, credentials):
     with client.session_transaction() as session:
         assert session['account_id'] == account_id
     assert client.get('/customer').status_code == 200
+    for path in ('/dashboard', '/designer', '/manager'):
+        assert client.get(path).status_code == 403

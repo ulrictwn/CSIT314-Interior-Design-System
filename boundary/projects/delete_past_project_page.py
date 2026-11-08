@@ -1,17 +1,14 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.projects.validation import positive_integer, project_values
+from boundary.projects.presentation import project_values
 from boundary.designer.responses import error_response, entity_error
 from control.projects.delete_past_project_controller import DeletePastProjectController
-from infrastructure.errors import DomainError
 
 
 class DeletePastProjectPage(MethodView):
     def get(self, project_id):
-        try:
-            projectId = positive_integer(project_id, 'Project ID')
-        except DomainError as error:
-            return error_response(str(error), {'projectId': [str(error)]})
+        projectId = strip_input(project_id)
         project = DeletePastProjectController().getPastProject(projectId)
         if project is None:
             return error_response('Past project not found.', status=404)
@@ -22,11 +19,7 @@ class DeletePastProjectPage(MethodView):
         return self.rendered_page
 
     def onDelete(self, projectId: int) -> None:
-        try:
-            projectId = positive_integer(projectId, 'Project ID')
-        except DomainError as error:
-            self.rendered_page = error_response(str(error), {'projectId': [str(error)]})
-            return
+        projectId = strip_input(projectId)
         controller = DeletePastProjectController()
         if controller.deletePastProject(projectId):
             self.displaySuccess()

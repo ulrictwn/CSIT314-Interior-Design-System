@@ -47,3 +47,5 @@ For Sprints 2–5, each story has one independent successful workflow test. Thes
 | 5 | 46–48 | Generate a daily report; weekly report; monthly report, checking saved dates and totals against known activity. |
 
 Total: **65 tests**, covering all **48 stories**. Every test gets a disposable database or isolated test schema. Run commands and report locations are in [TESTING_GUIDE.md](TESTING_GUIDE.md).
+
+The latest BCE review keeps the same 65 test functions. Shared fixtures arrange signed-in users. Existing story cases also check entity-level validation and the requested logged-out, wrong-role, and forged-ownership behavior; see [BCE_REVIEW_CHANGES.md](BCE_REVIEW_CHANGES.md).

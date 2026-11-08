@@ -4,8 +4,8 @@ import pytest
 pytestmark = [pytest.mark.sprint4, pytest.mark.story31]
 
 
-def test_customer_view_displays_project_details(client, new_project, project_data):
-    response = client.get(f'/customer/projects/{new_project}')
+def test_customer_view_displays_project_details(customer_client, new_project, project_data):
+    response = customer_client.get(f'/customer/projects/{new_project}')
     assert response.status_code == 200
     project = response.json['project']
     assert project['projectId'] == new_project

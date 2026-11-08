@@ -1,3 +1,5 @@
+from entity.company.validation import validate_company_fields
+from entity.validation import search_text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from infrastructure.database import db
 from entity.accounts.user_account import UserAccount
@@ -29,6 +31,11 @@ class CompanyProfile(db.Model):
     def createCompanyProfile(self, accountId: str, companyName: str, companyContact: str,
                              companyAddress: str, companyEmail: str,
                              companyRegistrationNumber: str) -> bool:
+        values, errors = validate_company_fields(companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        companyName, companyContact, companyAddress = values['companyName'], values['companyContact'], values['companyAddress']
+        companyEmail, companyRegistrationNumber = values['companyEmail'], values['companyRegistrationNumber']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             if UserAccount.getUserAccount(accountId) is None:
@@ -59,6 +66,11 @@ class CompanyProfile(db.Model):
     def updateCompanyProfile(self, accountId: str, companyName: str, companyContact: str,
                              companyAddress: str, companyEmail: str,
                              companyRegistrationNumber: str) -> bool:
+        values, errors = validate_company_fields(companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        companyName, companyContact, companyAddress = values['companyName'], values['companyContact'], values['companyAddress']
+        companyEmail, companyRegistrationNumber = values['companyEmail'], values['companyRegistrationNumber']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             profile = self.getCompanyProfile(accountId)
@@ -97,6 +109,7 @@ class CompanyProfile(db.Model):
 
     @classmethod
     def searchCompanyProfile(cls, accountId: str, keyword: str) -> list[str]:
+        keyword = search_text(keyword)
         profile = cls.getCompanyProfile(accountId)
         if profile is None:
             return []

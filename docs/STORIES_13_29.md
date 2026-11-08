@@ -30,7 +30,7 @@ Controller files live under the matching `control/company/`, `control/designer/`
 
 ## Responsibilities
 
-Boundaries own `.strip()`, required-field/type/length checks, email/phone format checks, positive identifiers, and finite non-negative renovation costs. Shared field checks are in `boundary/company/validation.py`, `boundary/projects/validation.py`, and the existing `boundary/validation.py`. Controllers only relay calls and results. Entities handle duplicate checks, existing-account/record checks, phase-specific queries and writes, and database transactions.
+Boundaries strip ordinary text and prepare displays. Controllers retain an entity and relay calls/results. Entities validate required fields, types, lengths, email/phone formats, identifiers, and renovation costs, as well as duplicates, references, queries, and writes. Shared validation lives in `entity/validation.py` and the feature entity folders; boundary `presentation.py` helpers hold field names and serialization.
 
 The public event and display methods keep `-> None` (UML void). They assign `self.rendered_page`; Flask's HTTP adapters return it. Mutation controller/entity methods return `bool`. Getter methods return an entity or `None` when no matching record exists.
 
@@ -56,15 +56,15 @@ Category lookup was deferred during Stories 13–29 and is now connected through
 
 ### Designer login/logout
 
-`InteriorDesignerLoginPage.onLogin(username, password)` validates the input and calls `InteriorDesignerLoginController.login`. The entity receives `profileName='Interior Designer'` and checks the stored password hash and account/profile status and role. The existing admin login still defaults to `User Admin`.
+`InteriorDesignerLoginPage.onLogin(username, password)` strips the username and calls `InteriorDesignerLoginController.login`; `UserAccount.login` validates credentials. The entity receives `profileName='Interior Designer'` and checks the stored password hash and account/profile status and role. The existing admin login still defaults to `User Admin`.
 
-Successful login stores only the account ID in the existing basic browser session. Logout clears it and redirects to the designer login endpoint. No permission gates, CSRF, rate limits, or server-session security were added. Explicit account IDs can be supplied to exercise the data flows without signing in.
+Successful login stores only the account ID in the existing basic browser session. Logout clears it and redirects to the designer login endpoint. Protected requests require an active Interior Designer login. The session identifies the owner; conflicting request account IDs and other designers’ project IDs are rejected. CSRF, rate limits, and server-side session tokens remain outside the demo scope.
 
 ## HTML/JSON routes and account context
 
 The request adapters are registered in `boundary/designer/routes.py`. They accept form data or JSON using the camelCase field names above. Browsers receive HTML through their `Accept: text/html` header. API clients can request `Accept: application/json` or `?format=json`; JSON request bodies always retain JSON responses. Requests with no Accept header retain the original JSON interface. `?format=html` is also available for manual previews.
 
-Account context comes from an explicit boundary constructor argument, request `accountId`, or the existing browser session. HTML links and forms carry an explicit account ID when supplied. This supplies the owner relationship; it does not enforce authorization.
+Account context comes only from the signed-in browser session. Optional `accountId` values in existing links/forms must match that session. Login, portal-role, and designer project ownership checks run before protected handlers. See [the review changes](BCE_REVIEW_CHANGES.md).
 
 | Routes | Behavior |
 | --- | --- |
@@ -89,7 +89,7 @@ Project collections accept `mode=view`, `mode=search`, `mode=update`, or `mode=d
 
 `templates/auth/login.html` provides the Staff/Customer slider. Staff submits through `/staff/login`, which dispatches to the Admin, Interior Designer, or Platform Manager BCE boundary. Company templates live in `templates/company/`; project templates live in `templates/projects/`; designer layout/dashboard and shared macros live in `templates/designer/`. Shared HTML presentation is in `boundary/designer/presentation.py`; no controller/entity rendering was introduced. See [the frontend notes](FRONTEND_IMPLEMENTATION.md) for the reference scope and image asset.
 
-For example, POST `/designer/projects/new/create?accountId=YOUR_ACCOUNT_ID` with:
+After signing in as an Interior Designer, POST `/designer/projects/new/create` using the same session cookie with:
 
 ```json
 {
@@ -102,7 +102,7 @@ For example, POST `/designer/projects/new/create?accountId=YOUR_ACCOUNT_ID` with
 }
 ```
 
-Use an existing account ID. The `?accountId=...` can be omitted after a successful designer login.
+The designer account comes from the session. Supplying another account’s ID is rejected.
 
 ## Database setup and verification
 

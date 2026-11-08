@@ -5,6 +5,8 @@ pytestmark = [pytest.mark.sprint5, pytest.mark.story39]
 
 
 def test_platform_manager_login_opens_dashboard(client, create_account, credentials):
+    guest = client.get('/manager')
+    assert guest.status_code == 302 and guest.location == '/manager/login'
     account_id = create_account(credentials['username'], 'Platform Management', credentials['password'])
     response = client.post('/manager/login', json=credentials)
     assert response.status_code == 302
@@ -12,3 +14,5 @@ def test_platform_manager_login_opens_dashboard(client, create_account, credenti
     with client.session_transaction() as session:
         assert session['account_id'] == account_id
     assert client.get('/manager').status_code == 200
+    for path in ('/dashboard', '/designer', '/customer'):
+        assert client.get(path).status_code == 403

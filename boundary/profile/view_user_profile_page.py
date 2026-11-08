@@ -1,6 +1,5 @@
 from flask import render_template
 from flask.views import MethodView
-from boundary.validation import valid_profile_id
 from control.profile.view_user_profile_controller import ViewUserProfileController
 
 from entity.profile.user_profile import UserProfile
@@ -13,8 +12,7 @@ class ViewUserProfilePage(MethodView):
         return self.rendered_page
 
     def onView(self, profileId: int) -> None:
-        profile = (ViewUserProfileController().getUserProfile(profileId)
-                   if valid_profile_id(profileId) else None)
+        profile = (ViewUserProfileController().getUserProfile(profileId))
         if profile is None:
             self.displayError()
         else:

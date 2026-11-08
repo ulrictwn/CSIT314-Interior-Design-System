@@ -1,3 +1,5 @@
+from entity.reports.validation import validate_report_dates
+from entity.validation import positive_integer
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 from infrastructure.database import db
@@ -26,6 +28,9 @@ class Report(db.Model):
     )
 
     def generateReport(self, reportType: str, startDate: date, endDate: date) -> 'Report':
+        if reportType not in ('daily', 'weekly', 'monthly'):
+            raise DomainError('Choose a supported report type.')
+        startDate, endDate = validate_report_dates(reportType, startDate, endDate)
         from entity.accounts.user_account import UserAccount
         if self.account_id and UserAccount.getUserAccount(self.account_id) is None:
             raise DomainError('Account not found.')
@@ -62,6 +67,7 @@ class Report(db.Model):
 
     @classmethod
     def getReport(cls, reportId):
+        reportId = positive_integer(reportId, 'Report ID')
         return db.session.get(cls, reportId)
 
     @classmethod

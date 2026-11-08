@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask.views import MethodView
-from boundary.validation import validate_account_fields
+from boundary.validation import strip_input
 from control.accounts.create_user_account_controller import CreateUserAccountController
 
 
@@ -14,24 +14,17 @@ class CreateUserAccountPage(MethodView):
     def post(self):
         self.onCreate(request.form.get('username', ''), request.form.get('full_name', ''),
                          request.form.get('email', ''), request.form.get('phone_number', ''),
-                         request.form.get('profile_id', type=int))
+                         request.form.get('profile_id', ''))
         return self.rendered_page
 
     def onCreate(self, username: str, fullName: str, email: str,
                     phoneNumber: str, profileId: int) -> None:
-        values, self.field_errors = validate_account_fields(username, fullName, email, phoneNumber, profileId)
-        if self.field_errors:
-            self.error_message = 'Please correct the errors below.'
-            self.displayError()
-            return
-        username, fullName = values['username'], values['full_name']
-        email, phoneNumber = values['email'], values['phone_number']
         controller = CreateUserAccountController()
-        if controller.createUserAccount(username, fullName, email, phoneNumber, profileId):
+        if controller.createUserAccount(strip_input(username), strip_input(fullName), strip_input(email), strip_input(phoneNumber), strip_input(profileId)):
             self.displaySuccess()
         else:
-            self.error_message = controller.error_message
-            self.field_errors = controller.field_errors
+            self.error_message = controller.entity.error_message
+            self.field_errors = controller.entity.field_errors
             self.displayError()
 
     def displaySuccess(self) -> None:

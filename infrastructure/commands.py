@@ -6,7 +6,7 @@ from infrastructure.permissions import DEFAULT_PROFILES, ADMIN_PERMISSIONS
 from infrastructure.errors import DomainError
 from entity.profile.user_profile import UserProfile
 from entity.accounts.user_account import UserAccount
-from boundary.validation import username_value, password_value, email_address, required_text as required
+from entity.validation import username_value, password_value, email_address, required_text as required
 
 
 def register_commands(app):

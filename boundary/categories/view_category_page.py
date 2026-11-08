@@ -1,9 +1,8 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
-from boundary.projects.validation import positive_integer
 from boundary.portal import present, error_response
 from control.categories.view_category_controller import ViewCategoryController
 from entity.categories.category import Category
-from infrastructure.errors import DomainError
 
 
 class ViewCategoryPage(MethodView):
@@ -12,11 +11,7 @@ class ViewCategoryPage(MethodView):
         return self.rendered_page
 
     def onView(self,categoryId: int) -> None:
-        try:
-            categoryId = positive_integer(categoryId,'Category ID')
-        except DomainError as error:
-            self.rendered_page = error_response(str(error),'manager')
-            return
+        categoryId = strip_input(categoryId)
         category = ViewCategoryController().getCategory(categoryId)
         if category is None:
             self.rendered_page = error_response('Category not found.','manager',status=404)

@@ -1,3 +1,5 @@
+from entity.validation import positive_integer
+from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError
 from infrastructure.database import db
 from infrastructure.time import utcnow
@@ -21,6 +23,10 @@ class Shortlist(db.Model):
         return db.session.get(cls, (accountId, projectId)) is not None if accountId else False
 
     def saveShortlist(self, accountId: str, projectId: int) -> bool:
+        try:
+            projectId = positive_integer(projectId, 'Project ID')
+        except DomainError as error:
+            return self._reject(str(error))
         from entity.projects.interior_design_project import InteriorDesignProject
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         if UserAccount.getUserAccount(accountId) is None:
@@ -40,6 +46,10 @@ class Shortlist(db.Model):
             return self._reject('This project is already shortlisted or no longer exists.')
 
     def removeShortlist(self, accountId: str, projectId: int) -> bool:
+        try:
+            projectId = positive_integer(projectId, 'Project ID')
+        except DomainError as error:
+            return self._reject(str(error))
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         record = db.session.get(Shortlist, (accountId, projectId))
         if record is None:

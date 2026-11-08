@@ -4,9 +4,9 @@ Source: `Nothinghere/CSIT314 Group Project Report (4).docx`. All 48 embedded BCE
 
 ## Layer responsibilities
 
-- Boundaries receive HTTP input, clean and validate required fields/types/lengths, and prepare HTML, messages, redirects, or JSON.
+- Boundaries receive HTTP input, strip ordinary text, and prepare HTML, messages, redirects, or JSON. The latest review moves field validation into entities.
 - Controllers relay calls and entity results. They do not read HTTP input, validate text, or execute SQL.
-- Entities perform queries, duplicate/reference checks, business state changes, counters, and transactions.
+- Entities validate fields/formats/lengths/choices/identifiers/dates, then perform queries, duplicate/reference checks, business state changes, counters, and transactions.
 - Database/migration infrastructure supplies the connection and compatibility adapters. HTTP `get`/`post`, prefill getters, serialization helpers, and constructor account context support the diagram operations.
 - UML `void` is represented by `-> None`. Event/display methods prepare `self.rendered_page`; the HTTP adapter returns it.
 

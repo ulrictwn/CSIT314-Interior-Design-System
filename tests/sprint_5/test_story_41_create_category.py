@@ -5,8 +5,8 @@ from entity.categories.category import Category
 pytestmark = [pytest.mark.sprint5, pytest.mark.story41]
 
 
-def test_create_category_saves_category_details(app, client, category_data):
-    response = client.post('/manager/categories/create', json=category_data)
+def test_create_category_saves_category_details(app, manager_client, category_data):
+    response = manager_client.post('/manager/categories/create', json=category_data)
     assert response.status_code == 201
     category_id = response.json['category']['categoryId']
     with app.app_context():

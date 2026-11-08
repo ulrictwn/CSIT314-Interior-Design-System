@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask.views import MethodView
-from boundary.validation import validate_profile_fields, valid_profile_id
+from boundary.validation import strip_input
 from control.profile.update_user_profile_controller import UpdateUserProfileController
 from infrastructure.permissions import PERMISSION_OPTIONS
 
@@ -8,8 +8,7 @@ from infrastructure.permissions import PERMISSION_OPTIONS
 class UpdateUserProfilePage(MethodView):
 
     def get(self, profile_id):
-        profile = (UpdateUserProfileController().getUserProfile(profile_id)
-                   if valid_profile_id(profile_id) else None)
+        profile = (UpdateUserProfileController().getUserProfile(profile_id))
         if profile is None:
             self.error_message, self.error_reason = 'User profile not found.', 'not_found'
             self.displayError()
@@ -26,24 +25,13 @@ class UpdateUserProfilePage(MethodView):
 
     def onUpdate(self, profileId: int, profileName: str, description: str,
                  permissions: list[str]) -> None:
-        if not valid_profile_id(profileId):
-            self.error_message, self.error_reason = 'User profile not found.', 'not_found'
-            self.displayError()
-            return
-        values, self.field_errors = validate_profile_fields(
-            profileName, description, 'Active', permissions)
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.displayError()
-            return
-        profileName, description, _, permissions = values
         controller = UpdateUserProfileController()
-        if controller.updateUserProfile(profileId, profileName, description, permissions):
+        if controller.updateUserProfile(profileId, strip_input(profileName), strip_input(description), permissions):
             self.displaySuccess()
         else:
-            self.error_message = controller.error_message
-            self.field_errors = controller.field_errors
-            self.error_reason = controller.error_reason
+            self.error_message = controller.entity.error_message
+            self.field_errors = controller.entity.field_errors
+            self.error_reason = controller.entity.error_reason
             self.displayError()
 
     def displaySuccess(self) -> None:

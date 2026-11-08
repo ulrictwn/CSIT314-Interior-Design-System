@@ -1,3 +1,6 @@
+from entity.projects.validation import validate_project_fields
+from entity.validation import positive_integer, search_text
+from infrastructure.errors import DomainError, NotFoundError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from infrastructure.database import db
 from entity.accounts.user_account import UserAccount
@@ -37,6 +40,11 @@ class InteriorDesignProject(db.Model):
         return db.session.execute(statement.limit(1)).first() is not None
 
     def _create(self, status, accountId, projectName, categoryId, propertyType, area, renovationCost, description):
+        values, errors = validate_project_fields(projectName, categoryId, propertyType, area, renovationCost, description)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        projectName, categoryId, propertyType = values['projectName'], values['categoryId'], values['propertyType']
+        area, renovationCost, description = values['area'], values['renovationCost'], values['description']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             if UserAccount.getUserAccount(accountId) is None:
@@ -63,10 +71,20 @@ class InteriorDesignProject(db.Model):
 
     @classmethod
     def _get(cls, projectId, status):
+        projectId = positive_integer(projectId, 'Project ID')
         return db.session.execute(db.select(cls).where(
             cls.project_id == projectId, cls.project_status == status)).scalar_one_or_none()
 
     def _update(self, status, projectId, projectName, categoryId, propertyType, area, renovationCost, description):
+        try:
+            projectId = positive_integer(projectId, 'Project ID')
+        except DomainError as error:
+            return self._reject(str(error), {'projectId': [str(error)]})
+        values, errors = validate_project_fields(projectName, categoryId, propertyType, area, renovationCost, description)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        projectName, categoryId, propertyType = values['projectName'], values['categoryId'], values['propertyType']
+        area, renovationCost, description = values['area'], values['renovationCost'], values['description']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             project = self._get(projectId, status)
@@ -92,11 +110,16 @@ class InteriorDesignProject(db.Model):
 
     @classmethod
     def _search(cls, accountId, projectName, status):
+        projectName = search_text(projectName)
         return db.session.execute(db.select(cls).where(cls.account_id == accountId,
             cls.project_status == status, cls.project_name.icontains(projectName, autoescape=True))
             .order_by(cls.project_name, cls.project_id)).scalars().all()
 
     def _delete(self, projectId, status):
+        try:
+            projectId = positive_integer(projectId, 'Project ID')
+        except DomainError as error:
+            return self._reject(str(error), {'projectId': [str(error)]})
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             project = self._get(projectId, status)
@@ -160,11 +183,13 @@ class InteriorDesignProject(db.Model):
 
     @classmethod
     def search_all_IDPs(cls, keyword: str) -> list['InteriorDesignProject']:
+        keyword = search_text(keyword)
         return db.session.scalars(db.select(cls).join(Category).where(cls._keyword_filter(keyword))
                                   .order_by(cls.project_name, cls.project_id)).all()
 
     @classmethod
     def search_shortlist_IDP(cls, accountId: str, keyword: str) -> list['InteriorDesignProject']:
+        keyword = search_text(keyword)
         from entity.shortlist.shortlist import Shortlist
         return db.session.scalars(db.select(cls).join(Category).join(Shortlist,
             Shortlist.project_id == cls.project_id).where(Shortlist.account_id == accountId, cls._keyword_filter(keyword))
@@ -172,10 +197,12 @@ class InteriorDesignProject(db.Model):
 
     @classmethod
     def getProject(cls, projectId):
+        projectId = positive_integer(projectId, 'Project ID')
         return db.session.get(cls, projectId)
 
     @classmethod
     def getIDP(cls, projectId: int) -> 'InteriorDesignProject | None':
+        projectId = positive_integer(projectId, 'Project ID')
         project = db.session.get(cls, projectId)
         if project is not None:
             cls.incrementViewCount(projectId)
@@ -183,17 +210,20 @@ class InteriorDesignProject(db.Model):
 
     @classmethod
     def incrementViewCount(cls, projectId: int) -> None:
+        projectId = positive_integer(projectId, 'Project ID')
         db.session.execute(db.update(cls).where(cls.project_id == projectId).values(view_count=cls.view_count+1))
         ActivityEvent.record('project_viewed', projectId)
         db.session.commit()
 
     @classmethod
     def getShortlistedIDP(cls, accountId, projectId):
+        projectId = positive_integer(projectId, 'Project ID')
         from entity.shortlist.shortlist import Shortlist
         return cls.getIDP(projectId) if Shortlist.contains(accountId, projectId) else None
 
     @classmethod
     def getViewCount(cls, projectId: int) -> int:
+        projectId = positive_integer(projectId, 'Project ID')
         count = db.session.scalar(db.select(cls.view_count).where(cls.project_id == projectId))
         return 0 if count is None else count
 
@@ -217,3 +247,12 @@ class InteriorDesignProject(db.Model):
             propertyType=self.property_type, area=self.area, renovationCost=self.renovation_cost,
             description=self.description, status=self.project_status,
             designerName=owner.full_name if owner else '', companyName=company.company_name if company else '')
+
+    @classmethod
+    def checkOwnership(cls, accountId, projectId):
+        project = cls.getProject(projectId)
+        if project is None:
+            raise NotFoundError('Project not found.')
+        if project.account_id != accountId:
+            from infrastructure.errors import AccessDeniedError
+            raise AccessDeniedError('This project belongs to another designer.')

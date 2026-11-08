@@ -1,12 +1,11 @@
 from flask import request
 from flask.views import MethodView
-from boundary.validation import search_text
-from boundary.designer.context import account_id, request_values
-from boundary.portal import optional_account_id, present, error_response
+from boundary.validation import strip_input
+from boundary.designer.context import request_values
+from boundary.portal import optional_account_id, present
 from control.customer.search_idp_controller import SearchIDPController
 from control.customer.dashboard_controller import CustomerDashboardController
 from entity.projects.interior_design_project import InteriorDesignProject
-from infrastructure.errors import DomainError
 
 
 class SearchIDPPage(MethodView):
@@ -22,12 +21,8 @@ class SearchIDPPage(MethodView):
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
-        try:
-            self.keyword = search_text(keyword)
-            self.owner = optional_account_id()
-        except DomainError as error:
-            self.rendered_page = error_response(str(error),'customer',{'keyword':[str(error)]})
-            return
+        self.keyword = strip_input(keyword)
+        self.owner = optional_account_id()
         idps = SearchIDPController().search_all_IDPs(self.keyword)
         self.displayResults(idps)
 

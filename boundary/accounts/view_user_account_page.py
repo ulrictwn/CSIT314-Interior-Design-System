@@ -1,6 +1,5 @@
 from flask import render_template
 from flask.views import MethodView
-from boundary.validation import valid_account_id
 from control.accounts.view_user_account_controller import ViewUserAccountController
 
 from entity.accounts.user_account import UserAccount
@@ -13,8 +12,7 @@ class ViewUserAccountPage(MethodView):
         return self.rendered_page
 
     def onView(self, accountId: str) -> None:
-        account = (ViewUserAccountController().getUserAccount(accountId)
-                   if valid_account_id(accountId) else None)
+        account = (ViewUserAccountController().getUserAccount(accountId))
         if account is None:
             self.rendered_page = render_template(
                 'error.html', code=404, message='User account not found.',

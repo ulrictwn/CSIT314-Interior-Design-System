@@ -1,18 +1,15 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
-from boundary.projects.validation import PROJECT_FIELDS, validate_project_fields, positive_integer, project_values
-from boundary.designer.context import account_id, request_values
+from boundary.projects.presentation import PROJECT_FIELDS, project_values
+from boundary.designer.context import request_values
 from boundary.designer.responses import error_response
 from control.projects.update_new_project_controller import UpdateNewProjectController
-from infrastructure.errors import DomainError
 
 
 class UpdateNewProjectPage(MethodView):
     def get(self, project_id):
-        try:
-            projectId = positive_integer(project_id, 'Project ID')
-        except DomainError as error:
-            return error_response(str(error), {'projectId': [str(error)]})
+        projectId = strip_input(project_id)
         project = UpdateNewProjectController().getNewProject(projectId)
         if project is None:
             return error_response('New project not found.', status=404)
@@ -25,25 +22,15 @@ class UpdateNewProjectPage(MethodView):
 
     def onUpdate(self, projectId: int, projectName: str, categoryId: int, propertyType: str,
                  area: str, renovationCost: float, description: str) -> None:
-        self.values = dict(zip(PROJECT_FIELDS, [projectName, categoryId, propertyType, area, renovationCost, description]))
-        self.values['renovationCost'] = str(renovationCost) if renovationCost is not None else ''
-        values, self.field_errors = validate_project_fields(projectName, categoryId, propertyType, area, renovationCost, description)
-        self.error_reason = 'invalid_data'
-        try:
-            projectId = positive_integer(projectId, 'Project ID')
-        except DomainError as error:
-            self.field_errors['projectId'] = [str(error)]
-        if self.field_errors:
-            self.error_message = 'Please correct the errors below.'
-            self.displayError()
-            return
+        self.values = {field: strip_input(value) for field, value in zip(PROJECT_FIELDS,
+            [projectName, categoryId, propertyType, area, renovationCost, description])}
         controller = UpdateNewProjectController()
-        if controller.updateNewProject(projectId, **values):
-            self.values = values
+        if controller.updateNewProject(projectId, **self.values):
+            self.values = project_values(controller.getNewProject(projectId))
             self.displaySuccess()
         else:
-            self.error_message, self.field_errors = controller.error_message, controller.field_errors
-            self.error_reason = controller.error_reason
+            self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
+            self.error_reason = controller.entity.error_reason
             self.displayError()
 
     def displaySuccess(self) -> None:

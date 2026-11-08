@@ -1,12 +1,10 @@
+from boundary.validation import strip_input
 from flask import flash, redirect, url_for
 from flask.views import MethodView
-from boundary.categories.validation import validate_category_fields
 from boundary.designer.context import request_values
 from boundary.designer.presentation import wants_html
-from boundary.projects.validation import positive_integer
 from boundary.portal import present, error_response
 from control.categories.update_category_controller import UpdateCategoryController
-from infrastructure.errors import DomainError
 
 
 class UpdateCategoryPage(MethodView):
@@ -23,23 +21,15 @@ class UpdateCategoryPage(MethodView):
         return self.rendered_page
 
     def onUpdate(self, categoryId: int, categoryName: str, description: str) -> None:
-        self.values = dict(categoryName=categoryName,description=description)
-        values, self.field_errors = validate_category_fields(categoryName,description)
-        self.error_reason = 'invalid_data'
-        try:
-            self.categoryId = positive_integer(categoryId,'Category ID')
-        except DomainError as error:
-            self.field_errors['categoryId'] = [str(error)]
-        if self.field_errors:
-            self.error_message = 'Please correct the errors below.'
-            self.displayError()
-            return
+        self.values = dict(categoryName=strip_input(categoryName), description=strip_input(description))
+        self.categoryId = categoryId
         controller = UpdateCategoryController()
-        if controller.updateCategory(self.categoryId, **values):
-            self.category = controller.category
+        if controller.updateCategory(categoryId, **self.values):
+            self.category = controller.getCategory(categoryId)
             self.displaySuccess()
         else:
-            self.error_message, self.field_errors, self.error_reason = controller.error_message, controller.field_errors, controller.error_reason
+            self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
+            self.error_reason = controller.entity.error_reason
             self.displayError()
 
     def displaySuccess(self) -> None:

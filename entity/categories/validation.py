@@ -1,4 +1,4 @@
-from boundary.validation import required_text
+from entity.validation import required_text
 from infrastructure.errors import DomainError
 
 

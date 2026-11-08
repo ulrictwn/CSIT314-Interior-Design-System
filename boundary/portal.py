@@ -1,24 +1,16 @@
 """Shared HTML/JSON presentation for the customer and platform manager pages."""
 from flask import g, render_template, request, session, url_for
-from boundary.designer.context import account_id, request_values
 from boundary.designer.presentation import wants_html
-from infrastructure.errors import DomainError
 
 
 def optional_account_id():
-    if ('accountId' in request.args or 'accountId' in request_values()
-            or session.get('account_id')):
-        return account_id()
-    return None
+    return session.get('account_id')
 
 
 def present(payload, template, title, portal, status=200):
     if not wants_html():
         return payload, status
-    try:
-        owner = optional_account_id()
-    except DomainError:
-        owner = None
+    owner = optional_account_id()
 
     def link(endpoint, **kwargs):
         if owner and 'login' not in endpoint and 'logout' not in endpoint:

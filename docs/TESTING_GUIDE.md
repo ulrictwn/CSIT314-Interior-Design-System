@@ -11,7 +11,7 @@ The test suite follows `Nothinghere/CSIT314 Group Project Report (4).docx`:
 | `tests/sprint_5/` | 39–48 | 10: one per story |
 | Total | 1–48 | 65 |
 
-Each story has its own `test_story_XX_*.py` file. Shared database and sample-data fixtures are in `tests/conftest.py`. Sprint 1 has a small form-reading fixture; Sprint 5 has known report activity. Tests create their own prerequisites and can run independently.
+Each story has its own `test_story_XX_*.py` file. Shared database and sample-data fixtures are in `tests/conftest.py`. Sprint 1 has a small form-reading fixture; Sprint 5 has known report activity. Tests create their own prerequisites and can run independently. Role-specific client fixtures arrange a signed-in account; login tests use an anonymous client.
 
 ## Run locally
 
@@ -57,4 +57,4 @@ Sprint 1 preserves every check listed in the updated document, including TC08 an
 
 Sprints 2–5 each have one successful workflow test per story. Requests exercise the real boundary, controller, and entity, with checks of displayed results or stored changes. Later-story JSON requests use the same BCE handlers as the HTML forms. Logout tests begin with an existing browser login, and report tests use known activity and dates.
 
-The broader migration, security, duplicate edge-case, browser-layout, and method-contract suites were removed from the runnable tests as requested. The earlier diagram transcription remains as a reference in `docs/bce_contracts.json`. This smaller suite covers the requested sprint scenarios; it is not the previous exhaustive regression suite.
+The broad migration, browser-layout, and method-contract suites remain excluded as requested. The latest access checks are asserted within existing login/logout, company deletion, project deletion, and shortlist story tests; direct entity rejection is also checked in existing profile/account cases. The earlier diagram transcription remains as a reference in `docs/bce_contracts.json`. This smaller suite covers the requested sprint scenarios; it is not the previous exhaustive regression suite.

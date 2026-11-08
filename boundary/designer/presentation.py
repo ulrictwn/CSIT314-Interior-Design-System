@@ -1,7 +1,6 @@
 """HTML presentation for the designer boundaries, with the JSON interface retained."""
 from flask import flash, g, has_request_context, redirect, render_template, request, url_for
 from boundary.designer.context import account_id
-from infrastructure.errors import DomainError
 from control.categories.search_category_controller import SearchCategoryController
 
 
@@ -26,10 +25,7 @@ def present(payload, status=200):
     profile, project = payload.get('profile'), payload.get('project')
     owner = (profile or project or {}).get('accountId') or payload.get('accountId')
     if not owner:
-        try:
-            owner = account_id()
-        except DomainError:
-            owner = None
+        owner = account_id()
     def link(name, **kwargs):
         if owner and name not in ('login', 'interior_designer_login', 'interior_designer_logout'):
             kwargs.setdefault('accountId', owner)

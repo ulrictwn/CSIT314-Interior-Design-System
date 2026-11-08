@@ -1,7 +1,6 @@
-from boundary.validation import required_text, email_address, phone_number_value
+from entity.validation import required_text, email_address, phone_number_value
 from infrastructure.errors import DomainError
 
-COMPANY_FIELDS = ['companyName', 'companyContact', 'companyAddress', 'companyEmail', 'companyRegistrationNumber']
 
 
 def validate_company_fields(companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber):
@@ -19,9 +18,3 @@ def validate_company_fields(companyName, companyContact, companyAddress, company
         except DomainError as error:
             errors[field] = [str(error)]
     return values, errors
-
-
-def company_values(profile):
-    return dict(accountId=profile.account_id, companyName=profile.company_name,
-        companyContact=profile.company_contact, companyAddress=profile.company_address,
-        companyEmail=profile.company_email, companyRegistrationNumber=profile.company_registration_number)

@@ -1,8 +1,7 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
-from boundary.projects.validation import positive_integer
 from boundary.portal import present, error_response
 from control.designer.view_count_controller import ViewCountController
-from infrastructure.errors import DomainError
 
 
 class ViewCountPage(MethodView):
@@ -11,11 +10,7 @@ class ViewCountPage(MethodView):
         return self.rendered_page
 
     def onView(self,projectId: int) -> None:
-        try:
-            projectId = positive_integer(projectId,'Project ID')
-        except DomainError as error:
-            self.rendered_page = error_response(str(error),'designer')
-            return
+        projectId = strip_input(projectId)
         controller = ViewCountController()
         self.project = controller.getProject(projectId)
         if self.project is None:

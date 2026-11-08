@@ -1,11 +1,10 @@
+from boundary.validation import strip_input
 from flask.views import MethodView
-from boundary.projects.validation import positive_integer
 from boundary.designer.context import account_id
-from boundary.portal import optional_account_id, present, error_response
+from boundary.portal import present, error_response
 from control.customer.view_shortlist_idp_controller import ViewShortlistIDPController
 from control.customer.dashboard_controller import CustomerDashboardController
 from entity.projects.interior_design_project import InteriorDesignProject
-from infrastructure.errors import DomainError
 
 
 class ViewShortlistIDPPage(MethodView):
@@ -17,12 +16,8 @@ class ViewShortlistIDPPage(MethodView):
         return self.rendered_page
 
     def onView(self, projectId: int) -> None:
-        try:
-            projectId = positive_integer(projectId,'Project ID')
-            self.owner = account_id(self.accountId)
-        except DomainError as error:
-            self.rendered_page = error_response(str(error),'customer')
-            return
+        projectId = strip_input(projectId)
+        self.owner = account_id(self.accountId)
         idp = ViewShortlistIDPController(self.owner).getIDP(projectId)
         if idp is None:
             self.rendered_page = error_response('This project is not in your shortlist.','customer',status=404)

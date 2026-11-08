@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, g, render_template
 from sqlalchemy import URL, event
 from infrastructure.database import db
-from infrastructure.errors import DomainError, NotFoundError
+from infrastructure.errors import DomainError, NotFoundError, AccessDeniedError
 from infrastructure.permissions import PERMISSION_OPTIONS
 
 ROOT = Path(__file__).resolve().parent
@@ -36,9 +36,10 @@ def create_app(configuration=None):
             def foreign_keys(connection, _):
                 connection.execute('PRAGMA foreign_keys=ON')
 
-    from infrastructure.auth import load_account
+    from infrastructure.auth import load_account, require_portal_access
     from infrastructure.navigation import navigation
     app.before_request(load_account)
+    app.before_request(require_portal_access)
 
     @app.context_processor
     def profile_context():
@@ -53,7 +54,10 @@ def create_app(configuration=None):
     @app.errorhandler(DomainError)
     def domain_error(error):
         db.session.rollback()
-        code = 404 if isinstance(error, NotFoundError) else 400
+        code = 403 if isinstance(error, AccessDeniedError) else 404 if isinstance(error, NotFoundError) else 400
+        from boundary.designer.presentation import wants_html
+        if not wants_html():
+            return dict(ok=False, message=str(error), errors=getattr(error, 'field_errors', {})), code
         return render_template('error.html', code=code, message=str(error)), code
 
     @app.errorhandler(404)

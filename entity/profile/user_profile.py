@@ -1,3 +1,4 @@
+from entity.validation import validate_profile_fields, valid_profile_id, search_text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -40,9 +41,12 @@ class UserProfile(db.Model):
 
     def createUserProfile(self, profileName: str, description: str, status: str,
                           permissions: list[str]) -> bool:
-        """Check duplicates and save input already validated by the boundary."""
-        self.error_message = None
-        self.field_errors = {}
+        """Validate profile data, check duplicates, and save."""
+        self.error_message, self.field_errors, self.error_reason = None, {}, None
+        values, errors = validate_profile_fields(profileName, description, status, permissions)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        profileName, description, status, permissions = values
         duplicate_message = 'A profile with this name already exists.'
         try:
             if self.userProfileExists(profileName):
@@ -65,7 +69,9 @@ class UserProfile(db.Model):
 
     @classmethod
     def getUserProfile(cls, profileId: int) -> 'UserProfile | None':
-        """Look up a profile using the ID checked by the boundary."""
+        """Validate the identifier and look up a profile."""
+        if not valid_profile_id(profileId):
+            return None
         return db.session.get(cls, profileId)
 
     @classmethod
@@ -81,6 +87,7 @@ class UserProfile(db.Model):
 
     @classmethod
     def searchUserProfiles(cls, keyword: str) -> list['UserProfile']:
+        keyword = search_text(keyword, required=True)
         return db.session.execute(db.select(cls).where(db.or_(
             cls.name.icontains(keyword, autoescape=True),
             cls.description.icontains(keyword, autoescape=True)
@@ -89,6 +96,12 @@ class UserProfile(db.Model):
     def updateUserProfile(self, profileId: int, profileName: str, description: str,
                           permissions: list[str]) -> bool:
         """Check saved data and duplicates; preserve the stored status."""
+        if not valid_profile_id(profileId):
+            return self._reject('User profile not found.', reason='not_found')
+        values, errors = validate_profile_fields(profileName, description, 'Active', permissions)
+        if errors:
+            return self._reject('Please correct the errors below.', errors)
+        profileName, description, _, permissions = values
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         name = profileName
         duplicate_message = 'A profile with this name already exists.'
@@ -114,6 +127,8 @@ class UserProfile(db.Model):
 
     def suspendUserProfile(self, profileId: int) -> bool:
         """Suspend only existing profiles with no accounts assigned."""
+        if not valid_profile_id(profileId):
+            return self._reject('User profile not found.', reason='not_found')
         from infrastructure.profile_assignments import profile_account_count
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
@@ -133,3 +148,8 @@ class UserProfile(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
+    @classmethod
+    def activeProfiles(cls):
+        return db.session.scalars(db.select(cls).where(cls.status == 'Active')
+            .order_by(cls.name, cls.profile_id)).all()

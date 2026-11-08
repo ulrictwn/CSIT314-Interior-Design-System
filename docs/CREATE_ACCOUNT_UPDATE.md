@@ -1,12 +1,12 @@
 # Create User Account without password entry
 
-The Create screen collects username, full name, email, phone number and assigned profile. Account code is grouped under the `accounts/` packages in boundary, control, and entity. Input cleanup and field validation belong to `boundary/validation.py` and are called by the boundary before the controller. Duplicate checks and persistence belong to `entity/accounts/user_account.py`.
+The Create screen collects username, full name, email, phone number and assigned profile. Account code is grouped under the `accounts/` packages in boundary, control, and entity. Input cleanup belongs to `boundary/validation.py`. `UserAccount` validates the input through `entity/validation.py`, checks duplicates, and saves data. The controller only relays. Active-profile dropdown data comes from `UserProfile.activeProfiles()`.
 
 ## Apply the matching files together
 
 Stop Flask with Ctrl+C. Review any local/team edits, then copy these application files from this package into the existing project folders:
 
-- The complete `boundary/accounts/`, `control/accounts/`, and `entity/accounts/` packages, including `__init__.py` and the shared boundary validation helpers.
+- The complete `boundary/accounts/`, `control/accounts/`, and `entity/accounts/` packages, including `__init__.py` and the shared boundary cleanup/entity validation helpers.
 - `boundary/routes.py`, `boundary/dashboard_page.py`, and the plain HTML account forms under `templates/accounts/`.
 - `control/auth/auth_controller.py`, `entity/models.py`, and `entity/profile/user_profile.py` for updated account imports.
 - `infrastructure/auth.py` and `infrastructure/commands.py`.
