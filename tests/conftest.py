@@ -1,4 +1,4 @@
-"""Disposable databases only. Never consume the application's DATABASE_URL/.env."""
+"""Shared sprint data and disposable databases; never use the app database."""
 import os
 from uuid import uuid4
 
@@ -25,14 +25,14 @@ def app(tmp_path):
         url = make_url(target)
         if url.drivername != 'postgresql+psycopg' or url.database != 'nestora_test':
             raise RuntimeError('TEST_DATABASE_URL must use postgresql+psycopg and the dedicated nestora_test database. Your app database is never accepted.')
-        schema = 'profile_test_' + uuid4().hex
+        schema = 'sprint_test_' + uuid4().hex
         admin_engine = create_engine(url)
         with admin_engine.begin() as connection:
             connection.execute(text(f'CREATE SCHEMA "{schema}"'))
         options = {'connect_args': {'options': f'-csearch_path={schema}'}}
         uri = url
     else:
-        uri = 'sqlite:///' + str(tmp_path / 'profiles.sqlite')
+        uri = 'sqlite:///' + str(tmp_path / 'sprints.sqlite')
     application = None
     try:
         application = create_app({
@@ -64,140 +64,128 @@ def client(app):
 
 @pytest.fixture
 def profile_data():
-    return dict(profileName='Customer', description='Customers can explore design ideas.',
+    return dict(profileName='Test_Story_1_create',
+                description='This profile is created for TC-1-TC-07.',
                 status='Active', permissions=['profile.view', 'profile.search'])
 
 
 @pytest.fixture
-def submit(client):
-    def submit_form(url, data):
-        page = client.get(url)
-        assert page.status_code == 200, (url, page.status_code)
-        return client.post(url, data=data)
-    return submit_form
-
-
-@pytest.fixture
-def seed(app):
+def seed_profile(app):
     def create(name='Customer', description='Customer role', status='Active', permissions=None):
         with app.app_context():
-            record = UserProfile(name=name, description=description, status=status,
-                                 permissions=['profile.view'] if permissions is None else permissions)
-            db.session.add(record)
+            profile = UserProfile(name=name, description=description, status=status,
+                                  permissions=['profile.view'] if permissions is None else permissions)
+            db.session.add(profile)
             db.session.commit()
-            return record.profile_id
+            return profile.profile_id
     return create
 
 
 @pytest.fixture
-def snapshot(app):
+def profile_snapshot(app):
     def read(profile_id):
         with app.app_context():
-            record = db.session.get(UserProfile, profile_id)
-            return None if record is None else dict(profile_id=record.profile_id, name=record.name,
-                description=record.description, status=record.status, permissions=list(record.permissions))
+            profile = db.session.get(UserProfile, profile_id)
+            return dict(name=profile.name, description=profile.description,
+                        status=profile.status, permissions=list(profile.permissions))
     return read
 
 
 @pytest.fixture
-def account_assignment(app):
-    def assign(profile_id, table_name='user_account', status='Active'):
-        assert table_name in ('user_account', 'user_accounts')
+def create_account(app, seed_profile):
+    from entity.accounts.user_account import UserAccount
+
+    def create(username='customer1', role='Customer', password=None):
         with app.app_context():
-            if table_name == 'user_account':
-                from entity.accounts.user_account import UserAccount
-                username = 'fixture_' + uuid4().hex[:12]
-                assert UserAccount().createUserAccount(username, 'Fixture Account',
-                    username+'@example.com', '+65 6123 4567', profile_id)
-                account = UserAccount.getByUsername(username)
-                account.status = status
-            else:
-                db.session.execute(text(f'CREATE TABLE {table_name} (account_id INTEGER PRIMARY KEY, profile_id INTEGER NOT NULL, status VARCHAR(20))'))
-                db.session.execute(text(f'INSERT INTO {table_name} (account_id, profile_id, status) VALUES (1, :id, :status)'),
-                                   {'id': profile_id, 'status': status})
-            db.session.commit()
-    return assign
-
-
-ADMIN_PASSWORD = 'Review-Administrator-Password-123'
-
-def login_client(client, username, password=ADMIN_PASSWORD):
-    page = client.get('/login')
-    assert page.status_code == 200
-    return client.post('/login', data={'username':username, 'password':password})
-
-
-@pytest.fixture
-def admin_client(app, client):
-    result = app.test_cli_runner().invoke(args=['bootstrap-admin', '--username','admin', '--email','admin@example.com',
-        '--full-name','Review Administrator', '--phone-number','+65 6123 4567'], env={'NESTORA_ADMIN_PASSWORD':ADMIN_PASSWORD})
-    assert result.exit_code == 0, result.output
-    assert login_client(client, 'admin').status_code == 302
-    return client
-
-@pytest.fixture
-def create_account(app, admin_client, submit):
-    def create(username='customer1', role='Customer'):
-        with app.app_context():
-            profile_id = UserProfile.getProfile(role).profile_id
-        data = dict(username=username,
-            full_name='Name '+username, email=username+'@example.com', phone_number='+65 6123 4567', profile_id=profile_id)
-        response = submit('/accounts/create', data)
-        assert response.status_code == 302, response.get_data(as_text=True)
-        with app.app_context():
-            from entity.accounts.user_account import UserAccount
-            return UserAccount.getByUsername(username).account_id
+            profile = UserProfile.getProfile(role)
+            profile_id = profile.profile_id if profile else seed_profile(role, permissions=[])
+            account = UserAccount()
+            assert account.createUserAccount(username, 'Name ' + username,
+                username + '@example.com', '+65 6123 4567', profile_id, password=password)
+            return account.account_id
     return create
 
 
 @pytest.fixture
-def set_account_password(app):
-    def configure(username, password=ADMIN_PASSWORD):
-        result = app.test_cli_runner().invoke(args=['reset-password', '--username', username],
-            input=password + '\n' + password + '\n')
-        assert result.exit_code == 0, result.output
-    return configure
+def customer_account(create_account):
+    return create_account()
 
 
 @pytest.fixture
-def sign_in(app):
-    def sign_in(username, password=ADMIN_PASSWORD):
-        client = app.test_client()
-        return client, login_client(client, username, password)
-    return sign_in
-
-
-DESIGNER_PASSWORD = 'Designer-Demo-Password-123'
+def designer_account(create_account):
+    return create_account('designer1', 'Interior Designer')
 
 
 @pytest.fixture
-def designer_accounts(app, seed):
-    from entity.accounts.user_account import UserAccount
-    profile_id = seed('Interior Designer', permissions=[])
-    with app.app_context():
-        first, second = UserAccount(), UserAccount()
-        assert first.createUserAccount('designer1', 'Designer One', 'designer1@example.com',
-            '+65 6123 4567', profile_id, password=DESIGNER_PASSWORD)
-        assert second.createUserAccount('designer2', 'Designer Two', 'designer2@example.com',
-            '+65 6123 4568', profile_id)
-        return first.account_id, second.account_id
+def credentials():
+    return dict(username='demo_user', password='Classroom-Password-123')
 
 
 @pytest.fixture
 def company_data():
     return dict(companyName='Demo Studio', companyContact='+65 6123 4567',
-        companyAddress='10 Demo Road', companyEmail='studio@example.com', companyRegistrationNumber='DEMO-123')
+                companyAddress='10 Demo Road', companyEmail='studio@example.com',
+                companyRegistrationNumber='DEMO-123')
 
 
 @pytest.fixture
-def project_data(app):
-    from entity.categories.category import Category
+def company_profile(app, designer_account, company_data):
+    from entity.company.company_profile import CompanyProfile
+
     with app.app_context():
-        for category_id, name in [(1,'Scandinavian'),(2,'Japandi'),(999,'Contemporary')]:
-            db.session.add(Category(category_id=category_id, category_name=name, description=name+' interior design.'))
+        assert CompanyProfile().createCompanyProfile(designer_account, **company_data)
+    return designer_account
+
+
+@pytest.fixture
+def category_data():
+    return dict(categoryName='Japandi', description='Warm, natural interiors.')
+
+
+@pytest.fixture
+def category_id(app, category_data):
+    from entity.categories.category import Category
+
+    with app.app_context():
+        category = Category(category_name=category_data['categoryName'],
+                            description=category_data['description'])
+        db.session.add(category)
         db.session.commit()
-        if db.engine.dialect.name == 'postgresql':
-            db.session.execute(text("SELECT setval(pg_get_serial_sequence('category','category_id'),999,true)"))
-            db.session.commit()
-    return dict(projectName='Seaside Home', categoryId=1, propertyType='Apartment',
-        area='120 sqm', renovationCost=80000.5, description='A bright renovation project.')
+        return category.category_id
+
+
+@pytest.fixture
+def project_data(category_id):
+    return dict(projectName='Seaside Home', categoryId=category_id,
+                propertyType='Apartment', area='Bedok', renovationCost=80000.5,
+                description='A bright renovation project.')
+
+
+@pytest.fixture
+def new_project(app, designer_account, project_data):
+    from entity.projects.interior_design_project import InteriorDesignProject
+
+    with app.app_context():
+        project = InteriorDesignProject()
+        assert project.createNewProject(designer_account, **project_data)
+        return project.project_id
+
+
+@pytest.fixture
+def past_project(app, designer_account, project_data):
+    from entity.projects.interior_design_project import InteriorDesignProject
+
+    with app.app_context():
+        project = InteriorDesignProject()
+        assert project.createPastProject(designer_account,
+            **dict(project_data, projectName='Courtyard Retreat'))
+        return project.project_id
+
+
+@pytest.fixture
+def saved_project(app, customer_account, new_project):
+    from entity.shortlist.shortlist import Shortlist
+
+    with app.app_context():
+        assert Shortlist().saveShortlist(customer_account, new_project)
+    return new_project

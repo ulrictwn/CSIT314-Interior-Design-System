@@ -85,11 +85,11 @@ The reset-password command configures the selected account for a login demonstra
 .venv/bin/python scripts/run_profile_tests.py
 ```
 
-The historical script name is retained; it now discovers all feature tests under `tests/`. Shared fixtures live in `tests/conftest.py`, with profile, company, designer, and project test folders. Open `reports/test-results.html` to see each pass or failure. `reports/summary.md` lists individual test IDs, including TC01.1–TC01.4. TC08 and TC09 remain omitted, as requested. See [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) and [TEST_CASES.md](docs/TEST_CASES.md).
+Tests are organised into `tests/sprint_1/` through `tests/sprint_5/`, with one file per user story. Sprint 1 contains the Word document’s 22 checks (TC01–TC22); later sprints each have one test per story, for 65 tests total. The existing runner name is retained. Open `reports/test-results.html` for individual results or `reports/summary.md` for the sprint tables. See [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) and [TEST_CASES.md](docs/TEST_CASES.md).
 
-The workflow `.github/workflows/profile-ci.yml` runs a SQLite/PostgreSQL matrix on push and pull requests. Its run Summary shows every result. Download `profile-reports-SQLite` or `profile-reports-PostgreSQL` for the HTML reports. After successful CI on the repository's default branch, it publishes a tested source ZIP as an Actions artifact; it does not deploy the application.
+The workflow `.github/workflows/profile-ci.yml` runs a SQLite/PostgreSQL matrix on push and pull requests. Its run Summary shows every result. Download `sprint-reports-SQLite` or `sprint-reports-PostgreSQL` for the HTML reports. After successful CI on the repository's default branch, it publishes a tested source ZIP as an Actions artifact; it does not deploy the application.
 
-Verification covers Stories 1–48 on SQLite and PostgreSQL, with Chromium checks for desktop, tablet, mobile, and JavaScript-free login. See [the Sprint 4–5 notes](docs/SPRINTS_4_5_IMPLEMENTATION.md). This package has not been pushed, merged or deployed to your GitHub repository.
+The current sprint suite covers Stories 1–48 on SQLite and PostgreSQL. Earlier implementation verification also included Chromium checks for desktop, tablet, mobile, and JavaScript-free login. See [the Sprint 4–5 notes](docs/SPRINTS_4_5_IMPLEMENTATION.md). This package has not been pushed, merged or deployed to your GitHub repository.
 
 See [STORIES_1_12.md](docs/STORIES_1_12.md) for BCE mappings and [CHANGES_FROM_5.md](docs/CHANGES_FROM_5.md) for integration notes.
 

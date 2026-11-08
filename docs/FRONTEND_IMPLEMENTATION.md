@@ -25,7 +25,7 @@ The company, designer, and projects folders retain the previous BCE structure. T
 | Shared role-switching login | `templates/auth/login.html`, `static/css/login.css`, `static/js/login.js` |
 | Designer styling | `static/css/designer.css` (alongside existing `app.css`) |
 | HTML/JSON presentation | `boundary/designer/presentation.py` |
-| HTML integration tests | `tests/designer/test_designer_html.py` |
+| Current company/designer/project story tests | `tests/sprint_2/` (13–17), `tests/sprint_3/` (18–29); see [the test guide](TESTING_GUIDE.md) |
 
 ## Generated interior image
 

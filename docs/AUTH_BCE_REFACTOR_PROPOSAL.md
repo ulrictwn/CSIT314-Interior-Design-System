@@ -19,4 +19,4 @@ Login/logout remain demonstrable while the rest of the website can be used witho
 
 Admin-created accounts remain password-free. The trusted bootstrap/reset commands can configure a password for demonstrating login. Existing password hashes and stored profile/account records are preserved; the basic Flask session still uses the configured SECRET_KEY. Old authentication tables are not dropped, and the unused auth_version column is retained for existing database compatibility.
 
-See [the complete BCE map](STORIES_1_12.md) and [the implemented demo scope](BCE_DEMO_SIMPLIFICATION.md). Run `.venv/bin/python -m pytest tests/profiles -q` to verify input validation, duplicates, saved-data rules, numeric IDs, and basic login/logout.
+See [the complete BCE map](STORIES_1_12.md) and [the implemented demo scope](BCE_DEMO_SIMPLIFICATION.md). Run `.venv/bin/python -m pytest tests/sprint_1 tests/sprint_2 -q` for the current profile/account tests and basic User Admin login/logout. See [the test guide](TESTING_GUIDE.md) for the simplified scope.

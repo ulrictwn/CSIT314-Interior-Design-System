@@ -1,55 +1,60 @@
-# Run and visually inspect the tests
+# Sprint tests
 
-## In Codespaces
+The test suite follows `Nothinghere/CSIT314 Group Project Report (4).docx`:
 
-From the folder containing app.py:
+| Folder | User stories | Tests |
+| --- | --- | ---: |
+| `tests/sprint_1/` | 1–5 | 22: the document's TC01–TC22 checks |
+| `tests/sprint_2/` | 6–17 | 12: one per story |
+| `tests/sprint_3/` | 18–29 | 12: one per story |
+| `tests/sprint_4/` | 30–38 | 9: one per story |
+| `tests/sprint_5/` | 39–48 | 10: one per story |
+| Total | 1–48 | 65 |
+
+Each story has its own `test_story_XX_*.py` file. Shared database and sample-data fixtures are in `tests/conftest.py`. Sprint 1 has a small form-reading fixture; Sprint 5 has known report activity. Tests create their own prerequisites and can run independently.
+
+## Run locally
+
+From the folder containing `app.py`:
 
 ```bash
 .venv/bin/python -m pip install -r requirements-dev.txt
 .venv/bin/python scripts/run_profile_tests.py
 ```
 
-Every executed test prints a PASSED/FAILED/ERROR status. The runner covers Stories 1–29; its historical filename is retained. TC01.1–TC01.4 remain separate visible sub-checks. TC08 and TC09 are omitted.
+The existing runner name is retained. It runs all five sprint folders and generates fresh reports:
 
-The runner replaces stale reports at the start. Open `reports/summary.md` with **Open Preview** to see the result table. For interactive filters, download `reports/test-results.html` and open it in your browser. It is self-contained. Alternatively serve the report folder:
+- `reports/summary.md`: results grouped by sprint and story, with TC01–TC22 for Sprint 1 and US06–US48 for later stories.
+- `reports/test-results.html`: a self-contained report with status filters and assertion details.
+- `reports/tests.xml`: JUnit results for CI.
+- `reports/coverage/index.html`: executed code lines, separate from test success.
 
-```bash
-.venv/bin/python -m http.server 8000 --bind 0.0.0.0 --directory reports
-```
-
-Open forwarded port **8000** and select `test-results.html`. Stop the server with Ctrl+C when finished. `coverage/index.html` shows which code lines ran; it is not a list of test passes.
-
-To run only one story, use its pytest marker, for example:
+To run a sprint or story without generating reports:
 
 ```bash
+.venv/bin/python -m pytest tests/sprint_1 -vv
+.venv/bin/python -m pytest tests -m sprint3 -vv
 .venv/bin/python -m pytest tests -m story6 -vv
 ```
 
-Run the report command again afterward if you want a fresh complete report. A successful subset run does not update the earlier complete HTML report.
+After a subset run, run the complete report command again to refresh the report files. See [the case map](TEST_CASES.md) for exactly what each test checks.
 
-## In GitHub
+## GitHub Actions
 
-1. Merge the package files into your working branch, commit, and push that branch. Keep `.env` and database data out of Git.
-2. Open the repository's **Actions** tab and select **BCE Stories 1-29 CI and Delivery**.
-3. Select the run for your commit. The **Summary** contains SQLite and PostgreSQL tables with one row per executed test, its ID, area and outcome.
-4. Select **BCE story tests (SQLite)** or **BCE story tests (PostgreSQL)**, then **Run stories 1-29 tests** to inspect verbose assertion output.
-5. Under the run's **Artifacts**, download `profile-reports-SQLite` or `profile-reports-PostgreSQL`. Extract and open `test-results.html`. Use the status filters to inspect passing or failing cases.
+The **BCE Sprint 1-5 CI and Delivery** workflow runs the same suite on SQLite and PostgreSQL. Each job's Summary contains results grouped by sprint. Download `sprint-reports-SQLite` or `sprint-reports-PostgreSQL` and open `test-results.html` to inspect individual assertions. Missing results, setup errors, failed tests, and skipped tests are reported separately.
 
-A green job means the job succeeded; individual rows provide evidence for each test. Dependency or setup failures can prevent test results from being produced. The summary explicitly reports missing results rather than claiming a pass. Actual results exist only after the workflow runs on your repository.
-
-After both database jobs succeed on the default branch, **Deliver tested source package** uploads `nestora-user-admin-tested-source`. It packages tracked application files, tests and docs. It does not deploy a running website.
+After both database jobs succeed on the default branch, the existing delivery job packages tracked application files, tests, and documentation. It does not deploy the website.
 
 ## Test database isolation
 
-Local tests use a new temporary SQLite database for each test. They do not read your app's database settings. The PostgreSQL CI service uses only the disposable `nestora_test` database, with an isolated schema per test that is removed afterward. The fixture refuses other database names. Never point TEST_DATABASE_URL at your application database.
+Every test uses a fresh temporary SQLite database by default. The fixture sets safe test settings before importing the application; it does not use the application's database credentials.
 
-If you intentionally run against your own disposable test PostgreSQL service, create `nestora_test` first and set TEST_DATABASE_URL to its postgresql+psycopg URL using private credentials in your local environment. Otherwise leave TEST_DATABASE_URL unset for local SQLite tests.
+For PostgreSQL, `TEST_DATABASE_URL` must point to a dedicated database named `nestora_test` using `postgresql+psycopg`. Each test gets a unique `sprint_test_*` schema, which is removed afterward. The fixture refuses other database names. Leave `TEST_DATABASE_URL` unset for normal local SQLite tests.
 
-## Common problems
+## Scope
 
-- ModuleNotFoundError: use `.venv/bin/python` for both installation and execution, then reinstall from `requirements-dev.txt`.
-- Missing app `.env`: restore your Codespace configuration; the tests have their own settings and do not create your application database.
-- Demo story pages do not require login or CSRF tokens. Input errors should display field messages; duplicate and saved-data errors come from the entity.
-- A failure after editing shared fixtures: account tests depend on the updated `tests/conftest.py`. Review the source and assertion output rather than deleting a failing test solely to make CI green.
+Sprint 1 preserves every check listed in the updated document, including TC08 and TC09. Story 3's ID heading says TC12–TC18, but its actual Checks list defines TC12–TC16; TC17–TC18 belong to Story 4. The executable tests follow those explicit Checks lists. T04–T07 are consistently named TC04–TC07 in code.
 
-For company/designer/project coverage, run `.venv/bin/python -m pytest tests/company tests/designer tests/projects -q`. These tests use the JSON boundaries because designer HTML has not been supplied.
+Sprints 2–5 each have one successful workflow test per story. Requests exercise the real boundary, controller, and entity, with checks of displayed results or stored changes. Later-story JSON requests use the same BCE handlers as the HTML forms. Logout tests begin with an existing browser login, and report tests use known activity and dates.
+
+The broader migration, security, duplicate edge-case, browser-layout, and method-contract suites were removed from the runnable tests as requested. The earlier diagram transcription remains as a reference in `docs/bce_contracts.json`. This smaller suite covers the requested sprint scenarios; it is not the previous exhaustive regression suite.

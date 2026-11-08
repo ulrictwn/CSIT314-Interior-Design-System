@@ -1,4 +1,4 @@
-"""One local/CI command for verbose tests, coverage, JUnit and visual reports."""
+"""Run the five sprint folders and generate coverage, JUnit and HTML reports."""
 import os
 from pathlib import Path
 import subprocess

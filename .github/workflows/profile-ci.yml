@@ -1,4 +1,4 @@
-name: BCE Stories 1-48 CI and Delivery
+name: BCE Sprint 1-5 CI and Delivery
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   profile-tests:
-    name: BCE story tests (${{ matrix.database }})
+    name: Sprint tests (${{ matrix.database }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -55,7 +55,7 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Check installed dependencies
         run: python -m pip check
-      - name: Run stories 1-48 tests
+      - name: Run sprint 1-5 tests
         id: tests
         run: python scripts/run_profile_tests.py
       - name: Show every test result in the run summary
@@ -68,7 +68,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: profile-reports-${{ matrix.database }}
+          name: sprint-reports-${{ matrix.database }}
           path: reports/
           if-no-files-found: error
           retention-days: 14

@@ -1,4 +1,4 @@
-"""Render actual JUnit results as a per-case GitHub summary; never invent passes."""
+"""Render actual JUnit results by sprint and story; never invent passes."""
 import argparse
 from collections import Counter
 import os
@@ -12,39 +12,54 @@ def cell(value):
 
 
 def render(xml_path, label, run_result):
+    title = f'## Sprint 1–5 tests — {cell(label)}\n\n'
     if not xml_path.is_file():
-        return f'## BCE story tests — {cell(label)}\n\n**No test results were produced.** Check dependency installation and the Run stories 1-48 tests log. This is not a passing run.\n', False
+        return title + '**No test results were produced.** Check dependency installation and the Run sprint 1-5 tests log. This is not a passing run.\n', False
     try:
         root = ET.parse(xml_path).getroot()
     except ET.ParseError:
-        return f'## BCE story tests — {cell(label)}\n\n**The test results XML is invalid.** Check the test log.\n', False
+        return title + '**The test results XML is invalid.** Check the test log.\n', False
     rows = []
     for case in root.iter('testcase'):
         name = case.get('name', 'Unnamed test')
-        identifiers = re.findall(r'TC\d+(?:\.\d+)*', name)
-        # A name may contain parent TC01 followed by parameter [TC01.4].
-        # Prefer the most specific ID so the summary keeps the sub-check.
-        case_id = max(identifiers, key=lambda item: item.count('.')) if identifiers else 'Collection/setup'
         classname = case.get('classname', '')
-        story_match = re.search(r'test_story_(\d+)_', classname)
-        group = f'Story {story_match.group(1)}' if story_match else 'BCE & database'
-        state = 'ERROR' if case.find('error') is not None else 'FAILED' if case.find('failure') is not None else 'SKIPPED' if case.find('skipped') is not None else 'PASSED'
-        icon = {'PASSED': '✅', 'FAILED': '❌', 'ERROR': '❌', 'SKIPPED': '⏭️'}[state]
-        rows.append((group, case_id, name, icon + ' ' + state, case.get('time', '0'), state))
-    rows.sort(key=lambda r: (tuple(map(int, re.findall(r'\d+', r[1]))) or (9999,), r[2]))
-    totals = Counter(r[5] for r in rows)
-    status = '**Test command succeeded.**' if run_result == 'success' and rows and not (totals['FAILED'] or totals['ERROR']) else f'**Test command did not succeed ({cell(run_result)}).** Check the job log, even if some individual cases passed.'
-    lines = [f'## BCE story tests — {cell(label)}', '', status, '',
-        f"{len(rows)} results · {totals['PASSED']} passed · {totals['FAILED']} failed · {totals['ERROR']} errors · {totals['SKIPPED']} skipped", '',
-        '| Area | Passed | Failed / error | Skipped |', '| --- | ---: | ---: | ---: |']
-    for group in [f'Story {number}' for number in range(1, 13)] + ['Security & database']:
-        counts = Counter(r[5] for r in rows if r[0] == group)
-        lines.append(f"| {group} | {counts['PASSED']} | {counts['FAILED'] + counts['ERROR']} | {counts['SKIPPED']} |")
-    lines += ['', '### Every test result', '', '| ID | Area | Test case | Result | Seconds |', '| --- | --- | --- | --- | ---: |']
-    for group, case_id, name, state, seconds, _ in rows:
-        lines.append('| ' + ' | '.join(map(cell, [case_id, group, name, state, seconds])) + ' |')
-    lines += ['', 'Download the job’s report artifact and open `test-results.html` for filters and assertion details, or `coverage/index.html` for executed code lines.', '',
-              'Parameterized tests have one row per input. Skipped tests are not passes. Coverage is a separate measurement from test success.', '']
+        sprint_match = re.search(r'sprint_(\d+)', classname + ' ' + name)
+        story_match = re.search(r'test_story_(\d+)_', classname + ' ' + name)
+        sprint = int(sprint_match.group(1)) if sprint_match else 0
+        story = int(story_match.group(1)) if story_match else 0
+        identifier = re.search(r'TC\d+', name)
+        case_id = identifier.group() if identifier else f'US{story:02}' if story else 'Collection/setup'
+        state = ('ERROR' if case.find('error') is not None else
+                 'FAILED' if case.find('failure') is not None else
+                 'SKIPPED' if case.find('skipped') is not None else 'PASSED')
+        rows.append(dict(sprint=sprint, story=story, case_id=case_id, name=name,
+                         state=state, seconds=case.get('time', '0')))
+    rows.sort(key=lambda row: (row['sprint'], row['story'], row['case_id'], row['name']))
+    totals = Counter(row['state'] for row in rows)
+    succeeded = run_result == 'success' and rows and not (totals['FAILED'] or totals['ERROR'])
+    status = ('**Test command succeeded.**' if succeeded else
+              f'**Test command did not succeed ({cell(run_result)}).** Check the job log, even if some cases passed.')
+    lines = [title.rstrip(), '', status, '',
+             f"{len(rows)} results · {totals['PASSED']} passed · {totals['FAILED']} failed · {totals['ERROR']} errors · {totals['SKIPPED']} skipped", '',
+             '| Sprint | Stories | Passed | Failed / error | Skipped |',
+             '| --- | --- | ---: | ---: | ---: |']
+    for sprint, stories in [(1, '1–5'), (2, '6–17'), (3, '18–29'), (4, '30–38'), (5, '39–48')]:
+        counts = Counter(row['state'] for row in rows if row['sprint'] == sprint)
+        lines.append(f"| Sprint {sprint} | {stories} | {counts['PASSED']} | {counts['FAILED'] + counts['ERROR']} | {counts['SKIPPED']} |")
+    if any(row['sprint'] == 0 for row in rows):
+        counts = Counter(row['state'] for row in rows if row['sprint'] == 0)
+        lines.append(f"| Collection/setup | — | {counts['PASSED']} | {counts['FAILED'] + counts['ERROR']} | {counts['SKIPPED']} |")
+    lines += ['', '### Every test result', '',
+              '| ID | Sprint | Story | Test case | Result | Seconds |',
+              '| --- | --- | --- | --- | --- | ---: |']
+    icons = {'PASSED': '✅', 'FAILED': '❌', 'ERROR': '❌', 'SKIPPED': '⏭️'}
+    for row in rows:
+        values = [row['case_id'], f"Sprint {row['sprint']}" if row['sprint'] else 'Setup',
+                  str(row['story']) if row['story'] else '—', row['name'],
+                  icons[row['state']] + ' ' + row['state'], row['seconds']]
+        lines.append('| ' + ' | '.join(map(cell, values)) + ' |')
+    lines += ['', 'Sprint 1 uses the Word document’s TC01–TC22 checks. Sprints 2–5 have one test per story (US06–US48).', '',
+              'Open `test-results.html` for filters and assertion details, or `coverage/index.html` for executed code lines. Skipped tests are not passes. Coverage is separate from test success.', '']
     return '\n'.join(lines), bool(rows)
 
 

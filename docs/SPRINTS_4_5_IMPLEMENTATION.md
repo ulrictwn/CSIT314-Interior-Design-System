@@ -107,13 +107,13 @@ A PostgreSQL custom-format backup is created under the gitignored `backups/` fol
 
 ## Validation
 
-The regression suite includes the existing 404 cases and 80 Sprint 4–5 cases: diagram signatures, boundaries before controller calls, category/shortlist duplicates, owner scoping, cascade behavior, view counters, all login roles, date limits, Singapore day boundaries, report snapshots, CSV, and repeatable legacy upgrades.
+The current simplified suite has one test per story: Stories 30–38 in `tests/sprint_4/` and Stories 39–48 in `tests/sprint_5/`. It covers project discovery, saved projects, login/logout, interest counts, categories, and report generation. See [the current test guide](TESTING_GUIDE.md).
 
 ```bash
 .venv/bin/python -m pytest tests -q
 ```
 
-The existing CI command `python scripts/run_profile_tests.py` discovers all feature folders. Chromium also exercises Staff/Customer switching, every staff role, JavaScript-free login, customer discovery/save/remove, category create/update/delete/Cancel, designer project category selection, interest counts, all three report downloads, and desktop/tablet/mobile layouts.
+The existing CI command `python scripts/run_profile_tests.py` discovers all sprint folders. Earlier implementation verification with Chromium exercised Staff/Customer switching, every staff role, JavaScript-free login, customer discovery/save/remove, category create/update/delete/Cancel, designer project category selection, interest counts, all three report downloads, and desktop/tablet/mobile layouts.
 
 ## Applied development upgrade
 
@@ -121,7 +121,7 @@ The PostgreSQL development upgrade was applied successfully on 5 November 2026 (
 
 The original table fingerprints are identical after the upgrade: 4 profiles, 1 account, 1 account-counter row, 3 legacy session rows, and the empty legacy login-attempt table. The six company/project/category/shortlist/activity/report feature tables are ready. No sample accounts or projects were inserted. Thirteen HTML GET routes were checked against the development database after upgrading.
 
-All 484 tests passed on PostgreSQL using the dedicated `nestora_test` database and unique temporary schemas. The working database was not used for test data.
+Before the requested test simplification, all 484 tests passed on PostgreSQL using the dedicated `nestora_test` database and unique temporary schemas. The working database was not used for test data.
 
 The previously deleted `boundary/profile/create_user_profile_page.py` was restored from its committed contents because `boundary/routes.py` still imports it; the existing profile flow passes its regression tests.
 

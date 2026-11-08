@@ -1,0 +1,17 @@
+"""Sprint 2, user story 16: one successful workflow through BCE."""
+import pytest
+from entity.company.company_profile import CompanyProfile
+
+pytestmark = [pytest.mark.sprint2, pytest.mark.story16]
+
+
+def test_update_company_profile_loads_and_saves_company_details(app, client, company_profile, company_data):
+    page = client.get('/designer/company/update', query_string={'accountId': company_profile})
+    assert page.status_code == 200
+    assert page.json['values']['companyName'] == company_data['companyName']
+    values = dict(company_data, companyName='Updated Studio', companyEmail='updated@example.com')
+    response = client.post('/designer/company/update', json=dict(accountId=company_profile, **values))
+    assert response.status_code == 200
+    with app.app_context():
+        profile = CompanyProfile.getCompanyProfile(company_profile)
+        assert (profile.company_name, profile.company_email) == ('Updated Studio', 'updated@example.com')

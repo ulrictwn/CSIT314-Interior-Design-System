@@ -16,8 +16,8 @@ This is a combined source package, not a patch to apply blindly to a teammate's 
 - Profile update guards the final administrator's role/name/permissions; profile suspension still protects all assigned accounts.
 - The database upgrade preserves the earlier profile schema and creates the new tables. An unrelated or incomplete pre-existing `user_account` table requires a reviewed migration; the command stops with a message.
 - The requirements add email validation. Install from `requirements-dev.txt` for application plus testing libraries.
-- Existing test fixtures now support account tables and real authentication while keeping the original TC01 sub-checks. TC08 and TC09 are absent. Copy the updated fixtures together with the new tests; the new test files depend on them.
-- The existing `profile-ci.yml` workflow and historical test/report script filenames now cover twelve stories. Replace that workflow rather than keeping a second duplicate copy. Test-result artifacts retain their familiar `profile-reports-*` names.
+- Current tests now live in `tests/sprint_1/` through `tests/sprint_5/`, using shared fixtures in `tests/conftest.py`. All 22 documented Sprint 1 checks, including TC08 and TC09, are present; later stories have one test each. See [the current test guide](TESTING_GUIDE.md).
+- The existing `profile-ci.yml` workflow and historical test/report script filenames now cover all five sprints. Test-result artifacts use `sprint-reports-*` names.
 
 ## Keep your own local configuration
 

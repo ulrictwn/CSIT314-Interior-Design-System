@@ -12,7 +12,7 @@ Stop Flask with Ctrl+C. Review any local/team edits, then copy these application
 - `infrastructure/auth.py` and `infrastructure/commands.py`.
 - `templates/accounts/form.html` and `templates/accounts/suspend.html`.
 
-Copy the updated `tests/profiles/` files together too; their account imports use the new packages, and `test_accounts_bce.py` covers the separation and validation contracts. The historical test-folder name is retained.
+Account tests now live in `tests/sprint_2/`, one file per story (6–12), and use shared fixtures in `tests/conftest.py`. Apply these together. See [the current test guide](TESTING_GUIDE.md) for the simplified scope.
 
 No new library or database-schema change is needed for this update to the existing twelve-story app. Preserve `.env`, the database, `.venv` and the working devcontainer configuration. Existing passwords, profile/account records and numeric ID counters continue to work. This source package has not changed your GitHub repository automatically.
 

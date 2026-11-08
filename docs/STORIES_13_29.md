@@ -114,7 +114,7 @@ Run the existing additive setup command against the intended development databas
 
 It registers/creates the `company_profile` and `interior_design_project` tables. Existing profile/account columns, account IDs, and password hashes are preserved; no database reset is required. This implementation was verified against disposable test databases rather than resetting the application's database.
 
-Tests are grouped into `tests/company/`, `tests/designer/`, `tests/projects/`, and the existing `tests/profiles/`, with shared fixtures in `tests/conftest.py`. All seventeen diagram class/event/operation signatures are checked, alongside validation before controller calls, duplicate rollback, owner/type separation, prefill, deletion confirmation, login/logout, category deferral, and additive database setup.
+Current tests follow the Word document’s sprint grouping: company Stories 13–17 are in `tests/sprint_2/`, and designer/project Stories 18–29 are in `tests/sprint_3/`. Each has one successful workflow test, with shared fixtures in `tests/conftest.py`. The earlier broad signature, edge-case, and migration suites were removed during the requested simplification. See [the test guide](TESTING_GUIDE.md).
 
 ```bash
 .venv/bin/python -m pytest tests -q

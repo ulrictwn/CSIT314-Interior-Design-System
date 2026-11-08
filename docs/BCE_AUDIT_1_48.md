@@ -1,6 +1,6 @@
 # BCE audit — User Stories 1–48
 
-Source: `Nothinghere/CSIT314 Group Project Report (4).docx`. All 48 embedded BCE diagrams were inspected in story order. The executable transcription is `tests/contracts/bce_contracts.json`; the contract tests check class names, every diagram method, parameter names/order/types, return types, and void event/display signatures.
+Source: `Nothinghere/CSIT314 Group Project Report (4).docx`. All 48 embedded BCE diagrams were inspected in story order. The retained diagram transcription is `docs/bce_contracts.json`; the earlier contract tests checked class names, every diagram method, parameter names/order/types, return types, and void event/display signatures.
 
 ## Layer responsibilities
 
@@ -88,7 +88,7 @@ Profile status already uses a string column; no account/profile data conversion 
 - Static layer checks reject database imports in boundaries/controllers and HTTP/input-layer imports in entities.
 - Full regression and database verification results are recorded below.
 
-## Completed verification
+## Completed verification (before sprint test simplification)
 
 - **547 tests passed on SQLite.**
 - **547 tests passed on PostgreSQL**, using the dedicated test database and isolated schemas.
@@ -100,3 +100,7 @@ Profile status already uses a string column; no account/profile data conversion 
 Backup: `backups/before-bce-audit-20261107T163947Z.dump` (gitignored PostgreSQL custom-format archive, verified using `pg_restore --list`).
 
 Restart the running Flask process to load the renamed Python modules. The web URLs remain the same, including `/login`, `/staff/login`, and `/manager/reports/daily`, `/weekly`, and `/monthly`.
+
+## Current test organisation
+
+The earlier 547-test audit results above are historical evidence. The requested simplified suite now lives in `tests/sprint_1/` through `tests/sprint_5/`: 22 documented Sprint 1 checks and one test per later story (65 total). The broad contract and regression suites were removed; the manifest remains here as a diagram reference. See [the current test guide](TESTING_GUIDE.md).
