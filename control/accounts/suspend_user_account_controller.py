@@ -5,8 +5,5 @@ class SuspendUserAccountController:
     def __init__(self):
         self.entity = UserAccount()
 
-    def getUserAccount(self, accountId: str) -> UserAccount | None:
-        return UserAccount.getUserAccount(accountId)
-
     def suspendUserAccount(self, accountId: str) -> bool:
         return self.entity.suspendUserAccount(accountId)

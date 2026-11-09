@@ -1,3 +1,4 @@
+from control.projects.view_past_project_controller import ViewPastProjectController
 from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
@@ -9,7 +10,7 @@ from control.projects.delete_past_project_controller import DeletePastProjectCon
 class DeletePastProjectPage(MethodView):
     def get(self, project_id):
         projectId = strip_input(project_id)
-        project = DeletePastProjectController().getPastProject(projectId)
+        project = ViewPastProjectController().getPastProject(projectId)
         if project is None:
             return error_response('Past project not found.', status=404)
         return present(dict(ok=True, confirmationRequired=True, project=project_values(project)))

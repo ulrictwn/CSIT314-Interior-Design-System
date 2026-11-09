@@ -1,3 +1,4 @@
+from control.company.view_company_profile_controller import ViewCompanyProfileController
 from flask.views import MethodView
 from boundary.designer.presentation import present
 from boundary.company.presentation import company_values
@@ -7,12 +8,9 @@ from control.company.delete_company_profile_controller import DeleteCompanyProfi
 
 
 class DeleteCompanyProfilePage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
-        accountId = account_id(self.accountId)
-        profile = DeleteCompanyProfileController().getCompanyProfile(accountId)
+        accountId = account_id()
+        profile = ViewCompanyProfileController().getCompanyProfile(accountId)
         if profile is None:
             return error_response('Company profile not found.', status=404)
         return present(dict(ok=True, confirmationRequired=True, profile=company_values(profile)))
@@ -22,7 +20,7 @@ class DeleteCompanyProfilePage(MethodView):
         return self.rendered_page
 
     def onDelete(self) -> None:
-        accountId = account_id(self.accountId)
+        accountId = account_id()
         controller = DeleteCompanyProfileController()
         if controller.deleteCompanyProfile(accountId):
             self.displaySuccess()

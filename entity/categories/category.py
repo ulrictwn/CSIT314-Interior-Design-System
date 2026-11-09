@@ -1,5 +1,5 @@
 from entity.categories.validation import validate_category_fields
-from entity.validation import positive_integer, search_text
+from entity.validation import positive_integer, search_text, required_text
 from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError
 from infrastructure.database import db
@@ -23,6 +23,7 @@ class Category(db.Model):
 
     @classmethod
     def categoryExists(cls, categoryName: str) -> bool:
+        categoryName = required_text(categoryName, 'Category name', 100)
         return db.session.scalar(db.select(cls.category_id).where(
             db.func.lower(cls.category_name) == categoryName.lower()).limit(1)) is not None
 

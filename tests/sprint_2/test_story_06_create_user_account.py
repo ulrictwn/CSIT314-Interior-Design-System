@@ -5,13 +5,13 @@ from entity.accounts.user_account import UserAccount
 pytestmark = [pytest.mark.sprint2, pytest.mark.story6]
 
 
-def test_create_user_account_saves_details_without_password(app, admin_client, seed_profile):
+def test_create_user_account_saves_details_and_default_password(app, admin_client, seed_profile):
     profile_id = seed_profile('Customer')
     values = dict(username='customer1', full_name='Customer One', email='customer1@example.com',
                   phone_number='+65 6123 4567', profile_id=profile_id)
     with app.app_context():
         invalid = UserAccount()
-        assert invalid.createUserAccount('bad_email', 'Bad Email', 'invalid', '+65 6123 4567', profile_id) is False
+        assert invalid.createUserAccount('bad_email', 'password', 'Bad Email', 'invalid', '+65 6123 4567', profile_id) is False
         assert 'email' in invalid.field_errors
     assert admin_client.post('/accounts/create', data=dict(values, email='invalid')).status_code == 400
     response = admin_client.post('/accounts/create', data=values)
@@ -21,4 +21,16 @@ def test_create_user_account_saves_details_without_password(app, admin_client, s
         assert (account.full_name, account.email, account.phone_number, account.profile_id) == (
             values['full_name'], values['email'], values['phone_number'], profile_id)
         assert account.account_id and account.status == 'Active'
-        assert not account.has_password
+        assert account.has_password
+        assert account.password_hash != 'password'
+        assert account.check_password('password')
+        assert not account.check_password('incorrect-password')
+    login = app.test_client().post('/customer/login', json=dict(username='customer1', password='password'))
+    assert login.status_code == 302
+    assert login.location == '/customer'
+    duplicate_username = admin_client.post('/accounts/create', data=dict(values, username='CUSTOMER1', email='different@example.com'))
+    assert duplicate_username.status_code == 400
+    duplicate_email = admin_client.post('/accounts/create', data=dict(values, username='customer2', email='CUSTOMER1@EXAMPLE.COM'))
+    assert duplicate_email.status_code == 400
+    with app.app_context():
+        assert UserAccount.getByUsername('customer2') is None

@@ -60,11 +60,6 @@ class Report(db.Model):
         db.session.commit()
         return report
 
-    @staticmethod
-    def periodEndDate(reportType: str, startDate: date) -> date:
-        """Derive the stored reporting period in the entity layer."""
-        return startDate + timedelta(days=6) if reportType == 'weekly' else startDate
-
     @classmethod
     def getReport(cls, reportId):
         reportId = positive_integer(reportId, 'Report ID')

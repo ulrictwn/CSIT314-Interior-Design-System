@@ -1,5 +1,5 @@
 from entity.validation import (validate_account_fields, validate_account_details,
-    validate_login_credentials, valid_account_id, search_text, password_value)
+    validate_login_credentials, valid_account_id, search_text, password_value, required_text, positive_integer)
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import generate_password_hash, check_password_hash
 from infrastructure.database import db
@@ -7,6 +7,7 @@ from infrastructure.errors import DomainError
 from infrastructure.time import utcnow
 
 _UNSET_PASSWORD_HASH = '!'
+_DEFAULT_ACCOUNT_PASSWORD = 'password'
 _GLOBAL_ACCOUNT_COUNTER = '*'
 
 
@@ -41,10 +42,6 @@ class UserAccount(db.Model):
         return self.status == 'Active' and self.profile.status == 'Active'
 
     @property
-    def is_admin(self):
-        return self.profile.name.casefold() == 'user admin'
-
-    @property
     def has_password(self):
         return bool(self.password_hash and self.password_hash != _UNSET_PASSWORD_HASH)
 
@@ -56,6 +53,7 @@ class UserAccount(db.Model):
 
     @classmethod
     def userAccountExists(cls, username: str) -> bool:
+        username = required_text(username, 'Username', 80)
         return db.session.execute(db.select(cls.account_id).where(
             db.func.lower(cls.username) == username.lower()).limit(1)).first() is not None
 
@@ -90,6 +88,7 @@ class UserAccount(db.Model):
         The counter is locked until the account creation transaction commits.
         Existing accounts keep their IDs; legacy per-role counters are ignored.
         """
+        profileId = positive_integer(profileId, 'Profile ID')
         from entity.profile.user_profile import UserProfile
         profile = db.session.execute(db.select(UserProfile).where(
             UserProfile.profile_id == profileId).with_for_update()).scalar_one_or_none()
@@ -119,15 +118,15 @@ class UserAccount(db.Model):
             if db.session.get(cls, account_id) is None:
                 return account_id
 
-    def createUserAccount(self, username: str, fullName: str, email: str,
-                          phoneNumber: str, profileId: int, *, password=None) -> bool:
-        """Validate and save account data; trusted setup can supply a password."""
+    def createUserAccount(self, username: str, password: str, fullName: str, email: str,
+                          phoneNumber: str, profileId: int) -> bool:
+        """Create an account with the default password unless trusted setup supplies one."""
         values, errors = validate_account_fields(username, fullName, email, phoneNumber, profileId)
         if errors:
             return self._reject('Please correct the errors below.', errors)
         username, fullName, email = values['username'], values['full_name'], values['email']
         phoneNumber, profileId = values['phone_number'], values['profile_id']
-        if password is not None:
+        if password != _DEFAULT_ACCOUNT_PASSWORD:
             try:
                 password_value(password)
             except DomainError as error:
@@ -146,8 +145,9 @@ class UserAccount(db.Model):
             self.username, self.full_name = username, fullName
             self.email, self.phone_number = email, phoneNumber
             self.profile_id, self.status = profileId, 'Active'
-            self.password_hash = _UNSET_PASSWORD_HASH
-            if password is not None:
+            if password == _DEFAULT_ACCOUNT_PASSWORD:
+                self.password_hash = generate_password_hash(_DEFAULT_ACCOUNT_PASSWORD)
+            else:
                 self.set_password(password)
             db.session.add(self)
             db.session.commit()

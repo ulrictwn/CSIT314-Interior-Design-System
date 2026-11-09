@@ -1,3 +1,4 @@
+from control.projects.view_past_project_controller import ViewPastProjectController
 from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
@@ -10,7 +11,7 @@ from control.projects.update_past_project_controller import UpdatePastProjectCon
 class UpdatePastProjectPage(MethodView):
     def get(self, project_id):
         projectId = strip_input(project_id)
-        project = UpdatePastProjectController().getPastProject(projectId)
+        project = ViewPastProjectController().getPastProject(projectId)
         if project is None:
             return error_response('Past project not found.', status=404)
         return present(dict(ok=True, fields=PROJECT_FIELDS, project=project_values(project), values=project_values(project)))
@@ -26,7 +27,7 @@ class UpdatePastProjectPage(MethodView):
             [projectName, categoryId, propertyType, area, renovationCost, description])}
         controller = UpdatePastProjectController()
         if controller.updatePastProject(projectId, **self.values):
-            self.values = project_values(controller.getPastProject(projectId))
+            self.values = project_values(ViewPastProjectController().getPastProject(projectId))
             self.displaySuccess()
         else:
             self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors

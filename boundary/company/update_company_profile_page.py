@@ -1,3 +1,4 @@
+from control.company.view_company_profile_controller import ViewCompanyProfileController
 from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
@@ -8,12 +9,9 @@ from control.company.update_company_profile_controller import UpdateCompanyProfi
 
 
 class UpdateCompanyProfilePage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
-        accountId = account_id(self.accountId)
-        profile = UpdateCompanyProfileController().getCompanyProfile(accountId)
+        accountId = account_id()
+        profile = ViewCompanyProfileController().getCompanyProfile(accountId)
         if profile is None:
             return error_response('Company profile not found.', status=404)
         return present(dict(ok=True, fields=COMPANY_FIELDS, profile=company_values(profile), values=company_values(profile)))
@@ -29,7 +27,7 @@ class UpdateCompanyProfilePage(MethodView):
             [companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber])}
         controller = UpdateCompanyProfileController()
         if controller.updateCompanyProfile(account_id(), **self.values):
-            self.values = company_values(controller.getCompanyProfile(account_id()))
+            self.values = company_values(ViewCompanyProfileController().getCompanyProfile(account_id()))
             self.displaySuccess()
         else:
             self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors

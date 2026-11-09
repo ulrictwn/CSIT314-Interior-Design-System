@@ -13,7 +13,7 @@ The prefix comes from the stored `user_profile.profile_id`, so it works with ren
 
 ## Apply to the working twelve-story app
 
-The ID-generation change is in `entity/accounts/user_account.py`. The latest package also includes the later request for password-free account creation, which changes the method signature across boundary/control/entity and the trusted bootstrap caller. Apply the matching files listed in [CREATE_ACCOUNT_UPDATE.md](CREATE_ACCOUNT_UPDATE.md) together when upgrading from the earlier package. No new library is required.
+The ID-generation change is in `entity/accounts/user_account.py`. The latest package also includes the later request for account creation without password entry (now using the hashed default password `password`), which changes the method signature across boundary/control/entity and the trusted bootstrap caller. Apply the matching files listed in [CREATE_ACCOUNT_UPDATE.md](CREATE_ACCOUNT_UPDATE.md) together when upgrading from the earlier package. No new library is required.
 
 The current basic account-creation test is `tests/sprint_2/test_story_06_create_user_account.py`, with view/update/suspend/search tests in the same sprint folder. The earlier dedicated counter edge-case suite was removed during the requested simplification. Shared fixtures remain in `tests/conftest.py`; see [the test guide](TESTING_GUIDE.md).
 

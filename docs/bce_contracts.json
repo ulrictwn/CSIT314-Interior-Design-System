@@ -1,5 +1,5 @@
 {
-  "source": "Nothinghere/CSIT314 Group Project Report (4).docx",
+  "source": "Nothinghere/CSIT314 Group Project Report (5).docx",
   "stories": [
     {
       "story": 1,
@@ -179,6 +179,10 @@
           "displaySuccess": {
             "parameters": {},
             "returns": "void"
+          },
+          "displayError": {
+            "parameters": {},
+            "returns": "void"
           }
         }
       },
@@ -261,6 +265,7 @@
           "onCreate": {
             "parameters": {
               "username": "str",
+              "password": "str",
               "fullName": "str",
               "email": "str",
               "phoneNumber": "str",
@@ -285,6 +290,7 @@
           "createUserAccount": {
             "parameters": {
               "username": "str",
+              "password": "str",
               "fullName": "str",
               "email": "str",
               "phoneNumber": "str",
@@ -301,6 +307,7 @@
           "createUserAccount": {
             "parameters": {
               "username": "str",
+              "password": "str",
               "fullName": "str",
               "email": "str",
               "phoneNumber": "str",
@@ -320,12 +327,9 @@
             },
             "returns": "str"
           }
-        },
-        "allowed_keyword_only": [
-          "password"
-        ]
+        }
       },
-      "exception": "Admin-created accounts remain password-free as explicitly requested; the diagram password input is omitted. The entity retains a keyword-only trusted password setup argument."
+      "form_behavior": "No password entry: post() supplies the default password, and the entity validates and hashes it."
     },
     {
       "story": 7,
@@ -1528,7 +1532,8 @@
             "parameters": {
               "projectId": "int"
             },
-            "returns": "void"
+            "returns": "void",
+            "visibility": "private"
           }
         }
       }
@@ -1675,7 +1680,8 @@
             "parameters": {
               "projectId": "int"
             },
-            "returns": "void"
+            "returns": "void",
+            "visibility": "private"
           }
         }
       }
@@ -1961,7 +1967,8 @@
             "parameters": {
               "categoryName": "str"
             },
-            "returns": "bool"
+            "returns": "bool",
+            "visibility": "private"
           }
         }
       }
@@ -2295,5 +2302,213 @@
         }
       }
     }
-  ]
+  ],
+  "diagram_images": [
+    {
+      "story": 1,
+      "sha256": "829672b98b011ddbdf98139fa54e7cdaab54120a75f02af64247dd68ae6f247e"
+    },
+    {
+      "story": 2,
+      "sha256": "43ec0ba4f7115c66e6e331934871485ee459479491f2bb6de65793dbf02f44b1"
+    },
+    {
+      "story": 3,
+      "sha256": "ec326e357209a5cc5e0b0283e7ccaf462c32c17d022a3d19f71ff67e9ee2f19c"
+    },
+    {
+      "story": 4,
+      "sha256": "c5c6354fc4464395001e8ec7e5aef62e992fcb84bfa0a98b9881ca4dbd2fba24"
+    },
+    {
+      "story": 5,
+      "sha256": "ec8a049d2f4fb54f928674afdcce2da0a8d4e4465b7a73d658c6743e00dff1f8"
+    },
+    {
+      "story": 6,
+      "sha256": "8c07da6c283d7f03f2748326e6b12df7998ae5207e891aebd6a8c79f7c4b8d3a"
+    },
+    {
+      "story": 7,
+      "sha256": "ab0b5f288e10e637a00ac1d76b9638e554655780cd9261bc0616087f2f388868"
+    },
+    {
+      "story": 8,
+      "sha256": "85d12b8034c4119434d164a07a9a3831ec447d87cec019405f507fdf47e23754"
+    },
+    {
+      "story": 9,
+      "sha256": "0ae7444b37d25ebef675865c1d781a3878a17029804aae77b20390d76f7e8b84"
+    },
+    {
+      "story": 10,
+      "sha256": "fabd49bb3f321a2114c7e2791f2054d7ccc847c743040e03cb1fe594e9e6496f"
+    },
+    {
+      "story": 11,
+      "sha256": "07b95ee984efa0d24eaaba9a853149e8e3baeeb711d2cd92fb72c00763a8de73"
+    },
+    {
+      "story": 12,
+      "sha256": "f05d0576cfe724e944544e15d5c44fc1b66f4b348b93dc634b9f3698a05fadc1"
+    },
+    {
+      "story": 13,
+      "sha256": "5b9a8d1235aaab9032003eb50aad09cfba45ce25aecd99a02a0a257c679efa05"
+    },
+    {
+      "story": 14,
+      "sha256": "756e95d82744aae9901c5384e74f6fe257640e070f11fd1430d8ad9ccf9aa119"
+    },
+    {
+      "story": 15,
+      "sha256": "991d0704da1ba5d0bea258902bde524f8fba86be8bef41c1c10db65ee7fa34d2"
+    },
+    {
+      "story": 16,
+      "sha256": "e61fb0dd1baf2ccf1925fd584435ba04e3a918075e221dcd18b4fdbfa1e8bd1c"
+    },
+    {
+      "story": 17,
+      "sha256": "72cfea3cf913837b5e552a20e750ede8bef6f913e25d1cae2111f34ff25eb00e"
+    },
+    {
+      "story": 18,
+      "sha256": "a596664a6d28821eb744caf82032dfac79f5b327eb0ccf555bfff603d776632d"
+    },
+    {
+      "story": 19,
+      "sha256": "ad114e569e203ee94b87828859e8d65f907ec6a0b41e7b40a70fbed2a92b317a"
+    },
+    {
+      "story": 20,
+      "sha256": "c983d15199a71fa95bc3645164ca4d7a28f1cdeb11db9845a75af5dc590d8c2b"
+    },
+    {
+      "story": 21,
+      "sha256": "957a6d813d0ca0c0925b108cf6d0efe4a97ee6b811103410c17b94a33cf0bae2"
+    },
+    {
+      "story": 22,
+      "sha256": "866981f20d48136adc31ef266324263e4566e20e64f8d99dcf05a41f4ec47c8a"
+    },
+    {
+      "story": 23,
+      "sha256": "ef36ae3e539fb883f9a51f7ab8655c7ccb5e5642da9d187ff57ad6eff889eb2e"
+    },
+    {
+      "story": 24,
+      "sha256": "dad4984d1536f62c112e1bf37f11f791730e8416cbd2ef0d48bd28f310cb99a3"
+    },
+    {
+      "story": 25,
+      "sha256": "531b422e067ea9509f6645132d10e637a5fb792b966d9743558ac6502ea12b90"
+    },
+    {
+      "story": 26,
+      "sha256": "e6746e2b0547bb8bb16b816133f42817f492b95d19e4628edbb656abf997c106"
+    },
+    {
+      "story": 27,
+      "sha256": "762b62959e8ed6bbdfb6ed67734fa6f62cea6bfac50226ad585ea45472e60db3"
+    },
+    {
+      "story": 28,
+      "sha256": "7426ca279e25009af6be7993f2e24eca42723a79c58e6528c747e0fb2d20d3ff"
+    },
+    {
+      "story": 29,
+      "sha256": "55a97f31fed2dfd1dec7fb899beb04d0f6bf23d2c5e2b78e37769c165b19be2a"
+    },
+    {
+      "story": 30,
+      "sha256": "d4302c18983297b130853b6e2580178cb984b3b23c7afd7e684fcf3deedad1ff"
+    },
+    {
+      "story": 31,
+      "sha256": "40b9acfc8767fd26638ed57b8c98ca3d72b5e94017db3b95c92f33bdfec91acf"
+    },
+    {
+      "story": 32,
+      "sha256": "1d4e1f3e25616b489c004ace64a89884e9b09ff6b3e4080c68cb84867a065c6b"
+    },
+    {
+      "story": 33,
+      "sha256": "bc703f2854b65beedcf7173dd5cea5bd00c97009ded3b6f7c39f0b0210665525"
+    },
+    {
+      "story": 34,
+      "sha256": "f39338ce193ecd17251b5dd73b6b291ee51133f3ad7aaec0b27331b7cd9f53d7"
+    },
+    {
+      "story": 35,
+      "sha256": "6458e412ef6fd19b818a16154a3e8a74d777d49bae811fe2bb9cfb1c2ae36646"
+    },
+    {
+      "story": 36,
+      "sha256": "658e1f196ae8f2be06734a5066f49d7133c10b8f391dbbe20090db9a900f7b2f"
+    },
+    {
+      "story": 37,
+      "sha256": "5e1d5a1e813ae74b7076954c4eaedeef86e1b95ed13f11956182f079e6b10e2a"
+    },
+    {
+      "story": 38,
+      "sha256": "a126cd143ec3c789059f3c5dcd2200fe4dc210c24fe167812415f1a9836f35f9"
+    },
+    {
+      "story": 39,
+      "sha256": "31b5949047fa9059d9b04b2f7678ed608965c76a898288f99cde8e839bda4199"
+    },
+    {
+      "story": 40,
+      "sha256": "2388b0ce64d81d8786eab69490141eea298ef02af8b95f499cd11b86280738dc"
+    },
+    {
+      "story": 41,
+      "sha256": "9c17478e9ffa0320ebb70e1b2b8a65c2f411ac41818c250debe0d7fdd4583159"
+    },
+    {
+      "story": 42,
+      "sha256": "4dc748620bb3ea4210c0eef40221b52c1be67bb257ead77993dc5ad4eb064733"
+    },
+    {
+      "story": 43,
+      "sha256": "cd1bd6a3a1e8f345e25f3055a14698c259776ed65371cef704e3cebef4aeaa26"
+    },
+    {
+      "story": 44,
+      "sha256": "1442ba9f39c84ae6b0ef7a662cddfb4210d3ab1b13c04fbb349d9088ed9eced7"
+    },
+    {
+      "story": 45,
+      "sha256": "dc823f946d16479ef5024e58f844efb62ce4fb7e798294e26d4df437810c2552"
+    },
+    {
+      "story": 46,
+      "sha256": "210af4758e7507eeaa18ca31f0c9fef20c93ba1f36375132fa15fb2ce691d194"
+    },
+    {
+      "story": 47,
+      "sha256": "ef7e8be38a14cb694f7779f209f27c1599ce13fd698d4d90785b55d51814a144"
+    },
+    {
+      "story": 48,
+      "sha256": "0da77382f583c741e885bcdefbfd87708cd7136a8b7a0ac2884e669c689ac6b8"
+    }
+  ],
+  "runtime_support": {
+    "framework_adapters": [
+      "get",
+      "post",
+      "__init__"
+    ],
+    "retained_controller_method": {
+      "class": "UpdateUserProfileController",
+      "method": "getUserProfile",
+      "reason": "Explicitly requested lookup to display the current profile before updating."
+    },
+    "private_boundary_error_helpers": "_display_error renders runtime failures where the diagram does not declare a public displayError method.",
+    "auxiliary_controllers": "Directory/dashboard/interest controllers supply working tables, dropdowns, and labels outside the diagram story operations."
+  }
 }

@@ -8,16 +8,13 @@ from control.customer.save_shortlist_idp_controller import SaveShortlistIDPContr
 
 
 class SaveShortlistIDPPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def post(self, project_id):
         self.onSave(project_id)
         return self.rendered_page
 
     def onSave(self, projectId: int) -> None:
         self.projectId = strip_input(projectId)
-        self.owner = account_id(self.accountId)
+        self.owner = account_id()
         controller = SaveShortlistIDPController()
         if controller.saveShortlist(self.owner,self.projectId):
             self.displaySuccess()

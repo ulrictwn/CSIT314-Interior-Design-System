@@ -28,7 +28,7 @@ class MonthlyReportPage(MethodView):
             report = controller.generateMonthlyReport(self.values['startDate'], self.values['endDate'])
         except DomainError as error:
             self.error_message, self.field_errors = str(error), getattr(error, 'field_errors', {})
-            self.displayError()
+            self._display_error()
             return
         self.displayReport(report)
 
@@ -39,6 +39,6 @@ class MonthlyReportPage(MethodView):
         else:
             self.rendered_page = dict(ok=True, report=report.as_dict()), 201
 
-    def displayError(self) -> None:
+    def _display_error(self) -> None:
         self.rendered_page = error_response(self.error_message, 'manager', self.field_errors,
             values=self.values, template='reports/form.html', kind='monthly')

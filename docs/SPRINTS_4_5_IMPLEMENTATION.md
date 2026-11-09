@@ -1,6 +1,6 @@
 # Sprints 4 and 5 — Stories 30–48
 
-The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (4).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
+The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (5).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
 
 ## Diagram map
 
@@ -54,7 +54,7 @@ The animated selector now has **Staff** and **Customer** sides. Staff has a role
 | Customer | `/customer/login` | `/customer` | `/customer/logout` |
 | Platform Manager | `/manager/login` | `/manager` | `/manager/logout` |
 
-The existing `Platform Management` profile name and `Platform Manager` are both accepted by the manager login. Saved profile names and account IDs are preserved. Admin-created accounts remain password-free; configure a login password using the existing terminal command:
+The existing `Platform Management` profile name and `Platform Manager` are both accepted by the manager login. Saved profile names and account IDs are preserved. Admin-created accounts start with the default password `password`. To choose a different private password, use the existing terminal command:
 
 ```bash
 .venv/bin/python -m flask --app app reset-password --username YOUR_USERNAME

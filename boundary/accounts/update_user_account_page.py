@@ -1,3 +1,5 @@
+from control.profile.profile_controllers import ProfileDirectoryController
+from control.accounts.view_user_account_controller import ViewUserAccountController
 from flask import render_template, request, redirect, url_for, flash
 from flask.views import MethodView
 from boundary.validation import strip_input
@@ -8,14 +10,14 @@ class UpdateUserAccountPage(MethodView):
 
     def get(self, account_id):
         controller = UpdateUserAccountController()
-        account = controller.getUserAccount(account_id)
+        account = ViewUserAccountController().getUserAccount(account_id)
         if account is None:
             self.error_message, self.error_reason = 'User account not found.', 'not_found'
             self.displayError()
             return self.rendered_page
         return render_template('accounts/form.html', account=account,
             values={'full_name': account.full_name, 'email': account.email, 'profile_id': account.profile_id},
-            errors={}, profiles=controller.activeProfiles(), editing=True, title='Update User Accounts')
+            errors={}, profiles=ProfileDirectoryController().activeProfiles(), editing=True, title='Update User Accounts')
 
     def post(self, account_id):
         self.onUpdate(account_id, request.form.get('full_name', ''),
@@ -30,7 +32,7 @@ class UpdateUserAccountPage(MethodView):
             self.error_message = controller.entity.error_message
             self.field_errors = controller.entity.field_errors
             self.error_reason = controller.entity.error_reason
-            self.account = controller.getUserAccount(accountId)
+            self.account = ViewUserAccountController().getUserAccount(accountId)
             self.displayError()
 
     def displaySuccess(self) -> None:
@@ -46,5 +48,5 @@ class UpdateUserAccountPage(MethodView):
             flash(self.error_message, 'error')
             self.rendered_page = render_template('accounts/form.html', account=self.account,
                 values=request.form, errors=self.field_errors,
-                profiles=UpdateUserAccountController().activeProfiles(),
+                profiles=ProfileDirectoryController().activeProfiles(),
                 editing=True, title='Update User Accounts'), 400

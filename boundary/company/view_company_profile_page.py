@@ -8,15 +8,12 @@ from entity.company.company_profile import CompanyProfile
 
 
 class ViewCompanyProfilePage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         self.onView()
         return self.rendered_page
 
     def onView(self) -> None:
-        accountId = account_id(self.accountId)
+        accountId = account_id()
         profile = ViewCompanyProfileController().getCompanyProfile(accountId)
         if profile is None:
             self.rendered_page = error_response('Company profile not found.', status=404)

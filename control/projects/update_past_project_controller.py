@@ -8,6 +8,3 @@ class UpdatePastProjectController:
     def updatePastProject(self, projectId: int, projectName: str, categoryId: int,
                          propertyType: str, area: str, renovationCost: float, description: str) -> bool:
         return self.entity.updatePastProject(projectId, projectName, categoryId, propertyType, area, renovationCost, description)
-
-    def getPastProject(self, projectId: int) -> InteriorDesignProject | None:
-        return InteriorDesignProject.getPastProject(projectId)

@@ -1,4 +1,4 @@
-from entity.validation import validate_profile_fields, valid_profile_id, search_text
+from entity.validation import validate_profile_fields, valid_profile_id, search_text, required_text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -18,12 +18,9 @@ class UserProfile(db.Model):
         nullable=False, default=list)
     __table_args__ = (db.Index('uq_profile_name_lower', db.func.lower(name), unique=True),)
 
-    @property
-    def profileName(self):
-        return self.name
-
     @classmethod
     def userProfileExists(cls, profileName: str) -> bool:
+        profileName = required_text(profileName, 'Profile name', 100)
         return cls._profile_exists(profileName)
 
     @classmethod
@@ -78,8 +75,6 @@ class UserProfile(db.Model):
     def getProfile(cls, profilename):
         return db.session.execute(db.select(cls).where(
             db.func.lower(cls.name) == profilename.lower())).scalar_one_or_none()
-
-    viewUserProfile = getProfile
 
     @classmethod
     def listUserProfiles(cls):

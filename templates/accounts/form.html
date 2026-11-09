@@ -24,7 +24,7 @@
   {% if editing %}
   <div class="section-heading"><div><h2>{{ account.username }}</h2><p>Account ID: {{ account.account_id }}</p></div>{{ status(account.status) }}</div>
   {% else %}
-  <h2>Account details</h2><p class="muted">New accounts receive an automatically generated ID and an Active status.</p>
+  <h2>Account details</h2><p class="muted">New accounts receive an automatically generated ID, an Active status, and the default password <code>password</code>.</p>
   {% endif %}
   {% if errors %}
   <div class="message error" role="alert"><strong>Please check your entries.</strong><ul>

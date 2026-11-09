@@ -95,13 +95,13 @@ def profile_snapshot(app):
 def create_account(app, seed_profile):
     from entity.accounts.user_account import UserAccount
 
-    def create(username='customer1', role='Customer', password=None):
+    def create(username='customer1', role='Customer', password='password'):
         with app.app_context():
             profile = UserProfile.getProfile(role)
             profile_id = profile.profile_id if profile else seed_profile(role, permissions=[])
             account = UserAccount()
-            assert account.createUserAccount(username, 'Name ' + username,
-                username + '@example.com', '+65 6123 4567', profile_id, password=password)
+            assert account.createUserAccount(username, password, 'Name ' + username,
+                username + '@example.com', '+65 6123 4567', profile_id)
             return account.account_id
     return create
 

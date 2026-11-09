@@ -7,6 +7,3 @@ class DeleteCompanyProfileController:
 
     def deleteCompanyProfile(self, accountId: str) -> bool:
         return self.entity.deleteCompanyProfile(accountId)
-
-    def getCompanyProfile(self, accountId: str) -> CompanyProfile | None:
-        return CompanyProfile.getCompanyProfile(accountId)

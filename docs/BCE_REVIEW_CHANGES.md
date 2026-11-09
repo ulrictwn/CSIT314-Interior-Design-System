@@ -1,6 +1,6 @@
 # BCE review changes — 8 November 2026
 
-These changes apply the latest lecturer feedback to Stories 1–48. They supersede the earlier boundary-validation and public-page demo requirements. The 207 methods transcribed from the BCE diagrams keep their names, parameter lists, annotations, and return types. Event/display methods remain void.
+These changes apply the latest lecturer feedback to Stories 1–48. They supersede the earlier boundary-validation and public-page demo requirements. The current version (5) has 208 listed diagram method entries. Their names and types are aligned with the code; Story 6 now has the diagram password argument while its form supplies the default automatically. Event/display methods remain void.
 
 ## Layer responsibilities
 
@@ -47,4 +47,6 @@ These are the requested basic login, role, and ownership checks. CSRF, rate limi
 
 The sprint suite retains 65 test functions: TC01–TC22 for Sprint 1 and one test per later story. Fixtures now arrange a signed-in actor for the relevant portal. Existing story cases also check direct entity rejection, missing login, wrong roles, forged company account IDs, and other designers' project IDs. All 65 tests passed on SQLite and PostgreSQL. HTML smoke checks covered all four portals, validation messages, shortlist saving, report generation/download, and logout redirects. See [the test guide](TESTING_GUIDE.md).
 
-No model columns or table definitions changed, so this refactor requires no database migration. Restart Flask to load the changed modules. Admin-created accounts remain password-free; the existing trusted `reset-password` command configures an account for sign-in.
+No model columns or table definitions changed, so this refactor requires no database migration. Restart Flask to load the changed modules. Admin-created accounts now start with the hashed default password `password`; the existing trusted `reset-password` command can choose a different private password.
+
+The subsequent version (5) audit removes duplicate controller lookup/existence wrappers and unused boundary constructors, while reusing View controllers for prefill and confirmations. See [the complete current audit](BCE_AUDIT_1_48.md).

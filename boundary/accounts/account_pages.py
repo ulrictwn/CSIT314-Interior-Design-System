@@ -1,10 +1,5 @@
 from flask import render_template, request
 from flask.views import MethodView
-from boundary.accounts.create_user_account_page import CreateUserAccountPage
-from boundary.accounts.view_user_account_page import ViewUserAccountPage
-from boundary.accounts.update_user_account_page import UpdateUserAccountPage
-from boundary.accounts.suspend_user_account_page import SuspendUserAccountPage
-from boundary.accounts.search_user_account_page import SearchUserAccountPage
 from control.accounts.account_controllers import AccountDirectoryController
 from infrastructure.errors import DomainError
 

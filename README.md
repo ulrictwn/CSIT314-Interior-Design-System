@@ -29,7 +29,7 @@ This application implements Stories 1–48: profile/account administration; staf
    .venv/bin/python -m flask --app app bootstrap-admin
    ```
 
-   Enter a username, email, phone number and a private password of 12–128 characters. Password input is hidden. This command creates any missing standard roles and explicitly activates the `User Admin` profile with the ten profile/account permissions. Other existing profiles keep their permissions. There is no default administrator password. Run it once per initial account, not every time you start the app.
+   Enter a username, email, phone number and a private password of 12–128 characters. Password input is hidden. This command creates any missing standard roles and explicitly activates the `User Admin` profile with the ten profile/account permissions. Other existing profiles keep their permissions. The initial bootstrap administrator uses the private password entered here. Run it once per initial account, not every time you start the app.
 
 7. Start the app:
 
@@ -60,7 +60,7 @@ Account creation collects username, full name, email, phone number and assigned 
 
 The account number grows beyond two digits after 99 (profile `2` + account `100` = `2100`). Because concatenated numbers can occasionally produce the same complete ID, occupied IDs are skipped. IDs remain fixed when a role is reassigned; the prefix records the profile at creation. Existing accounts keep their previous IDs. The shared counter is created automatically on first use, starting after the number of existing accounts, and is committed in the same transaction as the new account. See [ACCOUNT_ID_UPDATE.md](docs/ACCOUNT_ID_UPDATE.md) for how to apply this update.
 
-New accounts created through the web form have no usable password. Before a newly created User Admin or Interior Designer can sign in, a trusted administrator sets a private password through `flask --app app reset-password --username <username>` in the server terminal. Bootstrap still creates the first administrator with a password. Existing stored passwords and login behavior are preserved; there is no default password or password-free sign-in. See [CREATE_ACCOUNT_UPDATE.md](docs/CREATE_ACCOUNT_UPDATE.md) for the files to copy and setup steps.
+New accounts created through the web form start with the default password `password`, stored as a hash. Sign in using the new username and the portal matching its assigned profile. The trusted `flask --app app reset-password --username <username>` command can set a different private password; bootstrap uses its explicitly entered password. See [CREATE_ACCOUNT_UPDATE.md](docs/CREATE_ACCOUNT_UPDATE.md) for the files to copy and setup steps.
 
 Update follows the report's editable fields: full name, email and assigned profile. Username, password, ID, status and stored phone number are not changed through this form. Suspension keeps the account record. Repeated suspension is rejected. Suspended accounts or profiles cannot complete a new login.
 
@@ -68,7 +68,7 @@ The profile Search screen retains the requested behavior: all profiles appear in
 
 Story 11 demonstrates User Admin login. Stories 18–19 provide the separate Interior Designer login/logout flow. Pages require the matching active portal role, and permissions remain stored profile data. Profile suspension is still blocked when any account is assigned, including a suspended account.
 
-Existing passwords stay hashed. Login checks entered credentials against saved account data and records only the account ID in a basic browser session. Logout clears that browser session. Admin-created accounts remain password-free. Basic login, portal-role, and designer ownership checks protect the pages. CSRF tokens, login rate limits, server-side session tokens, and final-admin protection remain outside this classroom scope.
+Existing passwords stay hashed. Login checks entered credentials against saved account data and records only the account ID in a basic browser session. Logout clears that browser session. Admin-created accounts start with the default password `password`. Basic login, portal-role, and designer ownership checks protect the pages. CSRF tokens, login rate limits, server-side session tokens, and final-admin protection remain outside this classroom scope.
 
 Trusted terminal recovery commands:
 
@@ -105,8 +105,8 @@ Open `/login` or `/staff/login` for Staff sign-in, with User Admin, Interior Des
 
 Customer search/view/save/remove flows, category management, and daily/weekly/monthly report snapshots with CSV downloads are implemented from the Word document and wireframes. Code uses matching `customer/`, `platform_manager/`, `categories/`, `reports/`, and `shortlist/` feature folders. Boundaries validate inputs, controllers relay, and entities own saved data and duplicate checks. See [SPRINTS_4_5_IMPLEMENTATION.md](docs/SPRINTS_4_5_IMPLEMENTATION.md) for exact diagram mappings, report interfaces, routes, and database changes.
 
-The database upgrade preserves existing records. Create a category from the manager portal before adding a designer project. Admin-created accounts still need a password configured with the existing `reset-password` terminal command before their first login.
+The database upgrade preserves existing records. Create a category from the manager portal before adding a designer project. Admin-created accounts can sign in immediately using their username and the default password `password`.
 
 ## BCE diagram audit
 
-All 48 diagrams in the updated report (4) have been reviewed against the code. See [the story-by-story audit](docs/BCE_AUDIT_1_48.md) for exact class/method mappings, layer responsibilities, and the previously approved password-free Story 6 exception. Report classes now use `DailyReportPage`, `WeeklyReportPage`, and `MonthlyReportPage`, each with its diagram event and `displayReport(report)`.
+All 48 diagrams in the updated report (5) have been reviewed against the code. See [the story-by-story audit](docs/BCE_AUDIT_1_48.md) for exact class/method mappings, layer responsibilities, and the approved Story 6 creation interface without password entry. Report classes now use `DailyReportPage`, `WeeklyReportPage`, and `MonthlyReportPage`, each with its diagram event and `displayReport(report)`.

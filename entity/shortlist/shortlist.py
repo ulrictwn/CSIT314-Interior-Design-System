@@ -1,4 +1,4 @@
-from entity.validation import positive_integer
+from entity.validation import positive_integer, valid_account_id
 from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError
 from infrastructure.database import db
@@ -20,6 +20,9 @@ class Shortlist(db.Model):
 
     @classmethod
     def contains(cls, accountId, projectId):
+        if not valid_account_id(accountId):
+            return False
+        projectId = positive_integer(projectId, 'Project ID')
         return db.session.get(cls, (accountId, projectId)) is not None if accountId else False
 
     def saveShortlist(self, accountId: str, projectId: int) -> bool:
@@ -61,6 +64,7 @@ class Shortlist(db.Model):
 
     @classmethod
     def getShortlistCount(cls, projectId: int) -> int:
+        projectId = positive_integer(projectId, 'Project ID')
         return db.session.scalar(db.select(db.func.count()).select_from(cls).where(cls.project_id == projectId))
 
     @classmethod

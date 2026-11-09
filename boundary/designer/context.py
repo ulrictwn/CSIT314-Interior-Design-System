@@ -9,5 +9,5 @@ def request_values():
     return request.form
 
 
-def account_id(explicit=None):
+def account_id():
     return session.get('account_id')

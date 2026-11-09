@@ -1,3 +1,4 @@
+from control.projects.view_new_project_controller import ViewNewProjectController
 from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
@@ -10,7 +11,7 @@ from control.projects.update_new_project_controller import UpdateNewProjectContr
 class UpdateNewProjectPage(MethodView):
     def get(self, project_id):
         projectId = strip_input(project_id)
-        project = UpdateNewProjectController().getNewProject(projectId)
+        project = ViewNewProjectController().getNewProject(projectId)
         if project is None:
             return error_response('New project not found.', status=404)
         return present(dict(ok=True, fields=PROJECT_FIELDS, project=project_values(project), values=project_values(project)))
@@ -26,7 +27,7 @@ class UpdateNewProjectPage(MethodView):
             [projectName, categoryId, propertyType, area, renovationCost, description])}
         controller = UpdateNewProjectController()
         if controller.updateNewProject(projectId, **self.values):
-            self.values = project_values(controller.getNewProject(projectId))
+            self.values = project_values(ViewNewProjectController().getNewProject(projectId))
             self.displaySuccess()
         else:
             self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors

@@ -7,6 +7,3 @@ class DeleteNewProjectController:
 
     def deleteNewProject(self, projectId: int) -> bool:
         return self.entity.deleteNewProject(projectId)
-
-    def getNewProject(self, projectId: int) -> InteriorDesignProject | None:
-        return InteriorDesignProject.getNewProject(projectId)

@@ -44,7 +44,7 @@ def register_commands(app):
             profile.permissions = sorted(set(profile.permissions or []) | ADMIN_PERMISSIONS)
             db.session.flush()
             new_account = UserAccount()
-            if not new_account.createUserAccount(username, full_name, email, phone_number, profile.profile_id, password=password):
+            if not new_account.createUserAccount(username, password, full_name, email, phone_number, profile.profile_id):
                 raise DomainError(new_account.error_message)
             account = UserAccount.getByUsername(username)
         except DomainError as error:

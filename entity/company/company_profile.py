@@ -1,5 +1,5 @@
 from entity.company.validation import validate_company_fields
-from entity.validation import search_text
+from entity.validation import search_text, valid_account_id
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from infrastructure.database import db
 from entity.accounts.user_account import UserAccount
@@ -61,6 +61,8 @@ class CompanyProfile(db.Model):
 
     @classmethod
     def getCompanyProfile(cls, accountId: str) -> 'CompanyProfile | None':
+        if not valid_account_id(accountId):
+            return None
         return db.session.get(cls, accountId)
 
     def updateCompanyProfile(self, accountId: str, companyName: str, companyContact: str,

@@ -10,9 +10,6 @@ from entity.projects.interior_design_project import InteriorDesignProject
 
 
 class SearchNewProjectPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         self.onSearch(request.args.get('q', request.args.get('projectName', '')))
         return self.rendered_page
@@ -25,7 +22,7 @@ class SearchNewProjectPage(MethodView):
     def onSearch(self, projectName: str) -> None:
         self.projectName = projectName
         projectName = strip_input(projectName)
-        accountId = account_id(self.accountId)
+        accountId = account_id()
         projects = SearchNewProjectController().searchNewProjects(accountId, projectName)
         self.displayResults(projects)
 

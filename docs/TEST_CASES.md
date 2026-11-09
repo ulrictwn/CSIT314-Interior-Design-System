@@ -1,6 +1,6 @@
 # Sprint test case map
 
-Source: `Nothinghere/CSIT314 Group Project Report (4).docx`, Sprint 1, each story's **Test Case and Test Data → Checks** list. There are exactly 22 Sprint 1 test functions, with the document's case numbers in their names. Compound checks use one test function with multiple assertions rather than generating extra test cases.
+Source: `Nothinghere/CSIT314 Group Project Report (5).docx`, Sprint 1, each story's **Test Case and Test Data → Checks** list. There are exactly 22 Sprint 1 test functions, with the document's case numbers in their names. Compound checks use one test function with multiple assertions rather than generating extra test cases.
 
 | Case | Story | Document check covered |
 | --- | ---: | --- |
@@ -33,7 +33,7 @@ For Sprints 2–5, each story has one independent successful workflow test. Thes
 
 | Sprint | Stories | One test per story |
 | --- | --- | --- |
-| 2 | 6–10 | Create a password-free account; view; update; suspend; search. |
+| 2 | 6–10 | Create an account with a hashed default password and verify login; view; update; suspend; search. |
 | 2 | 11–12 | User Admin login; logout. |
 | 2 | 13–17 | Create a company profile; view; delete; update; search. |
 | 3 | 18–19 | Interior Designer login; logout. |

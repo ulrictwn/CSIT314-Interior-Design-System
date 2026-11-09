@@ -1,49 +1,36 @@
-# Create User Account without password entry
+# Create User Account with a default password
 
-The Create screen collects username, full name, email, phone number and assigned profile. Account code is grouped under the `accounts/` packages in boundary, control, and entity. Input cleanup belongs to `boundary/validation.py`. `UserAccount` validates the input through `entity/validation.py`, checks duplicates, and saves data. The controller only relays. Active-profile dropdown data comes from `UserProfile.activeProfiles()`.
+The Create screen collects username, full name, email, phone number, and assigned profile. It requires no password entry. Every new account created through the form receives the default password **`password`**, stored as a hash.
 
-## Apply the matching files together
+## BCE flow
 
-Stop Flask with Ctrl+C. Review any local/team edits, then copy these application files from this package into the existing project folders:
+- The boundary strips ordinary text, calls the controller, and displays the result. The create form shows the default password beside its account details instructions.
+- The controller relays `createUserAccount(username, password, fullName, email, phoneNumber, profileId)` to `UserAccount`.
+- The entity validates input, checks duplicates and the active profile, generates the numeric ID, hashes the default password, and commits the new account.
+- The password argument follows the BCE diagram: the form's POST adapter supplies `password`, while trusted setup can pass an explicit private password. The bootstrap administrator uses the password entered at its prompt.
 
-- The complete `boundary/accounts/`, `control/accounts/`, and `entity/accounts/` packages, including `__init__.py` and the shared boundary cleanup/entity validation helpers.
-- `boundary/routes.py`, `boundary/dashboard_page.py`, and the plain HTML account forms under `templates/accounts/`.
-- `control/auth/auth_controller.py`, `entity/models.py`, and `entity/profile/user_profile.py` for updated account imports.
-- `infrastructure/auth.py` and `infrastructure/commands.py`.
-- `templates/accounts/form.html` and `templates/accounts/suspend.html`.
+The form's extra password fields, if submitted manually, are ignored. Passwords are stored in the existing `password_hash` column. The original unusable marker remains recognized for older records.
 
-Account tests now live in `tests/sprint_2/`, one file per story (6–12), and use shared fixtures in `tests/conftest.py`. Apply these together. See [the current test guide](TESTING_GUIDE.md) for the simplified scope.
+## Sign in
 
-No new library or database-schema change is needed for this update to the existing twelve-story app. Preserve `.env`, the database, `.venv` and the working devcontainer configuration. Existing passwords, profile/account records and numeric ID counters continue to work. This source package has not changed your GitHub repository automatically.
+Create an account, then use its username and **`password`** on the login page matching its profile: User Admin, Interior Designer, Customer, or Platform Manager. New accounts receive an Active status and the existing numeric ID format.
 
-Restart Flask:
-
-```bash
-.venv/bin/python -m flask --app app run --host=0.0.0.0 --port=5000
-```
-
-Create an account through the form and verify that it is saved without password entry. Numeric account IDs still use the requested shared sequence, for example 101, 202, 303 and 204.
-
-Run the combined tests:
-
-```bash
-.venv/bin/python scripts/run_profile_tests.py
-```
-
-## Giving a new User Admin sign-in access
-
-Creating an account saves its details and an Active status. It does not set a usable password. User Admin login still requires a valid password, and newly created accounts cannot sign in until one is set through the existing trusted terminal command:
+To choose a different private password from the trusted terminal:
 
 ```bash
 .venv/bin/python -m flask --app app reset-password --username newadmin
 ```
 
-Replace `newadmin` with the created username. Enter and confirm a private password of 12–128 characters. Password input is hidden. The initial `bootstrap-admin` command still asks for a password so the first administrator can sign in immediately.
+Replace `newadmin` with the chosen username. The command accepts private passwords of 12–128 characters. The automatic classroom default is assigned separately during account creation.
 
-Customer/Designer/Platform Management login remains outside these twelve user stories, as before. Setting their password does not grant access to the User Admin portal.
+## Verification and setup
 
-## Storage and access rules
+Story 6's test submits the creation form, retrieves the saved account, verifies that the default is hashed, checks it against `password`, and signs in through the Customer login page. Tests remain in `tests/sprint_2/`, with shared isolated-database fixtures in `tests/conftest.py`.
 
-The existing non-null `password_hash` field is retained. Accounts created without a password store an unusable marker, rather than a default password or a hash of an empty password. A submitted extra password field is ignored by the Create page. Configured passwords continue to be hashed.
+Run all sprint tests and refresh reports:
 
-Only active, fully authorized User Admin accounts with a configured password count toward the final-admin access guard. This prevents an unconfigured new admin from allowing the only usable administrator to lose access.
+```bash
+.venv/bin/python scripts/run_profile_tests.py
+```
+
+Restart Flask to load the updated entity/template. This change uses existing columns and requires no database migration.

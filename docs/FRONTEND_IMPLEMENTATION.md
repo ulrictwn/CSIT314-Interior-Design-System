@@ -13,7 +13,7 @@ The company, designer, and projects folders retain the previous BCE structure. T
 - Stories 41–45 now supply saved categories. The project form selects a category, and entity operations check that it exists.
 - Project photo uploads were left out, following the current diagram fields. The detail-page image is explicitly captioned **Interior inspiration**, and is not a saved project photo.
 - Stories 37–38 are now implemented, with View Counts and Shortlist Counts links in the designer sidebar. See the Sprint 4–5 implementation notes.
-- Admin-created accounts remain password-free. To demonstrate designer login, assign the Interior Designer profile and use the existing terminal command `flask --app app reset-password --username YOUR_USERNAME` to configure its password.
+- Admin-created accounts start with the default password `password`. Assign the Interior Designer profile to sign into that portal. The existing `flask --app app reset-password --username YOUR_USERNAME` command can choose a different private password.
 
 ## Files
 

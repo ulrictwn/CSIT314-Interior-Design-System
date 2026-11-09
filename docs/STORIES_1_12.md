@@ -8,12 +8,12 @@ This classroom demonstration uses ordinary HTML forms and a basic browser sessio
 
 | Story | Boundary | Controller/entity operations |
 | --- | --- | --- |
-| 1 | `CreateUserProfilePage.onCreate`, `displaySuccess`, `displayError` | `CreateUserProfileController.createUserProfile` / `userProfileExists`; `UserProfile.createUserProfile` / `userProfileExists` |
-| 2 | `ViewUserProfilePage.onView`, `displayProfile`, `displayError` | `ViewUserProfileController.getUserProfile`; `UserProfile.getUserProfile` |
+| 1 | `CreateUserProfilePage.onCreate`, `displaySuccess`, `displayError` | `CreateUserProfileController.createUserProfile`; `UserProfile.createUserProfile` / `userProfileExists` |
+| 2 | `ViewUserProfilePage.onView`, `displayProfile` | `ViewUserProfileController.getUserProfile`; `UserProfile.getUserProfile` |
 | 3 | `UpdateUserProfilePage.onUpdate`, `displaySuccess`, `displayError` | `UpdateUserProfileController.getUserProfile` / `updateUserProfile`; `UserProfile.getUserProfile` / `updateUserProfile` |
-| 4 | `SuspendUserProfilePage.onSuspend`, `displaySuccess`, `displayError` | `SuspendUserProfileController.suspendUserProfile`; `UserProfile.suspendUserProfile` |
+| 4 | `SuspendUserProfilePage.onSuspend`, `displaySuccess`, `displayError`, `displayError` | `SuspendUserProfileController.suspendUserProfile`; `UserProfile.suspendUserProfile` |
 | 5 | `SearchUserProfilePage.onSearch`, `displayResults` | `SearchUserProfileController.searchUserProfiles`; `UserProfile.searchUserProfiles` |
-| 6 | `CreateUserAccountPage.onCreate`, `displaySuccess`, `displayError` | `CreateUserAccountController.createUserAccount` / `userAccountExists`; `UserAccount.createUserAccount` / `userAccountExists` / `generateAccountId` |
+| 6 | `CreateUserAccountPage.onCreate`, `displaySuccess`, `displayError` | `CreateUserAccountController.createUserAccount`; `UserAccount.createUserAccount` / `userAccountExists` / `generateAccountId` |
 | 7 | `ViewUserAccountPage.onView`, `displayAccount` | `ViewUserAccountController.getUserAccount`; `UserAccount.getUserAccount` |
 | 8 | `UpdateUserAccountPage.onUpdate`, `displaySuccess`, `displayError` | `UpdateUserAccountController.getUserAccount` / `updateUserAccount`; `UserAccount.getUserAccount` / `updateUserAccount` |
 | 9 | `SuspendUserAccountPage.onSuspend`, `displaySuccess`, `displayError` | `SuspendUserAccountController.suspendUserAccount`; `UserAccount.suspendUserAccount` |
@@ -46,7 +46,7 @@ Profile update now uses the diagram's four arguments: `profileId, profileName, d
 
 The View sidebar entries remain removed. Details are opened from search results; suspend lists retain only the Suspend action. Profile search initially lists all profiles and requires text when a search is submitted; blank account search lists all accounts.
 
-The confirmed numeric-ID and password-free account creation choices remain in place. IDs concatenate the actual profile ID and a shared number padded to at least two digits (`101`, `202`, `303`, `204`). The counter and insert share a transaction, and existing IDs are preserved. Web creation does not accept a password; trusted bootstrap/reset input can configure one. Password-free administrator creation is the confirmed exception to Story 6's password argument.
+Account creation uses numeric IDs and assigns the hashed default password `password` without a password input field. IDs concatenate the actual profile ID and a shared number padded to at least two digits (`101`, `202`, `303`, `204`). The counter and insert share a transaction, and existing IDs are preserved. Web creation does not accept a password field; the entity assigns the default. Trusted bootstrap/reset input can supply a different private password. Story 6 now includes the diagram's password argument in boundary/controller/entity methods; the POST adapter supplies the default `password` without adding a form field.
 
 Profile/account columns and existing records are preserved. The unused auth_version column remains for database compatibility. Old authentication tables are not dropped or used. Authorization guards, CSRF tokens, rate limiting, server-session tokens/revocation, custom security headers, and final-admin protection were removed from the demo. Existing password hashes and basic login/logout are retained.
 

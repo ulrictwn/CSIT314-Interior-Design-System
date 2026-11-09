@@ -1,3 +1,4 @@
+from control.categories.view_category_controller import ViewCategoryController
 from boundary.validation import strip_input
 from flask import flash, redirect, url_for
 from flask.views import MethodView
@@ -9,7 +10,7 @@ from control.categories.update_category_controller import UpdateCategoryControll
 
 class UpdateCategoryPage(MethodView):
     def get(self, category_id):
-        category = UpdateCategoryController().getCategory(category_id)
+        category = ViewCategoryController().getCategory(category_id)
         if category is None:
             return error_response('Category not found.','manager',status=404)
         return present(dict(ok=True,editing=True,category=category.as_dict(),values=category.as_dict()),
@@ -25,7 +26,7 @@ class UpdateCategoryPage(MethodView):
         self.categoryId = categoryId
         controller = UpdateCategoryController()
         if controller.updateCategory(categoryId, **self.values):
-            self.category = controller.getCategory(categoryId)
+            self.category = ViewCategoryController().getCategory(categoryId)
             self.displaySuccess()
         else:
             self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors

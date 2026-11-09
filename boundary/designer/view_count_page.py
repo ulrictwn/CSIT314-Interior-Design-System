@@ -1,3 +1,4 @@
+from control.designer.project_interest_controller import ProjectInterestController
 from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.portal import present, error_response
@@ -12,7 +13,7 @@ class ViewCountPage(MethodView):
     def onView(self,projectId: int) -> None:
         projectId = strip_input(projectId)
         controller = ViewCountController()
-        self.project = controller.getProject(projectId)
+        self.project = ProjectInterestController().getProject(projectId)
         if self.project is None:
             self.rendered_page = error_response('Project not found.','designer',status=404)
             return

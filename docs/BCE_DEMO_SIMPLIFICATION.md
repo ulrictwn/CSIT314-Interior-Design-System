@@ -10,7 +10,7 @@ The implementation follows the report's BCE classes/methods and the latest lectu
 
 Profile update follows the diagram's four arguments: `profileId, profileName, description, permissions`. The controller/entity keep `getUserProfile` for prefill. Update preserves status; Suspend changes it. `UserProfile.activeProfiles()` supplies account form dropdowns.
 
-Account creation remains password-free, with IDs based on the actual profile ID and shared sequence. Login checks the existing password hash. The existing signed browser session identifies the account; logout clears it.
+Account creation needs no password entry and assigns the default password `password`, stored as a hash. IDs use the actual profile ID and shared sequence. Login checks the existing password hash. The existing signed browser session identifies the account; logout clears it.
 
 Pages now require the matching active portal role. Logged-out users go to the appropriate login page. Request-supplied account IDs cannot override the session. Designers can access only their own company and project operations; customer shortlist operations use the customer's own account.
 

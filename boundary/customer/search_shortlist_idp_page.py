@@ -9,9 +9,6 @@ from entity.projects.interior_design_project import InteriorDesignProject
 
 
 class SearchShortlistIDPPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         self.onSearch(request.args.get('q',''))
         return self.rendered_page
@@ -22,7 +19,7 @@ class SearchShortlistIDPPage(MethodView):
 
     def onSearch(self, keyword: str) -> None:
         self.keyword = strip_input(keyword)
-        self.owner = account_id(self.accountId)
+        self.owner = account_id()
         idps = SearchShortlistIDPController().search_shortlist_IDP(self.owner, self.keyword)
         self.displayResults(idps)
 

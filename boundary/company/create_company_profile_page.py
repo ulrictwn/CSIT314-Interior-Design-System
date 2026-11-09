@@ -8,9 +8,6 @@ from control.company.create_company_profile_controller import CreateCompanyProfi
 
 
 class CreateCompanyProfilePage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         return present(dict(ok=True, fields=COMPANY_FIELDS, values={}))
 

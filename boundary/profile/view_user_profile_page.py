@@ -12,17 +12,13 @@ class ViewUserProfilePage(MethodView):
         return self.rendered_page
 
     def onView(self, profileId: int) -> None:
-        profile = (ViewUserProfileController().getUserProfile(profileId))
+        profile = ViewUserProfileController().getUserProfile(profileId)
         if profile is None:
-            self.displayError()
+            self.rendered_page = render_template('error.html', code=404,
+                message='User profile not found.', title='User Profile Not Found'), 404
         else:
             self.displayProfile(profile)
 
     def displayProfile(self, profile: UserProfile) -> None:
         self.rendered_page = render_template(
             'profiles/detail.html', profile=profile, title=profile.name)
-
-    def displayError(self) -> None:
-        self.rendered_page = render_template(
-            'error.html', code=404, message='User profile not found.',
-            title='User Profile Not Found'), 404

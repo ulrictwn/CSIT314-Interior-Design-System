@@ -13,3 +13,7 @@ def test_create_category_saves_category_details(app, manager_client, category_da
         category = Category.getCategory(category_id)
         assert (category.category_name, category.description) == (
             category_data['categoryName'], category_data['description'])
+    duplicate = manager_client.post('/manager/categories/create', json=dict(
+        category_data, categoryName=category_data['categoryName'].upper()))
+    assert duplicate.status_code == 400
+    assert 'categoryName' in duplicate.json['errors']

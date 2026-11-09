@@ -9,9 +9,6 @@ from entity.projects.interior_design_project import InteriorDesignProject
 
 
 class SearchIDPPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         self.onSearch(request.args.get('q',''))
         return self.rendered_page

@@ -7,9 +7,6 @@ from entity.projects.interior_design_project import InteriorDesignProject
 
 
 class ViewIDPPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self, project_id):
         self.onView(project_id)
         return self.rendered_page

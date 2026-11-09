@@ -7,6 +7,3 @@ class DeletePastProjectController:
 
     def deletePastProject(self, projectId: int) -> bool:
         return self.entity.deletePastProject(projectId)
-
-    def getPastProject(self, projectId: int) -> InteriorDesignProject | None:
-        return InteriorDesignProject.getPastProject(projectId)

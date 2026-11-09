@@ -8,6 +8,3 @@ class UpdateNewProjectController:
     def updateNewProject(self, projectId: int, projectName: str, categoryId: int,
                          propertyType: str, area: str, renovationCost: float, description: str) -> bool:
         return self.entity.updateNewProject(projectId, projectName, categoryId, propertyType, area, renovationCost, description)
-
-    def getNewProject(self, projectId: int) -> InteriorDesignProject | None:
-        return InteriorDesignProject.getNewProject(projectId)

@@ -8,9 +8,6 @@ from control.projects.create_new_project_controller import CreateNewProjectContr
 
 
 class CreateNewProjectPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         return present(dict(ok=True, fields=PROJECT_FIELDS, values={}))
 

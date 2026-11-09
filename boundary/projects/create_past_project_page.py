@@ -8,9 +8,6 @@ from control.projects.create_past_project_controller import CreatePastProjectCon
 
 
 class CreatePastProjectPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         return present(dict(ok=True, fields=PROJECT_FIELDS, values={}))
 

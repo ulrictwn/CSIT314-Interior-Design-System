@@ -8,16 +8,13 @@ from control.customer.remove_shortlist_idp_controller import RemoveShortlistIDPC
 
 
 class RemoveShortlistIDPPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def post(self, project_id):
         self.onRemove(project_id)
         return self.rendered_page
 
     def onRemove(self, projectId: int) -> None:
         self.projectId = strip_input(projectId)
-        self.owner = account_id(self.accountId)
+        self.owner = account_id()
         controller = RemoveShortlistIDPController()
         if controller.removeShortlist(self.owner,self.projectId):
             self.displaySuccess()

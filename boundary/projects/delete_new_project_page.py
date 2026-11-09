@@ -1,3 +1,4 @@
+from control.projects.view_new_project_controller import ViewNewProjectController
 from boundary.validation import strip_input
 from flask.views import MethodView
 from boundary.designer.presentation import present
@@ -9,7 +10,7 @@ from control.projects.delete_new_project_controller import DeleteNewProjectContr
 class DeleteNewProjectPage(MethodView):
     def get(self, project_id):
         projectId = strip_input(project_id)
-        project = DeleteNewProjectController().getNewProject(projectId)
+        project = ViewNewProjectController().getNewProject(projectId)
         if project is None:
             return error_response('New project not found.', status=404)
         return present(dict(ok=True, confirmationRequired=True, project=project_values(project)))

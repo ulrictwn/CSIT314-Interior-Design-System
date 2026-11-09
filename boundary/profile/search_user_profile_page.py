@@ -1,3 +1,4 @@
+from control.profile.profile_controllers import ProfileDirectoryController
 from flask import render_template, request, flash
 from flask.views import MethodView
 from boundary.validation import strip_input
@@ -14,7 +15,7 @@ class SearchUserProfilePage(MethodView):
         if 'q' in request.args:
             self.onSearch(self.keyword)
         else:
-            self.displayResults(SearchUserProfileController().listUserProfiles())
+            self.displayResults(ProfileDirectoryController().listForAction())
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
@@ -25,7 +26,7 @@ class SearchUserProfilePage(MethodView):
             profiles = controller.searchUserProfiles(keyword)
         except DomainError as error:
             flash(str(error), 'error')
-            profiles = controller.listUserProfiles()
+            profiles = ProfileDirectoryController().listForAction()
         self.displayResults(profiles)
 
     def displayResults(self, profiles: list[UserProfile]) -> None:

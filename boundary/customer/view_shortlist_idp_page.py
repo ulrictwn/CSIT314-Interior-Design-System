@@ -8,16 +8,13 @@ from entity.projects.interior_design_project import InteriorDesignProject
 
 
 class ViewShortlistIDPPage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self, project_id):
         self.onView(project_id)
         return self.rendered_page
 
     def onView(self, projectId: int) -> None:
         projectId = strip_input(projectId)
-        self.owner = account_id(self.accountId)
+        self.owner = account_id()
         idp = ViewShortlistIDPController(self.owner).getIDP(projectId)
         if idp is None:
             self.rendered_page = error_response('This project is not in your shortlist.','customer',status=404)

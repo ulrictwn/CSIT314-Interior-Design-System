@@ -1,3 +1,4 @@
+from control.profile.view_user_profile_controller import ViewUserProfileController
 from flask import render_template, redirect, url_for, flash
 from flask.views import MethodView
 from control.profile.suspend_user_profile_controller import SuspendUserProfileController
@@ -6,7 +7,7 @@ from control.profile.suspend_user_profile_controller import SuspendUserProfileCo
 class SuspendUserProfilePage(MethodView):
 
     def get(self, profile_id):
-        self.profile = (SuspendUserProfileController().getUserProfile(profile_id))
+        self.profile = (ViewUserProfileController().getUserProfile(profile_id))
         if self.profile is None:
             self.error_message, self.error_reason = 'User profile not found.', 'not_found'
             self.displayError()
@@ -19,7 +20,7 @@ class SuspendUserProfilePage(MethodView):
 
     def onSuspend(self, profileId: int) -> None:
         controller = SuspendUserProfileController()
-        self.profile = controller.getUserProfile(profileId)
+        self.profile = ViewUserProfileController().getUserProfile(profileId)
         if controller.suspendUserProfile(profileId):
             self.displaySuccess()
         else:

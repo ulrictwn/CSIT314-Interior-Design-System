@@ -8,9 +8,6 @@ from control.company.search_company_profile_controller import SearchCompanyProfi
 
 
 class SearchCompanyProfilePage(MethodView):
-    def __init__(self, accountId=None):
-        self.accountId = accountId
-
     def get(self):
         self.onSearch(request.args.get('q', request.args.get('keyword', '')))
         return self.rendered_page
@@ -23,7 +20,7 @@ class SearchCompanyProfilePage(MethodView):
     def onSearch(self, keyword: str) -> None:
         self.keyword = keyword
         keyword = strip_input(keyword)
-        accountId = account_id(self.accountId)
+        accountId = account_id()
         results = SearchCompanyProfileController().searchCompanyProfile(accountId, keyword)
         self.displayResults(results)
 

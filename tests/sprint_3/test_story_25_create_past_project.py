@@ -14,3 +14,7 @@ def test_create_past_project_saves_project_details(app, designer_client, designe
         assert (project.project_name, project.account_id, project.category_id) == (
             project_data['projectName'], designer_account, project_data['categoryId'])
         assert project.description == project_data['description']
+    duplicate = designer_client.post('/designer/projects/past/create', json=dict(
+        accountId=designer_account, **dict(project_data, projectName=project_data['projectName'].upper())))
+    assert duplicate.status_code == 400
+    assert 'projectName' in duplicate.json['errors']
