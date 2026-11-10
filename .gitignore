@@ -15,3 +15,6 @@ backups/
 dist/
 .coverage
 .pytest_cache/
+
+# Generated database listings; recreate them with test data/list_data.py.
+/test data/exports/
