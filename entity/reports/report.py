@@ -36,24 +36,27 @@ class Report(db.Model):
             raise DomainError('Account not found.')
         start = datetime.combine(startDate, time.min, SINGAPORE).astimezone(timezone.utc)
         stop = datetime.combine(endDate + timedelta(days=1), time.min, SINGAPORE).astimezone(timezone.utc)
-        events = dict(db.session.execute(db.select(ActivityEvent.kind, db.func.count())
-            .where(ActivityEvent.occurred_at >= start, ActivityEvent.occurred_at < stop)
-            .group_by(ActivityEvent.kind)).all())
-        registrations = db.session.scalar(db.select(db.func.count()).select_from(UserAccount)
-            .where(UserAccount.created_at >= start, UserAccount.created_at < stop))
-        totals = dict(successfulLogins=events.get('login_success', 0), newRegistrations=registrations,
-                      projectsCreated=events.get('project_new_created', 0)+events.get('project_past_created', 0))
-        rows = [dict(area=area, activity=label, total=events.get(event, 0)) for area, label, event in [
-            ('Interior Design Projects', 'New projects created', 'project_new_created'),
-            ('Interior Design Projects', 'Past projects added', 'project_past_created'),
-            ('Interior Design Projects', 'Projects updated', 'project_updated'),
-            ('Interior Design Projects', 'Projects deleted', 'project_deleted'),
-            ('IDP categories', 'Categories created', 'category_created'),
-            ('IDP categories', 'Categories updated', 'category_updated'),
-            ('IDP categories', 'Categories deleted', 'category_deleted'),
-            ('Customer activity', 'Project views', 'project_viewed'),
-            ('Customer activity', 'Projects shortlisted', 'shortlist_saved'),
-        ]]
+        period = (ActivityEvent.occurred_at >= start, ActivityEvent.occurred_at < stop)
+        projects_created = db.session.scalar(db.select(db.func.count()).select_from(ActivityEvent)
+            .where(*period, ActivityEvent.kind == 'project_new_created'))
+        shortlist_saves = db.session.scalar(db.select(db.func.count()).select_from(ActivityEvent)
+            .where(*period, ActivityEvent.kind == 'shortlist_saved'))
+
+        from entity.categories.category import Category
+        # Rank by new IDPs created, as specified by the report wireframes.
+        # Keep the creation category even if a project is later moved or deleted.
+        category_name = db.func.coalesce(Category.category_name,
+            db.func.max(ActivityEvent.category_name), 'Unknown category')
+        category_total = db.func.count()
+        categories = db.session.execute(db.select(category_name, category_total)
+            .select_from(ActivityEvent)
+            .outerjoin(Category, Category.category_id == ActivityEvent.category_id)
+            .where(*period, ActivityEvent.kind == 'project_new_created')
+            .group_by(ActivityEvent.category_id, Category.category_name)
+            .order_by(category_total.desc(), db.func.lower(category_name), ActivityEvent.category_id)).all()
+        totals = dict(projectsCreated=projects_created, shortlistSaves=shortlist_saves,
+                      topCategory=categories[0][0] if categories else None)
+        rows = [dict(area='IDP categories', activity=name, total=total) for name, total in categories]
         report = Report(report_type=reportType, start_date=startDate, end_date=endDate,
                         account_id=self.account_id, totals=totals, rows=rows)
         db.session.add(report)

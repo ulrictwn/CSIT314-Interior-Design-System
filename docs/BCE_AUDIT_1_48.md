@@ -89,7 +89,7 @@ The boundary, controller, and entity now follow `createUserAccount(username, pas
 - All 65 sprint tests passed on SQLite and PostgreSQL, using disposable test databases/schemas.
 - HTML smoke checks passed for 42 login/page responses, input error displays, shortlist saving, report generation/download, and all four logout redirects.
 - Trusted bootstrap-admin and its explicit-password login passed in a temporary SQLite database.
-- Database model column/relationship/constraint declarations are unchanged, so this refactor needs no database migration.
+- The original class/method alignment required no schema changes. The report-content correction described below adds category-history columns through `upgrade-db`.
 
 Run the existing report command to refresh the complete sprint results:
 
@@ -98,3 +98,7 @@ Run the existing report command to refresh the complete sprint results:
 ```
 
 See [the test guide](TESTING_GUIDE.md) and [test case mapping](TEST_CASES.md).
+
+## Report content correction — 10 November 2026
+
+Stories 46–48 retain the audited BCE class names and method signatures. `Report.generateReport` now calculates new IDPs created, customer shortlist-save actions, and the top category by new IDPs created, following the Word (5) Normal Flow and updated embedded wireframes. Login/registration totals in Word TC63–TC65 contradict those requirements; the code tests now follow the use cases. Boundaries only display/format those results; controllers continue to relay entity calls. `activity_event` gains nullable category ID/name snapshots through the idempotent `upgrade-db` command. Older reports remain unchanged and readable. See [report details and migration behavior](SPRINTS_4_5_IMPLEMENTATION.md#reports).

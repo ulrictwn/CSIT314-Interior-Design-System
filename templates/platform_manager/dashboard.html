@@ -54,7 +54,7 @@
           <p>Generate a report for a day, week or month to review platform activity.</p>
         </div>
       </header>
-      {% for kind,label in [('daily','Review a day of logins, registrations and project activity.'),('weekly','Understand activity across a selected week.'),('monthly','See a complete month of platform activity.')] %}<a class="dashboard-action"
+      {% for kind,label in [('daily','Review new IDPs, customer shortlists and the top IDP category.'),('weekly','Understand activity across a selected week.'),('monthly','See a complete month of platform activity.')] %}<a class="dashboard-action"
                                                                                                                                                                                                                             href="{{ ui_url('generate_' ~ kind ~ '_report') }}">{{ icon('projects', 16) }}<span>
         <strong>Generate {{ kind|title }} Report</strong>
         <small>{{ label }}</small>

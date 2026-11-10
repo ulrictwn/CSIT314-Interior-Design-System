@@ -4,6 +4,7 @@ from flask import make_response
 from flask.views import MethodView
 from boundary.portal import present, error_response
 from control.reports.view_report_controller import ViewReportController
+from boundary.reports.presentation import report_metrics
 
 
 class ViewReportPage(MethodView):
@@ -11,7 +12,7 @@ class ViewReportPage(MethodView):
         report = ViewReportController().getReport(report_id)
         if report is None:
             return error_response('Report not found.','manager',status=404)
-        return present(dict(ok=True,report=report.as_dict(),kind=report.report_type,
+        return present(dict(ok=True,report=report.as_dict(),metrics=report_metrics(report),kind=report.report_type,
             values=dict(startDate=report.start_date.isoformat(),endDate=report.end_date.isoformat())),
             'reports/form.html','Generate '+report.report_type.title()+' Report','manager')
 
@@ -29,12 +30,15 @@ class DownloadReportPage(MethodView):
         writer.writerow(['Generated at',report.as_dict()['generatedAt']])
         writer.writerow([])
         writer.writerow(['Metric','Total'])
-        for name,key in [('Successful logins','successfulLogins'),('New registrations','newRegistrations'),('Projects created','projectsCreated')]:
-            writer.writerow([name,report.totals[key]])
+        for name, key, detail in report_metrics(report):
+            value = report.totals[key]
+            writer.writerow([name, value if value is not None else 'No new IDPs'])
         writer.writerow([])
-        writer.writerow(['Platform area','Activity','Total'])
+        current_format = 'topCategory' in report.totals
+        writer.writerow(['IDP category', 'New IDPs'] if current_format else ['Platform area', 'Activity', 'Total'])
         for row in report.rows:
-            writer.writerow([row['area'],row['activity'],row['total']])
+            writer.writerow([row['activity'], row['total']] if current_format else
+                            [row['area'], row['activity'], row['total']])
         response = make_response(stream.getvalue())
         response.headers['Content-Type'] = 'text/csv; charset=utf-8'
         response.headers['Content-Disposition'] = f'attachment; filename="{report.report_type}-report-{report.report_id}.csv"'

@@ -40,6 +40,7 @@ def upgrade_database():
     with db.engine.begin() as connection:
         connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_profile_name_lower ON user_profile (LOWER(name))'))
     upgrade_sprints_4_5()
+    upgrade_report_activity()
 
 
 def upgrade_sprints_4_5():
@@ -101,3 +102,26 @@ def upgrade_sprints_4_5():
                     f'BEFORE {operation} ON report FOR EACH ROW WHEN '
                     "NEW.report_type NOT IN ('daily', 'weekly', 'monthly') OR NEW.end_date < NEW.start_date "
                     "BEGIN SELECT RAISE(ABORT, 'Invalid report type or date range'); END"))
+
+
+def upgrade_report_activity():
+    """Preserve category history for the report's new-IDP ranking."""
+    with db.engine.begin() as connection:
+        columns = {column['name'] for column in inspect(connection).get_columns('activity_event')}
+        for name, sql_type in [('category_id', 'INTEGER'), ('category_name', 'VARCHAR(100)')]:
+            if name not in columns:
+                connection.execute(text(f'ALTER TABLE activity_event ADD COLUMN {name} {sql_type}'))
+        # Older events have only a project ID. Recover the available category from
+        # surviving projects without inventing history for already-deleted projects.
+        connection.execute(text("""
+            UPDATE activity_event AS event
+            SET category_id = COALESCE(event.category_id, (
+                    SELECT project.category_id FROM interior_design_project AS project
+                    WHERE CAST(project.project_id AS VARCHAR) = event.target_id)),
+                category_name = COALESCE(event.category_name, (
+                    SELECT category.category_name FROM interior_design_project AS project
+                    JOIN category ON category.category_id = project.category_id
+                    WHERE CAST(project.project_id AS VARCHAR) = event.target_id))
+            WHERE event.kind = 'project_new_created'
+              AND (event.category_id IS NULL OR event.category_name IS NULL)
+        """))

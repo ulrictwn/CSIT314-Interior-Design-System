@@ -44,8 +44,12 @@ For Sprints 2–5, each story has one independent successful workflow test. Thes
 | 4 | 37–38 | View a project's view count; view its shortlist count. |
 | 5 | 39–40 | Platform Manager login; logout. |
 | 5 | 41–45 | Create a category; view; update; delete; search. |
-| 5 | 46–48 | Generate a daily report; weekly report; monthly report, checking saved dates and totals against known activity. |
+| 5 | 46–48 | Generate daily, weekly and monthly reports, checking new IDPs, shortlist-save actions, top category, saved dates and snapshots against known activity. |
 
 Total: **65 tests**, covering all **48 stories**. Every test gets a disposable database or isolated test schema. Run commands and report locations are in [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 The latest BCE review keeps the same 65 test functions. Shared fixtures arrange signed-in users. Existing story cases also check entity-level validation and the requested logged-out, wrong-role, and forged-ownership behavior; see [BCE_REVIEW_CHANGES.md](BCE_REVIEW_CHANGES.md).
+
+## Report requirement correction (Stories 46–48)
+
+The code tests follow the Normal Flow and updated Word (5) wireframes: new IDPs created, times customers shortlisted a project, and the category with the most new IDPs. Word test cases TC63–TC65 still describe login/registration totals and require an editorial correction. No extra test functions were added. The shared report data uses real entity operations and covers New versus Past projects, Singapore date boundaries, activity outside the period, shortlist removal/re-save, project reassignment/deletion and deleted category labels. The existing three report cases also check empty periods, deterministic category ties, saved snapshots, HTML/CSV output and older saved-report compatibility.

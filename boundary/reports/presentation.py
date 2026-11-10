@@ -16,3 +16,16 @@ def default_dates(kind):
     return dict(startDate=start.isoformat(), endDate=end.isoformat())
 
 
+def report_metrics(report):
+    if 'topCategory' in report.totals:
+        return [
+            ('New IDPs created', 'projectsCreated', 'New projects created in this period'),
+            ('Customer shortlists', 'shortlistSaves', 'Times customers saved a project in this period'),
+            ('Top IDP category', 'topCategory', 'Category with the most new IDPs'),
+        ]
+    # Existing saved reports remain readable in their original format.
+    return [
+        ('Successful logins', 'successfulLogins', 'Across all platform roles'),
+        ('New registrations', 'newRegistrations', 'Accounts created in this period'),
+        ('Projects created', 'projectsCreated', 'New and past design projects added'),
+    ]

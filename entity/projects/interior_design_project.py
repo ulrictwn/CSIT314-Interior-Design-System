@@ -49,7 +49,8 @@ class InteriorDesignProject(db.Model):
         try:
             if UserAccount.getUserAccount(accountId) is None:
                 return self._reject('Account not found.', {'accountId': ['Account not found.']}, 'not_found')
-            if Category.getCategory(categoryId) is None:
+            category = Category.getCategory(categoryId)
+            if category is None:
                 return self._reject('Choose an existing category.', {'categoryId':['Category not found.']})
             if self._name_exists(accountId, projectName, status):
                 message = f'A {status.lower()} project with this name already exists for this account.'
@@ -59,7 +60,8 @@ class InteriorDesignProject(db.Model):
             self.description, self.project_status = description, status
             db.session.add(self)
             db.session.flush()
-            ActivityEvent.record('project_'+status.lower()+'_created', self.project_id)
+            ActivityEvent.record('project_'+status.lower()+'_created', self.project_id,
+                                 category_id=categoryId, category_name=category.category_name)
             db.session.commit()
             return True
         except IntegrityError:
