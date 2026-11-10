@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint5, pytest.mark.story40]
 
 
-def test_platform_manager_logout_clears_login_and_returns_to_login_page(client, create_account):
+def test_TC57_platform_manager_logout_clears_login_and_returns_to_login_page(client, create_account):
     account_id = create_account('manager1', 'Platform Management')
     with client.session_transaction() as session:
         session['account_id'] = account_id

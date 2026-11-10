@@ -6,7 +6,7 @@ from entity.accounts.user_account import UserAccount
 pytestmark = [pytest.mark.sprint2, pytest.mark.story8]
 
 
-def test_update_user_account_loads_and_saves_details(app, admin_client, customer_account):
+def test_TC25_update_user_account_loads_and_saves_details(app, admin_client, customer_account):
     page = admin_client.get(f'/accounts/{customer_account}/update')
     assert page.status_code == 200
     assert 'customer1@example.com' in page.text

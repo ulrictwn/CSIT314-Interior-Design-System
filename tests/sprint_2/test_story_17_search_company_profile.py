@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint2, pytest.mark.story17]
 
 
-def test_search_company_profile_returns_matching_details(designer_client, company_profile, monkeypatch):
+def test_TC34_search_company_profile_returns_matching_details(designer_client, company_profile, monkeypatch):
     with monkeypatch.context() as patch:
         patch.setattr('control.company.search_company_profile_controller.SearchCompanyProfileController.searchCompanyProfile',
                       lambda *args, **kwargs: pytest.fail('Malformed search input reached the controller.'))

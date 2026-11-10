@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint2, pytest.mark.story14]
 
 
-def test_view_company_profile_displays_saved_details(designer_client, company_profile, company_data):
+def test_TC31_view_company_profile_displays_saved_details(designer_client, company_profile, company_data):
     response = designer_client.get('/designer/company', query_string={'accountId': company_profile})
     assert response.status_code == 200
     assert response.json['profile'] == dict(accountId=company_profile, **company_data)

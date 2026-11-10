@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint4, pytest.mark.story36]
 
 
-def test_customer_logout_clears_login_and_returns_to_login_page(client, customer_account):
+def test_TC53_customer_logout_clears_login_and_returns_to_login_page(client, customer_account):
     with client.session_transaction() as session:
         session['account_id'] = customer_account
     response = client.post('/customer/logout')

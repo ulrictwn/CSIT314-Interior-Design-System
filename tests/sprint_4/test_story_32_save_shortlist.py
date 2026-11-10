@@ -6,7 +6,7 @@ from entity.shortlist.shortlist import Shortlist
 pytestmark = [pytest.mark.sprint4, pytest.mark.story32]
 
 
-def test_customer_saves_project_to_shortlist(app, customer_client, customer_account, new_project, create_account, monkeypatch):
+def test_TC49_customer_saves_project_to_shortlist(app, customer_client, customer_account, new_project, create_account, monkeypatch):
     # Invalid user input is rejected in the boundary before the controller.
     blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
     with monkeypatch.context() as guard:

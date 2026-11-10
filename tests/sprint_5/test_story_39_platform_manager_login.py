@@ -6,7 +6,7 @@ import pytest
 pytestmark = [pytest.mark.sprint5, pytest.mark.story39]
 
 
-def test_platform_manager_login_opens_dashboard(client, create_account, credentials):
+def test_TC56_platform_manager_login_opens_dashboard(client, create_account, credentials):
     guest = client.get('/manager')
     assert guest.status_code == 302 and guest.location == '/manager/login'
     with patch('boundary.platform_manager.platform_manager_login_page.PlatformManagerLoginController.login', side_effect=AssertionError('Invalid fields reached controller')):

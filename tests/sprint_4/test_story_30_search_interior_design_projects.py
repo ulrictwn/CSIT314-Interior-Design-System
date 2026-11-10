@@ -5,7 +5,7 @@ from unittest.mock import Mock
 pytestmark = [pytest.mark.sprint4, pytest.mark.story30]
 
 
-def test_customer_search_returns_matching_project(customer_client, new_project, past_project, monkeypatch):
+def test_TC47_customer_search_returns_matching_project(customer_client, new_project, past_project, monkeypatch):
     # Invalid user input is rejected in the boundary before the controller.
     blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
     with monkeypatch.context() as guard:

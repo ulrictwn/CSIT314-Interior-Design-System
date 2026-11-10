@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint3, pytest.mark.story19]
 
 
-def test_interior_designer_logout_clears_login_and_returns_to_login_page(client, designer_account):
+def test_TC36_interior_designer_logout_clears_login_and_returns_to_login_page(client, designer_account):
     with client.session_transaction() as session:
         session['account_id'] = designer_account
     response = client.post('/designer/logout')

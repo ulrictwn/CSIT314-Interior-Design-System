@@ -6,7 +6,7 @@ import pytest
 pytestmark = [pytest.mark.sprint2, pytest.mark.story11]
 
 
-def test_user_admin_login_opens_dashboard(client, create_account, credentials):
+def test_TC28_user_admin_login_opens_dashboard(client, create_account, credentials):
     guest = client.get('/dashboard')
     assert guest.status_code == 302 and guest.location == '/login'
     with patch('boundary.auth.user_admin_login_page.UserAdminLoginController.login', side_effect=AssertionError('Invalid fields reached controller')):

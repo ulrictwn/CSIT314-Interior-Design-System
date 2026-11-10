@@ -5,10 +5,10 @@ The test suite follows `Nothinghere/CSIT314 Group Project Report (5).docx`:
 | Folder | User stories | Tests |
 | --- | --- | ---: |
 | `tests/sprint_1/` | 1–5 | 22: the document's TC01–TC22 checks |
-| `tests/sprint_2/` | 6–17 | 12: one per story |
-| `tests/sprint_3/` | 18–29 | 12: one per story |
-| `tests/sprint_4/` | 30–38 | 9: one per story |
-| `tests/sprint_5/` | 39–48 | 10: one per story |
+| `tests/sprint_2/` | 6–17 | 12: TC23–TC34, one per story |
+| `tests/sprint_3/` | 18–29 | 12: TC35–TC46, one per story |
+| `tests/sprint_4/` | 30–38 | 9: TC47–TC55, one per story |
+| `tests/sprint_5/` | 39–48 | 10: TC56–TC65, one per story |
 | Total | 1–48 | 65 |
 
 Each story has its own `test_story_XX_*.py` file. Shared database and sample-data fixtures are in `tests/conftest.py`. Sprint 1 has a small form-reading fixture; Sprint 5 has known report activity. Tests create their own prerequisites and can run independently. Role-specific client fixtures arrange a signed-in account; login tests use an anonymous client.
@@ -24,7 +24,7 @@ From the folder containing `app.py`:
 
 The existing runner name is retained. It runs all five sprint folders and generates fresh reports:
 
-- `reports/summary.md`: results grouped by sprint and story, with TC01–TC22 for Sprint 1 and US06–US48 for later stories.
+- `reports/summary.md`: results grouped by sprint and story, with TC01–TC22 for Sprint 1 and TC23–TC65 for later stories.
 - `reports/test-results.html`: a self-contained report with status filters and assertion details.
 - `reports/tests.xml`: JUnit results for CI.
 - `reports/coverage/index.html`: executed code lines, separate from test success.

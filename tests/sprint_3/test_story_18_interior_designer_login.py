@@ -6,7 +6,7 @@ import pytest
 pytestmark = [pytest.mark.sprint3, pytest.mark.story18]
 
 
-def test_interior_designer_login_opens_dashboard(client, create_account, credentials):
+def test_TC35_interior_designer_login_opens_dashboard(client, create_account, credentials):
     guest = client.get('/designer')
     assert guest.status_code == 302 and guest.location == '/designer/login'
     with patch('boundary.designer.interior_designer_login_page.InteriorDesignerLoginController.login', side_effect=AssertionError('Invalid fields reached controller')):

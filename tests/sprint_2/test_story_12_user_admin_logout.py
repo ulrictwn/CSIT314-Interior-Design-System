@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint2, pytest.mark.story12]
 
 
-def test_user_admin_logout_clears_login_and_returns_to_login_page(client, create_account):
+def test_TC29_user_admin_logout_clears_login_and_returns_to_login_page(client, create_account):
     account_id = create_account('admin', 'User Admin')
     with client.session_transaction() as session:
         session['account_id'] = account_id

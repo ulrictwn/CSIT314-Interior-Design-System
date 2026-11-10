@@ -5,7 +5,7 @@ from entity.projects.interior_design_project import InteriorDesignProject
 pytestmark = [pytest.mark.sprint3, pytest.mark.story29]
 
 
-def test_delete_past_project_removes_saved_project(app, designer_client, past_project, create_account, project_data):
+def test_TC46_delete_past_project_removes_saved_project(app, designer_client, past_project, create_account, project_data):
     other_id = create_account('other_designer', 'Interior Designer')
     with app.app_context():
         other = InteriorDesignProject()

@@ -6,7 +6,7 @@ from entity.accounts.user_account import UserAccount
 pytestmark = [pytest.mark.sprint2, pytest.mark.story6]
 
 
-def test_create_user_account_saves_details_and_default_password(app, admin_client, seed_profile):
+def test_TC23_create_user_account_saves_details_and_default_password(app, admin_client, seed_profile):
     profile_id = seed_profile('Customer')
     values = dict(username='customer1', full_name='Customer One', email='customer1@example.com',
                   phone_number='+65 6123 4567', profile_id=profile_id)

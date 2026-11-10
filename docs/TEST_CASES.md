@@ -29,22 +29,22 @@ Source: `Nothinghere/CSIT314 Group Project Report (5).docx`, Sprint 1, each stor
 
 Story 3's ID heading says TC12–TC18, while its Checks list contains TC12–TC16. The tests follow the actual Checks list; Story 4 owns TC17–TC18. The document's T04–T07 spelling is normalized to TC04–TC07. TC08 and TC09 are included to match the updated document.
 
-For Sprints 2–5, each story has one independent successful workflow test. These US labels identify the story; they are not additional Word-document TC numbers.
+For Sprints 2–5, each story has one independent workflow test named `test_TCXX_description`, numbered consecutively from TC23 to TC65 in user-story order. Sprint 1 keeps TC01–TC22. The corresponding case ranges are listed below.
 
-| Sprint | Stories | One test per story |
-| --- | --- | --- |
-| 2 | 6–10 | Create an account with a hashed default password and verify login; view; update; suspend; search. |
-| 2 | 11–12 | User Admin login; logout. |
-| 2 | 13–17 | Create a company profile; view; delete; update; search. |
-| 3 | 18–19 | Interior Designer login; logout. |
-| 3 | 20–24 | Create a new project; update; view; search; delete. |
-| 3 | 25–29 | Create a past project; view; update; search; delete. |
-| 4 | 30–34 | Search projects; view a project; save a shortlist entry; search saved projects; view a saved project. |
-| 4 | 35–36 | Customer login; logout. |
-| 4 | 37–38 | View a project's view count; view its shortlist count. |
-| 5 | 39–40 | Platform Manager login; logout. |
-| 5 | 41–45 | Create a category; view; update; delete; search. |
-| 5 | 46–48 | Generate daily, weekly and monthly reports, checking new IDPs, shortlist-save actions, top category, saved dates and snapshots against known activity. |
+| Sprint | Stories | Test cases | One test per story |
+| --- | --- | --- | --- |
+| 2 | 6–10 | TC23–TC27 | Create an account with a hashed default password and verify login; view; update; suspend; search. |
+| 2 | 11–12 | TC28–TC29 | User Admin login; logout. |
+| 2 | 13–17 | TC30–TC34 | Create a company profile; view; delete; update; search. |
+| 3 | 18–19 | TC35–TC36 | Interior Designer login; logout. |
+| 3 | 20–24 | TC37–TC41 | Create a new project; update; view; search; delete. |
+| 3 | 25–29 | TC42–TC46 | Create a past project; view; update; search; delete. |
+| 4 | 30–34 | TC47–TC51 | Search projects; view a project; save a shortlist entry; search saved projects; view a saved project. |
+| 4 | 35–36 | TC52–TC53 | Customer login; logout. |
+| 4 | 37–38 | TC54–TC55 | View a project's view count; view its shortlist count. |
+| 5 | 39–40 | TC56–TC57 | Platform Manager login; logout. |
+| 5 | 41–45 | TC58–TC62 | Create a category; view; update; delete; search. |
+| 5 | 46–48 | TC63–TC65 | Generate daily, weekly and monthly reports, checking new IDPs, shortlist-save actions, top category, saved dates and snapshots against known activity. |
 
 Total: **65 tests**, covering all **48 stories**. Every test gets a disposable database or isolated test schema. Run commands and report locations are in [TESTING_GUIDE.md](TESTING_GUIDE.md).
 

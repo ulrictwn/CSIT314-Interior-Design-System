@@ -10,7 +10,7 @@ from entity.reports.report import Report
 pytestmark = [pytest.mark.sprint5, pytest.mark.story46]
 
 
-def test_generate_daily_report_displays_and_saves_period_totals(app, manager_client, report_activity, monkeypatch):
+def test_TC63_generate_daily_report_displays_and_saves_period_totals(app, manager_client, report_activity, monkeypatch):
     # Invalid user input is rejected in the boundary before the controller.
     blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
     with monkeypatch.context() as guard:

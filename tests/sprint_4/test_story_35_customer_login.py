@@ -6,7 +6,7 @@ import pytest
 pytestmark = [pytest.mark.sprint4, pytest.mark.story35]
 
 
-def test_customer_login_opens_dashboard(client, create_account, credentials):
+def test_TC52_customer_login_opens_dashboard(client, create_account, credentials):
     guest = client.get('/customer')
     assert guest.status_code == 302 and guest.location == '/customer/login'
     with patch('boundary.customer.customer_login_page.CustomerLoginController.login', side_effect=AssertionError('Invalid fields reached controller')):

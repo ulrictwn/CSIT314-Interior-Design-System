@@ -4,7 +4,7 @@ import pytest
 pytestmark = [pytest.mark.sprint3, pytest.mark.story28]
 
 
-def test_search_past_projects_returns_matching_project(designer_client, past_project, designer_account, monkeypatch):
+def test_TC45_search_past_projects_returns_matching_project(designer_client, past_project, designer_account, monkeypatch):
     with monkeypatch.context() as patch:
         patch.setattr('control.projects.search_past_project_controller.SearchPastProjectController.searchPastProjects',
                       lambda *args, **kwargs: pytest.fail('Malformed search input reached the controller.'))

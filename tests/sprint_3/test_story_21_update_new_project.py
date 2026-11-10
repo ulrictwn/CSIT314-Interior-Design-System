@@ -5,7 +5,7 @@ from entity.projects.interior_design_project import InteriorDesignProject
 pytestmark = [pytest.mark.sprint3, pytest.mark.story21]
 
 
-def test_update_new_project_loads_and_saves_project_details(app, designer_client, new_project, project_data, monkeypatch):
+def test_TC38_update_new_project_loads_and_saves_project_details(app, designer_client, new_project, project_data, monkeypatch):
     with monkeypatch.context() as patch:
         patch.setattr('control.projects.update_new_project_controller.UpdateNewProjectController.updateNewProject',
                       lambda *args, **kwargs: pytest.fail('Malformed project input reached the controller.'))

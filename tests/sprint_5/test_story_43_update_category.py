@@ -6,7 +6,7 @@ from entity.categories.category import Category
 pytestmark = [pytest.mark.sprint5, pytest.mark.story43]
 
 
-def test_update_category_loads_and_saves_category_details(app, manager_client, category_id, category_data, monkeypatch):
+def test_TC60_update_category_loads_and_saves_category_details(app, manager_client, category_id, category_data, monkeypatch):
     # Invalid user input is rejected in the boundary before the controller.
     blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
     with monkeypatch.context() as guard:

@@ -5,7 +5,7 @@ from entity.company.company_profile import CompanyProfile
 pytestmark = [pytest.mark.sprint2, pytest.mark.story15]
 
 
-def test_delete_company_profile_removes_saved_profile(app, designer_client, company_profile, create_account, company_data):
+def test_TC32_delete_company_profile_removes_saved_profile(app, designer_client, company_profile, create_account, company_data):
     other_id = create_account('other_designer', 'Interior Designer')
     with app.app_context():
         assert CompanyProfile().createCompanyProfile(other_id, **dict(company_data, companyRegistrationNumber='OTHER-123'))

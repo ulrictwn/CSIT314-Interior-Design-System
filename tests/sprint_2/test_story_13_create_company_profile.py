@@ -5,7 +5,7 @@ from entity.company.company_profile import CompanyProfile
 pytestmark = [pytest.mark.sprint2, pytest.mark.story13]
 
 
-def test_create_company_profile_saves_company_details(app, designer_client, designer_account, company_data, monkeypatch):
+def test_TC30_create_company_profile_saves_company_details(app, designer_client, designer_account, company_data, monkeypatch):
     with monkeypatch.context() as patch:
         patch.setattr('control.company.create_company_profile_controller.CreateCompanyProfileController.createCompanyProfile',
                       lambda *args, **kwargs: pytest.fail('Malformed company input reached the controller.'))

@@ -58,7 +58,7 @@ def render(xml_path, label, run_result):
                   str(row['story']) if row['story'] else '—', row['name'],
                   icons[row['state']] + ' ' + row['state'], row['seconds']]
         lines.append('| ' + ' | '.join(map(cell, values)) + ' |')
-    lines += ['', 'Sprint 1 uses the Word document’s TC01–TC22 checks. Sprints 2–5 have one test per story (US06–US48).', '',
+    lines += ['', 'Sprint 1 uses the Word document’s TC01–TC22 checks. Sprints 2–5 have one test per story, numbered TC23–TC65.', '',
               'Open `test-results.html` for filters and assertion details, or `coverage/index.html` for executed code lines. Skipped tests are not passes. Coverage is separate from test success.', '']
     return '\n'.join(lines), bool(rows)
 
