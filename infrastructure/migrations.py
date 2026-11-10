@@ -1,10 +1,13 @@
 """Non-destructive bridge from the profile-only project developed in the conversation."""
 from sqlalchemy import inspect, text, Boolean
 from flask import current_app
+# infrastructure/database.py: provides the shared SQLAlchemy database object.
 from infrastructure.database import db
 
 
 def upgrade_database():
+    """Create missing model tables and apply compatible upgrades without resetting records."""
+    # entity/models.py: registers the model tables in entity/models.py.
     from entity import models  # Register all tables.
     dialect = db.engine.dialect.name
     tables = inspect(db.engine).get_table_names()
@@ -44,7 +47,7 @@ def upgrade_database():
 
 
 def upgrade_sprints_4_5():
-    """Add counts and category relationships while retaining project/category IDs."""
+    """Add category relationships, project counts and report constraints while preserving IDs."""
     dialect = db.engine.dialect.name
     with db.engine.begin() as connection:
         inspector = inspect(connection)
@@ -105,7 +108,7 @@ def upgrade_sprints_4_5():
 
 
 def upgrade_report_activity():
-    """Preserve category history for the report's new-IDP ranking."""
+    """Add category history fields and recover available labels for older creation events."""
     with db.engine.begin() as connection:
         columns = {column['name'] for column in inspect(connection).get_columns('activity_event')}
         for name, sql_type in [('category_id', 'INTEGER'), ('category_name', 'VARCHAR(100)')]:

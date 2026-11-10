@@ -1,4 +1,6 @@
 """Sprint 3, user story 18: one successful workflow through BCE."""
+from unittest.mock import patch
+
 import pytest
 
 pytestmark = [pytest.mark.sprint3, pytest.mark.story18]
@@ -7,6 +9,10 @@ pytestmark = [pytest.mark.sprint3, pytest.mark.story18]
 def test_interior_designer_login_opens_dashboard(client, create_account, credentials):
     guest = client.get('/designer')
     assert guest.status_code == 302 and guest.location == '/designer/login'
+    with patch('boundary.designer.interior_designer_login_page.InteriorDesignerLoginController.login', side_effect=AssertionError('Invalid fields reached controller')):
+        invalid = client.post('/designer/login', json=dict(username='   ', password=''))
+    assert invalid.status_code == 400
+    assert set(invalid.json['errors']) == {'username', 'password'}
     account_id = create_account(credentials['username'], 'Interior Designer', credentials['password'])
     response = client.post('/designer/login', json=credentials)
     assert response.status_code == 302

@@ -3,7 +3,7 @@ class DomainError(ValueError):
 
 
 class NotFoundError(DomainError):
-    pass
+    """The requested record does not exist."""
 
 
 class AccessDeniedError(DomainError):

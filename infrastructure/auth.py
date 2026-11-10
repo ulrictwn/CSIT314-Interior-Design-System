@@ -1,7 +1,10 @@
 """Basic session, portal-role, and ownership checks for the four portals."""
 from flask import g, redirect, request, session, url_for
+# entity/accounts/user_account.py: provides the saved-data entity used by this operation.
 from entity.accounts.user_account import UserAccount
+# entity/projects/interior_design_project.py: provides the saved-data entity used by this operation.
 from entity.projects.interior_design_project import InteriorDesignProject
+# infrastructure/errors.py: defines expected validation, missing-record and access errors.
 from infrastructure.errors import AccessDeniedError
 
 LOGIN_ENDPOINTS = {
@@ -13,6 +16,7 @@ PUBLIC_ENDPOINTS = {'static', 'home', 'login', 'staff_login', 'interior_designer
 
 
 def load_account():
+    """Load the session account through UserAccount from entity/accounts/user_account.py."""
     account_id = session.get('account_id')
     account = UserAccount.getUserAccount(account_id) if account_id else None
     g.current_user = account if account and account.portalRole() else None
@@ -21,7 +25,7 @@ def load_account():
 
 
 def require_portal_access():
-    """Use saved identity, never a submitted accountId, for protected requests."""
+    """Require the matching signed-in role and ask the project entity to check ownership."""
     if request.endpoint is None or request.endpoint in PUBLIC_ENDPOINTS:
         return None
     path = request.path

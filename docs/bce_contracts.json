@@ -2508,7 +2508,14 @@
       "method": "getUserProfile",
       "reason": "Explicitly requested lookup to display the current profile before updating."
     },
-    "private_boundary_error_helpers": "_display_error renders runtime failures where the diagram does not declare a public displayError method.",
-    "auxiliary_controllers": "Directory/dashboard/interest controllers supply working tables, dropdowns, and labels outside the diagram story operations."
+    "auxiliary_controllers": "Dashboard, project-interest, shortlist-removal and stored-report controllers support the supplied wireframes and working navigation. Profile/account lists and dropdowns reuse diagram search methods.",
+    "validation": {
+      "boundary": "Existing diagram events strip ordinary text and reject missing/malformed fields before controller calls.",
+      "controller": "Relay only; no field checks, SQL, or copied entity error state.",
+      "entity": "Validate duplicates, references and saved state; essential defensive checks protect direct/CLI calls.",
+      "shared_helpers": "infrastructure/validation.py contains the single implementation of pure value rules; boundary/validation.py exposes them to HTTP handlers."
+    },
+    "method_explanations": "Every application method/function starts with a short explanation; local imports identify their project source files.",
+    "entity_method_simplification": "Error setters, duplicate-query and New/Past CRUD dispatcher helpers are inlined into diagram operations. Necessary setup, password/session, serialization, ownership, membership, dashboard and report-access helpers remain."
   }
 }

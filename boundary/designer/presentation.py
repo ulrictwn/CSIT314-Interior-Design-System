@@ -1,10 +1,13 @@
 """HTML presentation for the designer boundaries, with the JSON interface retained."""
 from flask import flash, g, has_request_context, redirect, render_template, request, url_for
+# boundary/designer/context.py: reads form/JSON values and the signed-in account.
 from boundary.designer.context import account_id
+# control/categories/search_category_controller.py: provides the controller used to communicate with its entity.
 from control.categories.search_category_controller import SearchCategoryController
 
 
 def wants_html():
+    """Choose HTML or JSON from the request format, body and Accept header."""
     if not has_request_context() or request.is_json:
         return False
     representation = request.args.get('format')
@@ -14,6 +17,7 @@ def wants_html():
 
 
 def present(payload, status=200):
+    """Prepare the designer template or JSON response for the current operation."""
     if not wants_html():
         return payload, status
     endpoint = request.endpoint or ''
@@ -27,6 +31,7 @@ def present(payload, status=200):
     if not owner:
         owner = account_id()
     def link(name, **kwargs):
+        """Build a page link with the current account context."""
         if owner and name not in ('login', 'interior_designer_login', 'interior_designer_logout'):
             kwargs.setdefault('accountId', owner)
         return url_for(name, **kwargs)

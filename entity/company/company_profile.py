@@ -1,7 +1,9 @@
-from entity.company.validation import validate_company_fields
-from entity.validation import search_text, valid_account_id
+# infrastructure/validation.py: pure value checks for direct entity calls.
+from infrastructure.validation import validate_company_fields, search_text, valid_account_id
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+# infrastructure/database.py: shared SQLAlchemy database session.
 from infrastructure.database import db
+# entity/accounts/user_account.py: saved account lookups.
 from entity.accounts.user_account import UserAccount
 
 
@@ -16,35 +18,38 @@ class CompanyProfile(db.Model):
     company_registration_number = db.Column(db.String(100), nullable=False)
     __table_args__ = (db.Index('uq_company_registration_lower', db.func.lower(company_registration_number), unique=True),)
 
-    def _reject(self, message, field_errors=None, reason='invalid_data') -> bool:
-        self.error_message, self.field_errors, self.error_reason = message, field_errors or {}, reason
-        return False
-
-    @classmethod
-    def _registration_exists(cls, registration_number, exclude_account=None):
-        statement = db.select(cls.account_id).where(
-            db.func.lower(cls.company_registration_number) == registration_number.lower())
-        if exclude_account is not None:
-            statement = statement.where(cls.account_id != exclude_account)
-        return db.session.execute(statement.limit(1)).first() is not None
-
     def createCompanyProfile(self, accountId: str, companyName: str, companyContact: str,
                              companyAddress: str, companyEmail: str,
                              companyRegistrationNumber: str) -> bool:
+        """Check account and registration duplicates, then save the company profile."""
         values, errors = validate_company_fields(companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber)
         if errors:
-            return self._reject('Please correct the errors below.', errors)
+            self.error_message = 'Please correct the errors below.'
+            self.field_errors = errors or {}
+            self.error_reason = 'invalid_data'
+            return False
         companyName, companyContact, companyAddress = values['companyName'], values['companyContact'], values['companyAddress']
         companyEmail, companyRegistrationNumber = values['companyEmail'], values['companyRegistrationNumber']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             if UserAccount.getUserAccount(accountId) is None:
-                return self._reject('Account not found.', {'accountId': ['Account not found.']}, 'not_found')
+                self.error_message = 'Account not found.'
+                self.field_errors = {'accountId': ['Account not found.']}
+                self.error_reason = 'not_found'
+                return False
             if self.getCompanyProfile(accountId) is not None:
-                return self._reject('This account already has a company profile.')
-            if self._registration_exists(companyRegistrationNumber):
+                self.error_message = 'This account already has a company profile.'
+                self.field_errors = {}
+                self.error_reason = 'invalid_data'
+                return False
+            duplicate = db.session.scalar(db.select(CompanyProfile.account_id).where(
+                db.func.lower(CompanyProfile.company_registration_number) == companyRegistrationNumber.lower()).limit(1))
+            if duplicate is not None:
                 message = 'The business registration number is already registered.'
-                return self._reject(message, {'companyRegistrationNumber': [message]})
+                self.error_message = message
+                self.field_errors = {'companyRegistrationNumber': [message]}
+                self.error_reason = 'invalid_data'
+                return False
             self.account_id = accountId
             self.company_name, self.company_contact = companyName, companyContact
             self.company_address, self.company_email = companyAddress, companyEmail
@@ -54,13 +59,17 @@ class CompanyProfile(db.Model):
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject('A company profile with this account or registration number already exists.')
+            self.error_message = 'A company profile with this account or registration number already exists.'
+            self.field_errors = {}
+            self.error_reason = 'invalid_data'
+            return False
         except SQLAlchemyError:
             db.session.rollback()
             raise
 
     @classmethod
     def getCompanyProfile(cls, accountId: str) -> 'CompanyProfile | None':
+        """Retrieve the company profile linked to this account."""
         if not valid_account_id(accountId):
             return None
         return db.session.get(cls, accountId)
@@ -68,19 +77,32 @@ class CompanyProfile(db.Model):
     def updateCompanyProfile(self, accountId: str, companyName: str, companyContact: str,
                              companyAddress: str, companyEmail: str,
                              companyRegistrationNumber: str) -> bool:
+        """Check the saved profile and registration number before updating its details."""
         values, errors = validate_company_fields(companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber)
         if errors:
-            return self._reject('Please correct the errors below.', errors)
+            self.error_message = 'Please correct the errors below.'
+            self.field_errors = errors or {}
+            self.error_reason = 'invalid_data'
+            return False
         companyName, companyContact, companyAddress = values['companyName'], values['companyContact'], values['companyAddress']
         companyEmail, companyRegistrationNumber = values['companyEmail'], values['companyRegistrationNumber']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             profile = self.getCompanyProfile(accountId)
             if profile is None:
-                return self._reject('Company profile not found.', reason='not_found')
-            if self._registration_exists(companyRegistrationNumber, accountId):
+                self.error_message = 'Company profile not found.'
+                self.field_errors = {}
+                self.error_reason = 'not_found'
+                return False
+            duplicate = db.session.scalar(db.select(CompanyProfile.account_id).where(
+                db.func.lower(CompanyProfile.company_registration_number) == companyRegistrationNumber.lower(),
+                CompanyProfile.account_id != accountId).limit(1))
+            if duplicate is not None:
                 message = 'The business registration number is already registered.'
-                return self._reject(message, {'companyRegistrationNumber': [message]})
+                self.error_message = message
+                self.field_errors = {'companyRegistrationNumber': [message]}
+                self.error_reason = 'invalid_data'
+                return False
             profile.company_name, profile.company_contact = companyName, companyContact
             profile.company_address, profile.company_email = companyAddress, companyEmail
             profile.company_registration_number = companyRegistrationNumber
@@ -88,29 +110,40 @@ class CompanyProfile(db.Model):
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject('The business registration number is already registered.')
+            self.error_message = 'The business registration number is already registered.'
+            self.field_errors = {}
+            self.error_reason = 'invalid_data'
+            return False
         except SQLAlchemyError:
             db.session.rollback()
             raise
 
     def deleteCompanyProfile(self, accountId: str) -> bool:
+        """Delete the saved company profile and report database conflicts."""
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             profile = self.getCompanyProfile(accountId)
             if profile is None:
-                return self._reject('Company profile not found.', reason='not_found')
+                self.error_message = 'Company profile not found.'
+                self.field_errors = {}
+                self.error_reason = 'not_found'
+                return False
             db.session.delete(profile)
             db.session.commit()
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject('This company profile is still in use.')
+            self.error_message = 'This company profile is still in use.'
+            self.field_errors = {}
+            self.error_reason = 'invalid_data'
+            return False
         except SQLAlchemyError:
             db.session.rollback()
             raise
 
     @classmethod
     def searchCompanyProfile(cls, accountId: str, keyword: str) -> list[str]:
+        """Return matching labelled details from the current account's company profile."""
         keyword = search_text(keyword)
         profile = cls.getCompanyProfile(accountId)
         if profile is None:

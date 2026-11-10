@@ -1,15 +1,28 @@
+# control/categories/view_category_controller.py: the boundary-to-entity request handler.
 from control.categories.view_category_controller import ViewCategoryController
-from boundary.validation import strip_input
+# boundary/validation.py: input cleanup and field checks.
+from boundary.validation import strip_input, validate_category_fields, positive_integer
+# infrastructure/errors.py: saved-data and validation errors.
+from infrastructure.errors import DomainError
 from flask import flash, redirect, url_for
 from flask.views import MethodView
+# boundary/designer/context.py: submitted values and signed-in account context.
 from boundary.designer.context import request_values
+# boundary/designer/presentation.py: HTML or JSON presentation choice.
 from boundary.designer.presentation import wants_html
+# boundary/portal.py: shared portal rendering and error displays.
 from boundary.portal import present, error_response
+# control/categories/update_category_controller.py: the boundary-to-entity request handler.
 from control.categories.update_category_controller import UpdateCategoryController
 
 
 class UpdateCategoryPage(MethodView):
     def get(self, category_id):
+        """Load the existing category through ViewCategoryController for editing."""
+        try:
+            category_id = positive_integer(strip_input(category_id), 'Category ID')
+        except DomainError as error:
+            return error_response(str(error), 'manager', {'categoryId': [str(error)]})
         category = ViewCategoryController().getCategory(category_id)
         if category is None:
             return error_response('Category not found.','manager',status=404)
@@ -17,16 +30,27 @@ class UpdateCategoryPage(MethodView):
             'categories/form.html','Update Interior Design Project Category','manager')
 
     def post(self, category_id):
+        """Read the submitted request, run onUpdate, and return the prepared response."""
         values = request_values()
         self.onUpdate(category_id, values.get('categoryName',''),values.get('description',''))
         return self.rendered_page
 
     def onUpdate(self, categoryId: int, categoryName: str, description: str) -> None:
+        """Validate the category ID and fields, then call UpdateCategoryController.updateCategory."""
         self.values = dict(categoryName=strip_input(categoryName), description=strip_input(description))
+        _, self.field_errors = validate_category_fields(**self.values)
         self.categoryId = categoryId
+        try:
+            self.categoryId = positive_integer(strip_input(categoryId), 'Category ID')
+        except DomainError as error:
+            self.field_errors['categoryId'] = [str(error)]
+        if self.field_errors:
+            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
+            self.displayError()
+            return
         controller = UpdateCategoryController()
-        if controller.updateCategory(categoryId, **self.values):
-            self.category = ViewCategoryController().getCategory(categoryId)
+        if controller.updateCategory(self.categoryId, **self.values):
+            self.category = ViewCategoryController().getCategory(self.categoryId)
             self.displaySuccess()
         else:
             self.error_message, self.field_errors = controller.entity.error_message, controller.entity.field_errors
@@ -34,6 +58,7 @@ class UpdateCategoryPage(MethodView):
             self.displayError()
 
     def displaySuccess(self) -> None:
+        """Display the successful operation result or prepare its redirect."""
         message = 'Category updated successfully.'
         if wants_html():
             flash(message,'success')
@@ -42,6 +67,7 @@ class UpdateCategoryPage(MethodView):
             self.rendered_page = dict(ok=True,message=message,category=self.category.as_dict()), 200
 
     def displayError(self) -> None:
+        """Display the input or saved-data error returned by this operation."""
         self.rendered_page = error_response(self.error_message,'manager',self.field_errors,
             status=404 if self.error_reason == 'not_found' else 400, values=self.values,
             template='portal/error.html' if self.error_reason == 'not_found' else 'categories/form.html',

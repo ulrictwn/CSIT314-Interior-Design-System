@@ -1,14 +1,14 @@
 # Classroom BCE demonstration
 
-The implementation follows the report's BCE classes/methods and the latest lecturer remarks. The [8 November review changes](BCE_REVIEW_CHANGES.md) supersede the earlier public-page and boundary-validation simplification.
+The implementation follows the report's BCE classes/methods and the latest lecturer remarks. The [current review changes](BCE_REVIEW_CHANGES.md) and [48-story audit](BCE_AUDIT_1_48.md) define the latest validation split and required login preconditions.
 
 | Layer | Responsibility |
 | --- | --- |
-| Boundary | Receive form/query/JSON values, strip ordinary text, and display results/errors. `boundary/validation.py` contains only text cleanup. Password whitespace is preserved. |
+| Boundary | Receive form/query/JSON values, strip ordinary text, validate required/incorrect fields before controllers, and display results/errors. `boundary/validation.py` exposes shared pure checks. Password whitespace is preserved. |
 | Control | Relay entity calls/results. Operation controllers retain `self.entity`; boundaries read its errors directly. |
-| Entity | Validate fields, lengths, formats, choices, identifiers, dates, duplicates, references, and saved state; query/save data and allocate IDs. Assigned profiles cannot be suspended. |
+| Entity | Validate duplicates, references and saved state; query/save data and allocate IDs. Reuse essential value checks for direct Python/CLI calls. Assigned profiles cannot be suspended. |
 
-Profile update follows the diagram's four arguments: `profileId, profileName, description, permissions`. The controller/entity keep `getUserProfile` for prefill. Update preserves status; Suspend changes it. `UserProfile.activeProfiles()` supplies account form dropdowns.
+Profile update follows the diagram's four arguments: `profileId, profileName, description, permissions`. The controller/entity keep `getUserProfile` for prefill. Update preserves status; Suspend changes it. The diagram search methods supply profile/account lists and dropdowns; separate directory/list helpers were removed.
 
 Account creation needs no password entry and assigns the default password `password`, stored as a hash. IDs use the actual profile ID and shared sequence. Login checks the existing password hash. The existing signed browser session identifies the account; logout clears it.
 

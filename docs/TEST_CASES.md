@@ -53,3 +53,7 @@ The latest BCE review keeps the same 65 test functions. Shared fixtures arrange 
 ## Report requirement correction (Stories 46–48)
 
 The code tests follow the Normal Flow and updated Word (5) wireframes: new IDPs created, times customers shortlisted a project, and the category with the most new IDPs. Word test cases TC63–TC65 still describe login/registration totals and require an editorial correction. No extra test functions were added. The shared report data uses real entity operations and covers New versus Past projects, Singapore date boundaries, activity outside the period, shortlist removal/re-save, project reassignment/deletion and deleted category labels. The existing three report cases also check empty periods, deterministic category ties, saved snapshots, HTML/CSV output and older saved-report compatibility.
+
+## Boundary validation verification
+
+The existing sprint cases also assert that missing, malformed, overlong or unsupported user fields are rejected by boundary events before the relevant action-controller method is called. This includes profile/account, company/project, login, category/search and report-date inputs. Entity duplicate/reference/state checks are verified through real isolated database operations. The suite remains 65 test functions.

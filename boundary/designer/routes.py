@@ -1,24 +1,43 @@
+# boundary/company/create_company_profile_page.py: provides the boundary classes used by these routes.
 from boundary.company.create_company_profile_page import CreateCompanyProfilePage
+# boundary/company/view_company_profile_page.py: provides the boundary classes used by these routes.
 from boundary.company.view_company_profile_page import ViewCompanyProfilePage
+# boundary/company/delete_company_profile_page.py: provides the boundary classes used by these routes.
 from boundary.company.delete_company_profile_page import DeleteCompanyProfilePage
+# boundary/company/update_company_profile_page.py: provides the boundary classes used by these routes.
 from boundary.company.update_company_profile_page import UpdateCompanyProfilePage
+# boundary/company/search_company_profile_page.py: provides the boundary classes used by these routes.
 from boundary.company.search_company_profile_page import SearchCompanyProfilePage
+# boundary/designer/interior_designer_login_page.py: provides the boundary classes used by these routes.
 from boundary.designer.interior_designer_login_page import InteriorDesignerLoginPage
+# boundary/designer/interior_designer_logout_page.py: provides the boundary classes used by these routes.
 from boundary.designer.interior_designer_logout_page import InteriorDesignerLogoutPage
+# boundary/designer/dashboard_page.py: provides the boundary classes used by these routes.
 from boundary.designer.dashboard_page import InteriorDesignerDashboardPage
+# boundary/projects/create_new_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.create_new_project_page import CreateNewProjectPage
+# boundary/projects/update_new_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.update_new_project_page import UpdateNewProjectPage
+# boundary/projects/view_new_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.view_new_project_page import ViewNewProjectPage
+# boundary/projects/search_new_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.search_new_project_page import SearchNewProjectPage
+# boundary/projects/delete_new_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.delete_new_project_page import DeleteNewProjectPage
+# boundary/projects/create_past_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.create_past_project_page import CreatePastProjectPage
+# boundary/projects/update_past_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.update_past_project_page import UpdatePastProjectPage
+# boundary/projects/view_past_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.view_past_project_page import ViewPastProjectPage
+# boundary/projects/search_past_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.search_past_project_page import SearchPastProjectPage
+# boundary/projects/delete_past_project_page.py: provides the boundary classes used by these routes.
 from boundary.projects.delete_past_project_page import DeletePastProjectPage
 
 
 def register_designer_routes(app):
+    """Connect company, project and designer-login URLs to their imported boundary classes."""
     routes = [
         ('/designer', 'designer_dashboard', InteriorDesignerDashboardPage),
         ('/designer/login', 'interior_designer_login', InteriorDesignerLoginPage),

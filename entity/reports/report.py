@@ -1,10 +1,14 @@
-from entity.reports.validation import validate_report_dates
-from entity.validation import positive_integer
+# infrastructure/validation.py: shared pure value checks.
+from infrastructure.validation import validate_report_dates, positive_integer
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
+# infrastructure/database.py: the shared SQLAlchemy database connection.
 from infrastructure.database import db
+# infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
+# infrastructure/time.py: UTC timestamp defaults.
 from infrastructure.time import utcnow
+# entity/reports/activity_event.py: dated activity records used by reports.
 from entity.reports.activity_event import ActivityEvent
 
 SINGAPORE = ZoneInfo('Asia/Singapore')
@@ -28,9 +32,11 @@ class Report(db.Model):
     )
 
     def generateReport(self, reportType: str, startDate: date, endDate: date) -> 'Report':
+        """Validate the period and save new-IDP, shortlist and top-category totals."""
         if reportType not in ('daily', 'weekly', 'monthly'):
             raise DomainError('Choose a supported report type.')
         startDate, endDate = validate_report_dates(reportType, startDate, endDate)
+        # entity/accounts/user_account.py: saved account data and credential checks.
         from entity.accounts.user_account import UserAccount
         if self.account_id and UserAccount.getUserAccount(self.account_id) is None:
             raise DomainError('Account not found.')
@@ -42,6 +48,7 @@ class Report(db.Model):
         shortlist_saves = db.session.scalar(db.select(db.func.count()).select_from(ActivityEvent)
             .where(*period, ActivityEvent.kind == 'shortlist_saved'))
 
+        # entity/categories/category.py: saved IDP category data.
         from entity.categories.category import Category
         # Rank by new IDPs created, as specified by the report wireframes.
         # Keep the creation category even if a project is later moved or deleted.
@@ -65,12 +72,16 @@ class Report(db.Model):
 
     @classmethod
     def getReport(cls, reportId):
+        """Retrieve an existing report snapshot using its database ID."""
         reportId = positive_integer(reportId, 'Report ID')
         return db.session.get(cls, reportId)
 
     @classmethod
     def dashboard(cls):
+        """Read category/project totals and the latest report for the manager dashboard."""
+        # entity/categories/category.py: saved IDP category data.
         from entity.categories.category import Category
+        # entity/projects/interior_design_project.py: saved project data.
         from entity.projects.interior_design_project import InteriorDesignProject
         yesterday = datetime.now(SINGAPORE).date()-timedelta(days=1)
         start = datetime.combine(yesterday, time.min, SINGAPORE).astimezone(timezone.utc)
@@ -85,6 +96,7 @@ class Report(db.Model):
             latestReport=latest.as_dict() if latest else None)
 
     def as_dict(self):
+        """Format the saved report snapshot and Singapore timestamp for display."""
         generated = self.generated_at
         if generated.tzinfo is None:
             generated = generated.replace(tzinfo=timezone.utc)

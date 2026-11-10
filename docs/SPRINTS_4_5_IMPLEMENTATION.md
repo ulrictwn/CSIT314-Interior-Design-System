@@ -28,7 +28,7 @@ The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project R
 
 The updated report (4) now includes the BCE diagrams for Stories 46–48. The classes, event names, displayReport(report) methods, and date parameters match those diagrams. Daily/weekly accept startDate; monthly accepts startDate and endDate. All three use the entity operation generateReport(reportType, startDate, endDate). See [the full 48-story audit](BCE_AUDIT_1_48.md).
 
-All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries strip ordinary text and display entity results/errors. Entities validate fields, lengths, formats, identifiers, dates, references, duplicates, saved relationships, counts, and transactions.
+All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries strip ordinary text, validate field input/identifiers/dates before controllers and display results/errors. Entities validate duplicates, references, saved relationships and state, then query/persist data. Pure rules are shared through infrastructure/validation.py, including essential guards for direct entity calls.
 
 ## Folder layout
 

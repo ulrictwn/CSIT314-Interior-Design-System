@@ -1,19 +1,33 @@
-from boundary.validation import strip_input
+# boundary/validation.py: input cleanup and field checks.
+from boundary.validation import strip_input, positive_integer
+# infrastructure/errors.py: saved-data and validation errors.
+from infrastructure.errors import DomainError
 from flask import flash, redirect, url_for
 from flask.views import MethodView
+# boundary/designer/context.py: submitted values and signed-in account context.
 from boundary.designer.context import account_id
+# boundary/designer/presentation.py: HTML or JSON presentation choice.
 from boundary.designer.presentation import wants_html
+# boundary/portal.py: shared portal rendering and error displays.
 from boundary.portal import error_response
+# control/customer/remove_shortlist_idp_controller.py: the boundary-to-entity request handler.
 from control.customer.remove_shortlist_idp_controller import RemoveShortlistIDPController
 
 
 class RemoveShortlistIDPPage(MethodView):
     def post(self, project_id):
+        """Read the submitted request, run onRemove, and return the prepared response."""
         self.onRemove(project_id)
         return self.rendered_page
 
     def onRemove(self, projectId: int) -> None:
-        self.projectId = strip_input(projectId)
+        """Validate the project ID, then call RemoveShortlistIDPController.removeShortlist."""
+        try:
+            self.projectId = positive_integer(strip_input(projectId), 'Project ID')
+        except DomainError as error:
+            self.error_message, self.status = str(error), 400
+            self.displayError()
+            return
         self.owner = account_id()
         controller = RemoveShortlistIDPController()
         if controller.removeShortlist(self.owner,self.projectId):
@@ -24,6 +38,7 @@ class RemoveShortlistIDPPage(MethodView):
             self.displayError()
 
     def displaySuccess(self) -> None:
+        """Display the successful operation result or prepare its redirect."""
         if wants_html():
             flash('Project removed from your shortlist.','success')
             self.rendered_page = redirect(url_for('search_shortlist_idps', accountId=self.owner), code=303)
@@ -31,4 +46,5 @@ class RemoveShortlistIDPPage(MethodView):
             self.rendered_page = dict(ok=True,message='Project removed from your shortlist.',projectId=self.projectId), 200
 
     def displayError(self) -> None:
+        """Display the input or saved-data error returned by this operation."""
         self.rendered_page = error_response(self.error_message,'customer',status=self.status)

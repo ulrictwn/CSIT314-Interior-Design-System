@@ -2,13 +2,25 @@ import csv
 import io
 from flask import make_response
 from flask.views import MethodView
+# boundary/portal.py: shared portal rendering and error displays.
 from boundary.portal import present, error_response
+# control/reports/view_report_controller.py: the boundary-to-entity request handler.
 from control.reports.view_report_controller import ViewReportController
+# boundary/reports/presentation.py: report date defaults and display labels.
 from boundary.reports.presentation import report_metrics
+# boundary/validation.py: input cleanup and field checks.
+from boundary.validation import strip_input, positive_integer
+# infrastructure/errors.py: saved-data and validation errors.
+from infrastructure.errors import DomainError
 
 
 class ViewReportPage(MethodView):
     def get(self,report_id):
+        """Load and display a saved report through ViewReportController."""
+        try:
+            report_id = positive_integer(strip_input(report_id), 'Report ID')
+        except DomainError as error:
+            return error_response(str(error), 'manager', {'reportId': [str(error)]})
         report = ViewReportController().getReport(report_id)
         if report is None:
             return error_response('Report not found.','manager',status=404)
@@ -19,6 +31,11 @@ class ViewReportPage(MethodView):
 
 class DownloadReportPage(MethodView):
     def get(self,report_id):
+        """Load a saved report through ViewReportController and return its CSV."""
+        try:
+            report_id = positive_integer(strip_input(report_id), 'Report ID')
+        except DomainError as error:
+            return error_response(str(error), 'manager', {'reportId': [str(error)]})
         report = ViewReportController().getReport(report_id)
         if report is None:
             return error_response('Report not found.','manager',status=404)

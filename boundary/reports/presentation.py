@@ -1,9 +1,9 @@
-from calendar import monthrange
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 
 def default_dates(kind):
+    """Choose the initial dates shown on the selected report form."""
     today = datetime.now(ZoneInfo('Asia/Singapore')).date()
     if kind == 'daily':
         start = end = today-timedelta(days=1)
@@ -17,6 +17,7 @@ def default_dates(kind):
 
 
 def report_metrics(report):
+    """Return display labels for current or older saved report totals."""
     if 'topCategory' in report.totals:
         return [
             ('New IDPs created', 'projectsCreated', 'New projects created in this period'),

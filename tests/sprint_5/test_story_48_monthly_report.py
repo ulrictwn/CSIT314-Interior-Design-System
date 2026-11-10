@@ -2,6 +2,7 @@
 from datetime import date, datetime, timezone
 
 import pytest
+from unittest.mock import Mock
 from entity.projects.interior_design_project import InteriorDesignProject
 from entity.reports.activity_event import ActivityEvent
 from entity.reports.report import Report
@@ -10,7 +11,14 @@ from infrastructure.database import db
 pytestmark = [pytest.mark.sprint5, pytest.mark.story48]
 
 
-def test_generate_monthly_report_displays_and_saves_period_totals(app, manager_client, report_activity):
+def test_generate_monthly_report_displays_and_saves_period_totals(app, manager_client, report_activity, monkeypatch):
+    # Invalid user input is rejected in the boundary before the controller.
+    blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
+    with monkeypatch.context() as guard:
+        guard.setattr('boundary.reports.monthly_report_page.MonthlyReportController.generateMonthlyReport', blocked)
+        invalid = manager_client.post('/manager/reports/monthly', json={'startDate': '2026-06-15', 'endDate': '2026-06-30'})
+        assert invalid.status_code == 400
+        blocked.assert_not_called()
     response = manager_client.post('/manager/reports/monthly', json=dict(startDate='2026-06-01', endDate='2026-06-30'))
     assert response.status_code == 201
     report = response.json['report']

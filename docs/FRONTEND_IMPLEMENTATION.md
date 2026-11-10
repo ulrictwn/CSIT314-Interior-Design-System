@@ -6,7 +6,7 @@ Open `/designer/login` in the running application. The slider now switches betwe
 
 The designer dashboard links to company create/view/update/search/delete and new/past project create/view/update/search/delete. Forms display boundary errors and submitted values, update screens prefill stored data, and delete screens require a POST confirmation with a Cancel link. Successful submissions redirect to saved records or lists to avoid repeating a mutation on refresh. Search and sidebar navigation preserve account context.
 
-The company, designer, and projects folders retain the previous BCE structure. The HTML presenter in `boundary/designer/presentation.py` chooses templates, URLs, and redirects. Boundaries strip ordinary text and display results; controllers relay entity calls; entities validate input and perform database operations and duplicate checks. Diagram event and display methods remain void. JSON clients retain the original interface. The frontend adds no database columns.
+The company, designer, and projects folders retain the previous BCE structure. The HTML presenter in `boundary/designer/presentation.py` chooses templates, URLs, and redirects. Boundaries strip ordinary text and validate input fields before controllers; controllers relay calls/results; entities validate duplicates, references and stored data and perform database operations. Diagram event and display methods remain void. JSON clients retain the original interface. The frontend adds no database columns.
 
 ## Scope decisions
 

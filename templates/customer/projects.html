@@ -92,7 +92,7 @@
     </div>
   {% else %}
     <div class="empty-state">
-      <h2>{{ 'No shortlisted projects found' if shortlisted else 'No projects found' }}</h2>
+      <h2>{{ 'No shortlisted IDPs found.' if shortlisted else 'No IDPs found.' }}</h2>
       <p>{{ 'Try another keyword, or discover a project to save.' if shortlisted else 'Try another keyword or check again after designers add projects.' }}</p>
       {% if shortlisted %}
         <a class="button button-outline" href="{{ ui_url('search_idps') }}">Discover projects</a>

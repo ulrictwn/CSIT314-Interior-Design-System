@@ -41,7 +41,7 @@ This application implements Stories 1–48: profile/account administration; staf
 
 For a fresh Codespace, restore the correct database settings in the gitignored `.env`. `python scripts/setup_env.py` adds missing settings and preserves existing values; it cannot recover a previous database password.
 
-Profile modules live in `boundary/profile/`, `control/profile/`, and `entity/profile/`; account modules use the matching `accounts/` packages. Boundaries strip ordinary text through `boundary/validation.py` and display results. Controllers relay calls through their entity object. Entities validate fields, formats, choices, duplicates, and saved data. See [the latest BCE review changes](docs/BCE_REVIEW_CHANGES.md). See [the BCE implementation map](docs/STORIES_1_12.md).
+Profile modules live in `boundary/profile/`, `control/profile/`, and `entity/profile/`; account modules use the matching `accounts/` packages. Boundaries strip ordinary text and validate required fields, formats, lengths, choices and input values through `boundary/validation.py` before calling controllers. Controllers relay through their entity object. Entities validate duplicates, references and saved data. Pure reusable value rules live in `infrastructure/validation.py`. See [the latest BCE review changes](docs/BCE_REVIEW_CHANGES.md). See [the BCE implementation map](docs/STORIES_1_12.md).
 
 ## What changes in the application
 

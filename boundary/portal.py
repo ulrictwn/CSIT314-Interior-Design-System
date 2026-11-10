@@ -1,18 +1,22 @@
 """Shared HTML/JSON presentation for the customer and platform manager pages."""
 from flask import g, render_template, request, session, url_for
+# boundary/designer/presentation.py: chooses designer HTML/JSON responses.
 from boundary.designer.presentation import wants_html
 
 
 def optional_account_id():
+    """Read the signed-in account ID from the browser session."""
     return session.get('account_id')
 
 
 def present(payload, template, title, portal, status=200):
+    """Display a portal template for browsers or return the supplied JSON payload."""
     if not wants_html():
         return payload, status
     owner = optional_account_id()
 
     def link(endpoint, **kwargs):
+        """Build a portal link carrying the current account context."""
         if owner and 'login' not in endpoint and 'logout' not in endpoint:
             kwargs.setdefault('accountId', owner)
         return url_for(endpoint, **kwargs)
@@ -24,5 +28,6 @@ def present(payload, template, title, portal, status=200):
 
 
 def error_response(message, portal, errors=None, status=400, values=None, template='portal/error.html', **extra):
+    """Prepare a portal error page or JSON error with the submitted values."""
     return present(dict(ok=False, message=message, errors=errors or {}, values=values or {}, **extra),
                    template, 'Please check the details', portal, status)

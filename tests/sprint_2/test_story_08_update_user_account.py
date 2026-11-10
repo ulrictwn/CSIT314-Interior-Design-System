@@ -1,5 +1,6 @@
 """Sprint 2, user story 8: one successful workflow through BCE."""
 import pytest
+from unittest.mock import patch
 from entity.accounts.user_account import UserAccount
 
 pytestmark = [pytest.mark.sprint2, pytest.mark.story8]
@@ -11,6 +12,11 @@ def test_update_user_account_loads_and_saves_details(app, admin_client, customer
     assert 'customer1@example.com' in page.text
     with app.app_context():
         profile_id = UserAccount.getUserAccount(customer_account).profile_id
+    with patch('boundary.accounts.update_user_account_page.UpdateUserAccountController.updateUserAccount') as update:
+        invalid = admin_client.post(f'/accounts/{customer_account}/update', data=dict(
+            full_name='', email='invalid', profile_id=profile_id))
+        assert invalid.status_code == 400
+        update.assert_not_called()
     response = admin_client.post(f'/accounts/{customer_account}/update', data=dict(
         full_name='Updated Customer', email='updated@example.com', profile_id=profile_id))
     assert response.status_code == 302

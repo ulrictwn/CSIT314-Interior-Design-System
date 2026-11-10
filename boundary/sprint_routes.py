@@ -1,31 +1,57 @@
+# boundary/auth/staff_login_page.py: provides the boundary classes used by these routes.
 from boundary.auth.staff_login_page import StaffLoginPage
+# boundary/customer/customer_login_page.py: provides the boundary classes used by these routes.
 from boundary.customer.customer_login_page import CustomerLoginPage
+# boundary/customer/logout_page.py: provides the boundary classes used by these routes.
 from boundary.customer.logout_page import LogoutPage as CustomerLogoutPage
+# boundary/customer/dashboard_page.py: provides the boundary classes used by these routes.
 from boundary.customer.dashboard_page import CustomerDashboardPage
+# boundary/customer/search_idp_page.py: provides the boundary classes used by these routes.
 from boundary.customer.search_idp_page import SearchIDPPage
+# boundary/customer/view_idp_page.py: provides the boundary classes used by these routes.
 from boundary.customer.view_idp_page import ViewIDPPage
+# boundary/customer/save_shortlist_idp_page.py: provides the boundary classes used by these routes.
 from boundary.customer.save_shortlist_idp_page import SaveShortlistIDPPage
+# boundary/customer/search_shortlist_idp_page.py: provides the boundary classes used by these routes.
 from boundary.customer.search_shortlist_idp_page import SearchShortlistIDPPage
+# boundary/customer/view_shortlist_idp_page.py: provides the boundary classes used by these routes.
 from boundary.customer.view_shortlist_idp_page import ViewShortlistIDPPage
+# boundary/customer/remove_shortlist_idp_page.py: provides the boundary classes used by these routes.
 from boundary.customer.remove_shortlist_idp_page import RemoveShortlistIDPPage
+# boundary/platform_manager/platform_manager_login_page.py: provides the boundary classes used by these routes.
 from boundary.platform_manager.platform_manager_login_page import PlatformManagerLoginPage
+# boundary/platform_manager/platform_manager_logout_page.py: provides the boundary classes used by these routes.
 from boundary.platform_manager.platform_manager_logout_page import PlatformManagerLogoutPage
+# boundary/platform_manager/dashboard_page.py: provides the boundary classes used by these routes.
 from boundary.platform_manager.dashboard_page import PlatformManagerDashboardPage
+# boundary/categories/create_category_page.py: provides the boundary classes used by these routes.
 from boundary.categories.create_category_page import CreateCategoryPage
+# boundary/categories/view_category_page.py: provides the boundary classes used by these routes.
 from boundary.categories.view_category_page import ViewCategoryPage
+# boundary/categories/update_category_page.py: provides the boundary classes used by these routes.
 from boundary.categories.update_category_page import UpdateCategoryPage
+# boundary/categories/delete_category_page.py: provides the boundary classes used by these routes.
 from boundary.categories.delete_category_page import DeleteCategoryPage
+# boundary/categories/search_category_page.py: provides the boundary classes used by these routes.
 from boundary.categories.search_category_page import SearchCategoryPage
+# boundary/reports/daily_report_page.py: provides the boundary classes used by these routes.
 from boundary.reports.daily_report_page import DailyReportPage
+# boundary/reports/weekly_report_page.py: provides the boundary classes used by these routes.
 from boundary.reports.weekly_report_page import WeeklyReportPage
+# boundary/reports/monthly_report_page.py: provides the boundary classes used by these routes.
 from boundary.reports.monthly_report_page import MonthlyReportPage
+# boundary/reports/view_report_page.py: provides the boundary classes used by these routes.
 from boundary.reports.view_report_page import ViewReportPage, DownloadReportPage
+# boundary/designer/view_count_page.py: provides the boundary classes used by these routes.
 from boundary.designer.view_count_page import ViewCountPage
+# boundary/designer/view_shortlist_count_page.py: provides the boundary classes used by these routes.
 from boundary.designer.view_shortlist_count_page import ViewShortlistCountPage
+# boundary/designer/project_interest_page.py: provides the boundary classes used by these routes.
 from boundary.designer.project_interest_page import ProjectInterestPage
 
 
 def register_sprint_routes(app):
+    """Connect customer, category, report and interest URLs to their imported boundary classes."""
     routes = [
         ('/staff/login','staff_login',StaffLoginPage),
         ('/customer/login','customer_login',CustomerLoginPage),

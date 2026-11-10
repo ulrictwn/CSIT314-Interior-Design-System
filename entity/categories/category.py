@@ -1,8 +1,11 @@
-from entity.categories.validation import validate_category_fields
-from entity.validation import positive_integer, search_text, required_text
+# infrastructure/validation.py: shared pure value checks.
+from infrastructure.validation import validate_category_fields, positive_integer, search_text, required_text
+# infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError
+# infrastructure/database.py: the shared SQLAlchemy database connection.
 from infrastructure.database import db
+# entity/reports/activity_event.py: dated activity records used by reports.
 from entity.reports.activity_event import ActivityEvent
 
 
@@ -17,24 +20,28 @@ class Category(db.Model):
         {'sqlite_autoincrement': True},
     )
 
-    def _reject(self, message, field_errors=None, reason='invalid_data'):
-        self.error_message, self.field_errors, self.error_reason = message, field_errors or {}, reason
-        return False
-
     @classmethod
     def categoryExists(cls, categoryName: str) -> bool:
+        """Check whether the category name is already stored, ignoring case."""
         categoryName = required_text(categoryName, 'Category name', 100)
         return db.session.scalar(db.select(cls.category_id).where(
             db.func.lower(cls.category_name) == categoryName.lower()).limit(1)) is not None
 
     def createCategory(self, categoryName: str, description: str) -> bool:
+        """Check category data and duplicates, then save the new category."""
         values, errors = validate_category_fields(categoryName, description)
         if errors:
-            return self._reject('Please correct the errors below.', errors)
+            self.error_message = 'Please correct the errors below.'
+            self.field_errors = errors
+            self.error_reason = 'invalid_data'
+            return False
         categoryName, description = values['categoryName'], values['description']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         if self.categoryExists(categoryName):
-            return self._reject('The category name already exists.', {'categoryName':['Choose a unique category name.']})
+            self.error_message = 'The category name already exists.'
+            self.field_errors = {'categoryName':['Choose a unique category name.']}
+            self.error_reason = 'invalid_data'
+            return False
         try:
             self.category_name, self.description = categoryName, description
             db.session.add(self)
@@ -44,30 +51,47 @@ class Category(db.Model):
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject('The category name already exists.', {'categoryName':['Choose a unique category name.']})
+            self.error_message = 'The category name already exists.'
+            self.field_errors = {'categoryName':['Choose a unique category name.']}
+            self.error_reason = 'invalid_data'
+            return False
 
     @classmethod
     def getCategory(cls, categoryId: int) -> 'Category | None':
+        """Retrieve the saved category using its database ID."""
         categoryId = positive_integer(categoryId, 'Category ID')
         return db.session.get(cls, categoryId)
 
     def updateCategory(self, categoryId: int, categoryName: str, description: str) -> bool:
+        """Check saved data and duplicate names, then update the category."""
         try:
             categoryId = positive_integer(categoryId, 'Category ID')
         except DomainError as error:
-            return self._reject(str(error), {'categoryId': [str(error)]})
+            self.error_message = str(error)
+            self.field_errors = {'categoryId': [str(error)]}
+            self.error_reason = 'invalid_data'
+            return False
         values, errors = validate_category_fields(categoryName, description)
         if errors:
-            return self._reject('Please correct the errors below.', errors)
+            self.error_message = 'Please correct the errors below.'
+            self.field_errors = errors
+            self.error_reason = 'invalid_data'
+            return False
         categoryName, description = values['categoryName'], values['description']
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         category = self.getCategory(categoryId)
         if category is None:
-            return self._reject('Category not found.', reason='not_found')
+            self.error_message = 'Category not found.'
+            self.field_errors = {}
+            self.error_reason = 'not_found'
+            return False
         duplicate = db.session.scalar(db.select(Category.category_id).where(
             db.func.lower(Category.category_name) == categoryName.lower(), Category.category_id != categoryId).limit(1))
         if duplicate is not None:
-            return self._reject('The category name already exists.', {'categoryName':['Choose a unique category name.']})
+            self.error_message = 'The category name already exists.'
+            self.field_errors = {'categoryName':['Choose a unique category name.']}
+            self.error_reason = 'invalid_data'
+            return False
         try:
             category.category_name, category.description = categoryName, description
             ActivityEvent.record('category_updated', categoryId)
@@ -75,19 +99,32 @@ class Category(db.Model):
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject('The category name already exists.', {'categoryName':['Choose a unique category name.']})
+            self.error_message = 'The category name already exists.'
+            self.field_errors = {'categoryName':['Choose a unique category name.']}
+            self.error_reason = 'invalid_data'
+            return False
 
     def deleteCategory(self, categoryId: int) -> bool:
+        """Delete the category only when no projects reference it."""
         try:
             categoryId = positive_integer(categoryId, 'Category ID')
         except DomainError as error:
-            return self._reject(str(error), {'categoryId': [str(error)]})
+            self.error_message = str(error)
+            self.field_errors = {'categoryId': [str(error)]}
+            self.error_reason = 'invalid_data'
+            return False
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         category = self.getCategory(categoryId)
         if category is None:
-            return self._reject('Category not found.', reason='not_found')
+            self.error_message = 'Category not found.'
+            self.field_errors = {}
+            self.error_reason = 'not_found'
+            return False
         if category.project_count:
-            return self._reject('This category is used by projects. Assign them another category before deleting it.')
+            self.error_message = 'This category is used by projects. Assign them another category before deleting it.'
+            self.field_errors = {}
+            self.error_reason = 'invalid_data'
+            return False
         try:
             db.session.delete(category)
             ActivityEvent.record('category_deleted', categoryId)
@@ -95,10 +132,14 @@ class Category(db.Model):
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject('This category is still used by projects.')
+            self.error_message = 'This category is still used by projects.'
+            self.field_errors = {}
+            self.error_reason = 'invalid_data'
+            return False
 
     @classmethod
     def searchCategories(cls, keyword: str) -> list['Category']:
+        """Find categories matching the keyword, or list all for blank text."""
         keyword = search_text(keyword)
         return db.session.scalars(db.select(cls).where(db.or_(
             cls.category_name.icontains(keyword, autoescape=True),
@@ -108,10 +149,13 @@ class Category(db.Model):
 
     @property
     def project_count(self):
+        """Count the projects that currently reference this category."""
+        # entity/projects/interior_design_project.py: saved project data.
         from entity.projects.interior_design_project import InteriorDesignProject
         return db.session.scalar(db.select(db.func.count()).select_from(InteriorDesignProject)
             .where(InteriorDesignProject.category_id == self.category_id))
 
     def as_dict(self):
+        """Return category details and project count for page or JSON display."""
         return dict(categoryId=self.category_id, categoryName=self.category_name,
                     description=self.description, projectCount=self.project_count)

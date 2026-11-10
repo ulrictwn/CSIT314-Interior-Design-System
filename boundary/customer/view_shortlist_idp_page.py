@@ -1,19 +1,33 @@
-from boundary.validation import strip_input
+# boundary/validation.py: input cleanup and field checks.
+from boundary.validation import strip_input, positive_integer
+# infrastructure/errors.py: saved-data and validation errors.
+from infrastructure.errors import DomainError
 from flask.views import MethodView
+# boundary/designer/context.py: submitted values and signed-in account context.
 from boundary.designer.context import account_id
+# boundary/portal.py: shared portal rendering and error displays.
 from boundary.portal import present, error_response
+# control/customer/view_shortlist_idp_controller.py: the boundary-to-entity request handler.
 from control.customer.view_shortlist_idp_controller import ViewShortlistIDPController
+# control/customer/dashboard_controller.py: the boundary-to-entity request handler.
 from control.customer.dashboard_controller import CustomerDashboardController
+# entity/projects/interior_design_project.py: saved project data.
 from entity.projects.interior_design_project import InteriorDesignProject
 
 
 class ViewShortlistIDPPage(MethodView):
     def get(self, project_id):
+        """Receive the saved-project URL and run the diagram onView event."""
         self.onView(project_id)
         return self.rendered_page
 
     def onView(self, projectId: int) -> None:
-        projectId = strip_input(projectId)
+        """Validate the supplied ID, then request the saved details through the view controller."""
+        try:
+            projectId = positive_integer(strip_input(projectId), 'Project ID')
+        except DomainError as error:
+            self.rendered_page = error_response(str(error), 'customer', {'projectId': [str(error)]})
+            return
         self.owner = account_id()
         idp = ViewShortlistIDPController(self.owner).getIDP(projectId)
         if idp is None:
@@ -22,6 +36,7 @@ class ViewShortlistIDPPage(MethodView):
         self.displayIDP(idp)
 
     def displayIDP(self, idp: InteriorDesignProject) -> None:
+        """Display the project details and the customer's shortlist state."""
         self.rendered_page = present(dict(ok=True, project=idp.as_public_dict(),
             savedIds=CustomerDashboardController().savedProjectIds(self.owner), shortlisted=True),
             'customer/project.html', 'View Shortlisted Project', 'customer')

@@ -1,18 +1,26 @@
 import click
 from sqlalchemy import inspect
+# infrastructure/database.py: provides the shared SQLAlchemy database object.
 from infrastructure.database import db
+# infrastructure/migrations.py: upgrades existing tables without resetting records.
 from infrastructure.migrations import upgrade_database
+# infrastructure/permissions.py: defines display labels and supported permission choices.
 from infrastructure.permissions import DEFAULT_PROFILES, ADMIN_PERMISSIONS
+# infrastructure/errors.py: defines expected validation, missing-record and access errors.
 from infrastructure.errors import DomainError
+# entity/profile/user_profile.py: provides the saved-data entity used by this operation.
 from entity.profile.user_profile import UserProfile
+# entity/accounts/user_account.py: provides the saved-data entity used by this operation.
 from entity.accounts.user_account import UserAccount
-from entity.validation import username_value, password_value, email_address, required_text as required
+# infrastructure/validation.py: provides shared pure field/value checks.
+from infrastructure.validation import username_value, password_value, email_address, required_text as required
 
 
 def register_commands(app):
+    """Register the database upgrade and trusted account setup commands on the Flask app."""
     @app.cli.command('upgrade-db')
     def upgrade_db():
-        """Preserve existing data and upgrade all Stories 1–48 tables."""
+        """Apply the non-destructive upgrade from infrastructure/migrations.py."""
         try:
             upgrade_database()
         except RuntimeError as error:
@@ -27,7 +35,7 @@ def register_commands(app):
     @click.option('--phone-number', prompt=True)
     @click.password_option(envvar='NESTORA_ADMIN_PASSWORD', confirmation_prompt=True)
     def bootstrap_admin(username, email, full_name, phone_number, password):
-        """Create an initial User Admin from the trusted server terminal."""
+        """Create missing role profiles and the first admin through the imported entity methods."""
         try:
             username, email, password = username_value(username), email_address(email), password_value(password)
             full_name, phone_number = required(full_name, 'Full name', 120), required(phone_number, 'Phone number', 40)
@@ -56,6 +64,7 @@ def register_commands(app):
     @click.option('--username', prompt=True)
     @click.password_option(confirmation_prompt=True)
     def reset_password(username, password):
+        """Validate terminal input and call UserAccount.set_password() to save the new hash."""
         try:
             password_value(password)
             account = UserAccount.getByUsername(username)

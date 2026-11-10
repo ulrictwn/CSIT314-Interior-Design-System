@@ -1,8 +1,11 @@
-from entity.validation import validate_profile_fields, valid_profile_id, search_text, required_text
+# Pure value checks shared with boundary input validation from infrastructure/validation.py.
+from infrastructure.validation import validate_profile_fields, valid_profile_id, search_text, required_text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+# Shared SQLAlchemy database session and model base from infrastructure/database.py.
 from infrastructure.database import db
+# Application validation and missing-data errors from infrastructure/errors.py.
 from infrastructure.errors import DomainError
 
 
@@ -20,35 +23,34 @@ class UserProfile(db.Model):
 
     @classmethod
     def userProfileExists(cls, profileName: str) -> bool:
+        """Check whether another saved profile already uses this name.
+
+        Uses infrastructure/validation.py.
+        """
         profileName = required_text(profileName, 'Profile name', 100)
-        return cls._profile_exists(profileName)
-
-    @classmethod
-    def _profile_exists(cls, profileName, exclude_id=None):
-        statement = db.select(cls.profile_id).where(db.func.lower(cls.name) == profileName.lower())
-        if exclude_id is not None:
-            statement = statement.where(cls.profile_id != exclude_id)
-        return db.session.execute(statement.limit(1)).first() is not None
-
-    def _reject(self, message, field_errors=None, reason='invalid_data') -> bool:
-        self.error_message = message
-        self.field_errors = field_errors or {}
-        self.error_reason = reason
-        return False
+        return db.session.execute(db.select(cls.profile_id).where(
+            db.func.lower(cls.name) == profileName.lower()).limit(1)).first() is not None
 
     def createUserProfile(self, profileName: str, description: str, status: str,
                           permissions: list[str]) -> bool:
-        """Validate profile data, check duplicates, and save."""
+        """Check profile data and duplicate names, then save the new profile.
+
+        Uses infrastructure/validation.py.
+        """
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         values, errors = validate_profile_fields(profileName, description, status, permissions)
         if errors:
-            return self._reject('Please correct the errors below.', errors)
+            self.error_message = 'Please correct the errors below.'
+            self.field_errors = errors or {}
+            self.error_reason = 'invalid_data'
+            return False
         profileName, description, status, permissions = values
         duplicate_message = 'A profile with this name already exists.'
         try:
             if self.userProfileExists(profileName):
                 self.error_message = duplicate_message
                 self.field_errors = {'profileName': [duplicate_message]}
+                self.error_reason = 'invalid_data'
                 return False
             self.name, self.description = profileName, description
             self.status, self.permissions = status, permissions
@@ -59,6 +61,7 @@ class UserProfile(db.Model):
             db.session.rollback()
             self.error_message = duplicate_message
             self.field_errors = {'profileName': [duplicate_message]}
+            self.error_reason = 'invalid_data'
             return False
         except SQLAlchemyError:
             db.session.rollback()
@@ -66,85 +69,116 @@ class UserProfile(db.Model):
 
     @classmethod
     def getUserProfile(cls, profileId: int) -> 'UserProfile | None':
-        """Validate the identifier and look up a profile."""
+        """Look up a profile by ID, returning None when it cannot be found.
+
+        Uses infrastructure/validation.py.
+        """
         if not valid_profile_id(profileId):
             return None
         return db.session.get(cls, profileId)
 
     @classmethod
     def getProfile(cls, profilename):
+        """Find a role by name for trusted account setup and existing callers."""
         return db.session.execute(db.select(cls).where(
             db.func.lower(cls.name) == profilename.lower())).scalar_one_or_none()
 
     @classmethod
-    def listUserProfiles(cls):
-        return db.session.execute(db.select(cls).order_by(cls.name, cls.profile_id)).scalars().all()
-
-    @classmethod
     def searchUserProfiles(cls, keyword: str) -> list['UserProfile']:
-        keyword = search_text(keyword, required=True)
+        """Find profiles by name or description; a blank internal query lists all.
+
+        Uses infrastructure/validation.py.
+        """
+        keyword = search_text(keyword)
         return db.session.execute(db.select(cls).where(db.or_(
             cls.name.icontains(keyword, autoescape=True),
             cls.description.icontains(keyword, autoescape=True)
-        )).order_by(cls.name)).scalars().all()
+        )).order_by(cls.name, cls.profile_id)).scalars().all()
 
     def updateUserProfile(self, profileId: int, profileName: str, description: str,
                           permissions: list[str]) -> bool:
-        """Check saved data and duplicates; preserve the stored status."""
+        """Check saved data and duplicate names, then update fields while preserving status.
+
+        Uses infrastructure/validation.py.
+        """
         if not valid_profile_id(profileId):
-            return self._reject('User profile not found.', reason='not_found')
+            self.error_message = 'User profile not found.'
+            self.field_errors = {}
+            self.error_reason = 'not_found'
+            return False
         values, errors = validate_profile_fields(profileName, description, 'Active', permissions)
         if errors:
-            return self._reject('Please correct the errors below.', errors)
+            self.error_message = 'Please correct the errors below.'
+            self.field_errors = errors or {}
+            self.error_reason = 'invalid_data'
+            return False
         profileName, description, _, permissions = values
         self.error_message, self.field_errors, self.error_reason = None, {}, None
-        name = profileName
         duplicate_message = 'A profile with this name already exists.'
         try:
             profile = db.session.execute(db.select(UserProfile).where(UserProfile.profile_id == profileId)
                 .with_for_update().execution_options(populate_existing=True)).scalar_one_or_none()
             if profile is None:
                 db.session.rollback()
-                return self._reject('User profile not found.', reason='not_found')
-            if self._profile_exists(name, profileId):
+                self.error_message = 'User profile not found.'
+                self.field_errors = {}
+                self.error_reason = 'not_found'
+                return False
+            if profile.name.lower() != profileName.lower() and self.userProfileExists(profileName):
                 db.session.rollback()
-                return self._reject(duplicate_message, {'profileName': [duplicate_message]})
-            profile.name, profile.description = name, description
+                self.error_message = duplicate_message
+                self.field_errors = {'profileName': [duplicate_message]}
+                self.error_reason = 'invalid_data'
+                return False
+            profile.name, profile.description = profileName, description
             profile.permissions = permissions
             db.session.commit()
             return True
         except IntegrityError:
             db.session.rollback()
-            return self._reject(duplicate_message, {'profileName': [duplicate_message]})
+            self.error_message = duplicate_message
+            self.field_errors = {'profileName': [duplicate_message]}
+            self.error_reason = 'invalid_data'
+            return False
         except SQLAlchemyError:
             db.session.rollback()
             raise
 
     def suspendUserProfile(self, profileId: int) -> bool:
-        """Suspend only existing profiles with no accounts assigned."""
+        """Suspend a saved profile only when no account is assigned to it.
+
+        Uses infrastructure/validation.py.
+        """
         if not valid_profile_id(profileId):
-            return self._reject('User profile not found.', reason='not_found')
-        from infrastructure.profile_assignments import profile_account_count
+            self.error_message = 'User profile not found.'
+            self.field_errors = {}
+            self.error_reason = 'not_found'
+            return False
+        # Entity used for saved data or return-value types from entity/accounts/user_account.py.
+        from entity.accounts.user_account import UserAccount
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         try:
             profile = db.session.execute(db.select(UserProfile).where(UserProfile.profile_id == profileId)
                 .with_for_update().execution_options(populate_existing=True)).scalar_one_or_none()
             if profile is None:
                 db.session.rollback()
-                return self._reject('User profile not found.', reason='not_found')
-            if profile_account_count(profileId):
+                self.error_message = 'User profile not found.'
+                self.field_errors = {}
+                self.error_reason = 'not_found'
+                return False
+            assigned_accounts = db.session.scalar(db.select(db.func.count()).select_from(UserAccount)
+                .where(UserAccount.profile_id == profileId))
+            if assigned_accounts:
                 raise DomainError('This profile is in use.')
             profile.status = 'Suspended'
             db.session.commit()
             return True
         except DomainError as error:
             db.session.rollback()
-            return self._reject(str(error))
+            self.error_message = str(error)
+            self.field_errors = {}
+            self.error_reason = 'invalid_data'
+            return False
         except SQLAlchemyError:
             db.session.rollback()
             raise
-
-    @classmethod
-    def activeProfiles(cls):
-        return db.session.scalars(db.select(cls).where(cls.status == 'Active')
-            .order_by(cls.name, cls.profile_id)).all()

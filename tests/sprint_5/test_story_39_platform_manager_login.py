@@ -1,4 +1,6 @@
 """Sprint 5, user story 39: one successful workflow through BCE."""
+from unittest.mock import patch
+
 import pytest
 
 pytestmark = [pytest.mark.sprint5, pytest.mark.story39]
@@ -7,6 +9,10 @@ pytestmark = [pytest.mark.sprint5, pytest.mark.story39]
 def test_platform_manager_login_opens_dashboard(client, create_account, credentials):
     guest = client.get('/manager')
     assert guest.status_code == 302 and guest.location == '/manager/login'
+    with patch('boundary.platform_manager.platform_manager_login_page.PlatformManagerLoginController.login', side_effect=AssertionError('Invalid fields reached controller')):
+        invalid = client.post('/manager/login', json=dict(username='   ', password=''))
+    assert invalid.status_code == 400
+    assert set(invalid.json['errors']) == {'username', 'password'}
     account_id = create_account(credentials['username'], 'Platform Management', credentials['password'])
     response = client.post('/manager/login', json=credentials)
     assert response.status_code == 302

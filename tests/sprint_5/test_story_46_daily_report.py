@@ -4,12 +4,20 @@ from datetime import date
 import io
 
 import pytest
+from unittest.mock import Mock
 from entity.reports.report import Report
 
 pytestmark = [pytest.mark.sprint5, pytest.mark.story46]
 
 
-def test_generate_daily_report_displays_and_saves_period_totals(app, manager_client, report_activity):
+def test_generate_daily_report_displays_and_saves_period_totals(app, manager_client, report_activity, monkeypatch):
+    # Invalid user input is rejected in the boundary before the controller.
+    blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
+    with monkeypatch.context() as guard:
+        guard.setattr('boundary.reports.daily_report_page.DailyReportController.generateDailyReport', blocked)
+        invalid = manager_client.post('/manager/reports/daily', json={'startDate': 'not-a-date'})
+        assert invalid.status_code == 400
+        blocked.assert_not_called()
     response = manager_client.post('/manager/reports/daily', json=dict(startDate=' 2026-06-05 '))
     assert response.status_code == 201
     report = response.json['report']

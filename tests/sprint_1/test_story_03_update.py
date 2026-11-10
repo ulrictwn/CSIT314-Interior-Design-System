@@ -1,5 +1,6 @@
 """Story 3: its Checks list defines TC12–TC16, despite the broader ID heading."""
 import pytest
+from unittest.mock import patch
 
 pytestmark = [pytest.mark.sprint1, pytest.mark.story3]
 
@@ -42,7 +43,9 @@ def test_TC15_missing_required_update_fields_are_rejected(admin_client, seed_pro
     before = profile_snapshot(profile_id)
     values = dict(profileName='Updated role', description='Updated description', permissions=[])
     for field in ('profileName', 'description'):
-        response = admin_client.post(f'/profiles/{profile_id}/update', data={**values, field: ''})
+        with patch('boundary.profile.update_user_profile_page.UpdateUserProfileController.updateUserProfile') as update:
+            response = admin_client.post(f'/profiles/{profile_id}/update', data={**values, field: ''})
+            update.assert_not_called()
         assert response.status_code == 400, field
         assert profile_snapshot(profile_id) == before
 

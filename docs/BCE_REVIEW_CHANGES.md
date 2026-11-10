@@ -1,52 +1,21 @@
-# BCE review changes — 8 November 2026
+# BCE validation and cleanup — 10 November 2026
 
-These changes apply the latest lecturer feedback to Stories 1–48. They supersede the earlier boundary-validation and public-page demo requirements. The current version (5) has 208 listed diagram method entries. Their names and types are aligned with the code; Story 6 now has the diagram password argument while its form supplies the default automatically. Event/display methods remain void.
-
-## Layer responsibilities
+The current audit covers all 48 stories in Word version (5). This update supersedes the earlier rule that boundaries only strip input. See [the complete story/method audit](BCE_AUDIT_1_48.md).
 
 | Layer | Responsibility |
 | --- | --- |
-| Boundary | Receive form/query/JSON input, strip ordinary text, call the controller, and prepare displays, messages, redirects, or JSON. Passwords are never stripped. |
-| Controller | Retain an entity operation object and relay the method call and result. No validation, SQL, or copying of entity errors. |
-| Entity | Validate required fields, supported choices, lengths, formats, numeric/date values, duplicates, references, and saved state; query and persist data. |
+| Boundary | Receive and strip ordinary input; reject missing, malformed, overlong or unsupported field values before the controller; display results. Preserve passwords exactly. |
+| Controller | Relay calls/results through its entity object. No input checks, SQL or copied error state. |
+| Entity | Validate duplicates, references, assignments, membership and stored state; perform database operations. Essential shared value checks also protect direct/CLI callers. |
 
-`boundary/validation.py` now contains only `strip_input`. Shared field checks are in `entity/validation.py`, with company/project/category/report helpers under their matching entity folders. Entity operations invoke those validators themselves, so direct calls also reject invalid fields. Boundary feature helpers named `presentation.py` contain form field names, serialization, and display defaults.
+Boundary events call the checks exposed by `boundary/validation.py`. Their single pure implementation is in `infrastructure/validation.py`, which has no database, entity-model or Flask dependencies. The five entity validation helper modules have been consolidated into that file.
 
-For example, the profile controller now contains:
+Profile/account lists and active-profile dropdowns reuse existing diagram Search operations, so the separate Directory controllers and entity list helpers were removed. The assignment check lives directly in `UserProfile.suspendUserProfile`. Staff role-selector input is checked in the Staff boundary; the selector-only controller/entity method were removed. Error rendering for report generation and account suspension is inside the diagram events. Unused auth re-exports and persistence wrappers were removed.
 
-```python
-class CreateUserProfileController:
-    def __init__(self):
-        self.entity = UserProfile()
+The requested `UpdateUserProfileController.getUserProfile` prefill method remains. Flask adapters, constructors, required setup/password/serialization support, report activity history, stored-report reads/downloads, the supplied remove-shortlist wireframe and dashboards still serve required behavior. No speculative fields or features were added.
 
-    def createUserProfile(self, profileName: str, description: str,
-                          status: str, permissions: list[str]) -> bool:
-        return self.entity.createUserProfile(profileName, description, status, permissions)
-```
+Existing role/session/ownership checks remain to enforce the document's login preconditions and scoped-account tests. CSRF, throttling, server-side session tokens and final-admin protection remain outside the demo scope. Account creation retains the password-free form and hashed default password `password`.
 
-On failure, the boundary reads `controller.entity.error_message`, `field_errors`, and (where needed) `error_reason`. Login pages read the matched account from `controller.entity.authenticated_account`. Display-only permission options remain in the boundary; the unused controller alias was removed.
+All 208 diagram method entries retain their names, parameter order/types and return types; event/display methods remain void. All 65 sprint tests pass on SQLite and PostgreSQL. Existing tests assert that invalid fields do not reach action controllers. The table schema and stored records need no changes; restart Flask.
 
-`activeProfiles()` now belongs to `UserProfile`. The account create/update controllers relay to `UserProfile.activeProfiles()` to populate their dropdowns.
-
-## Portal access
-
-| Signed-in profile | Pages |
-| --- | --- |
-| User Admin | Profile and account administration |
-| Interior Designer | Own company, new/past projects, and interest counts |
-| Customer | Project discovery and own shortlist |
-| Platform Manager / Platform Management | Category management and activity reports |
-
-`infrastructure/auth.py` loads the existing browser session and checks the saved active account/profile on protected requests. Missing login redirects to that portal's login page; a different role receives HTTP 403. Login selectors and static files remain public.
-
-The session selects the account. A request cannot switch the actor by supplying a different `accountId` in a query, form, or JSON body. Designer project IDs are also checked for ownership before viewing, updating, deleting, or reading interest counts. Customers can view published project details across designers, while shortlist operations use the customer's own account.
-
-These are the requested basic login, role, and ownership checks. CSRF, rate limiting, server-side session tokens, and final-admin protection remain outside the classroom scope.
-
-## Verification and setup
-
-The sprint suite retains 65 test functions: TC01–TC22 for Sprint 1 and one test per later story. Fixtures now arrange a signed-in actor for the relevant portal. Existing story cases also check direct entity rejection, missing login, wrong roles, forged company account IDs, and other designers' project IDs. All 65 tests passed on SQLite and PostgreSQL. HTML smoke checks covered all four portals, validation messages, shortlist saving, report generation/download, and logout redirects. See [the test guide](TESTING_GUIDE.md).
-
-No model columns or table definitions changed, so this refactor requires no database migration. Restart Flask to load the changed modules. Admin-created accounts now start with the hashed default password `password`; the existing trusted `reset-password` command can choose a different private password.
-
-The subsequent version (5) audit removes duplicate controller lookup/existence wrappers and unused boundary constructors, while reusing View controllers for prefill and confirmations. See [the complete current audit](BCE_AUDIT_1_48.md).
+The subsequent method simplification removes all six `_reject` helpers and the private New/Past CRUD, duplicate-query and keyword helpers. Error handling and database work now live directly in the diagram operations. All 409 application methods/functions have short explanations; local imports name their source files. Diagram signatures and runtime behavior remain unchanged.

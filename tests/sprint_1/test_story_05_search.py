@@ -1,5 +1,6 @@
 """Story 5: TC19–TC22 from the Word document."""
 import pytest
+from unittest.mock import patch
 
 pytestmark = [pytest.mark.sprint1, pytest.mark.story5]
 
@@ -28,6 +29,10 @@ def test_TC21_unmatched_search_displays_no_profiles_found(admin_client, seed_pro
 
 def test_TC22_empty_or_whitespace_search_displays_validation_message(admin_client):
     for query in ('', '   '):
-        response = admin_client.get('/profiles/search', query_string={'q': query})
+        with patch('boundary.profile.search_user_profile_page.SearchUserProfileController.searchUserProfiles',
+                   return_value=[]) as search:
+            response = admin_client.get('/profiles/search', query_string={'q': query})
+            # The invalid query is rejected by the boundary; only the initial list is loaded.
+            search.assert_called_once_with('')
         assert response.status_code == 200
         assert 'Search text is required.' in response.text
