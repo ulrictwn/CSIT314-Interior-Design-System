@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% from 'macros.html' import account_table with context %}{% block content %}
+<header class="page-heading"><div><h1>Search User Accounts</h1><p>Search by account ID, username or full name. An empty search returns all accounts.</p></div></header>
+<section class="form-card search-card"><form class="search-bar" method="get"><label class="sr-only" for="query">Search accounts</label><input class="form-control" id="query" name="q" value="{{ query }}" placeholder="Search accounts" maxlength="200"><button class="button button-primary">Search</button><a class="button button-secondary" href="{{ url_for('search_user_accounts') }}">Show all</a></form></section>
+<div class="section-heading"><h2>User accounts</h2><span>{{ accounts|length }} result(s)</span></div>{{ account_table(accounts) }}{% endblock %}

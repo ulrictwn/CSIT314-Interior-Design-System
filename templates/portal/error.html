@@ -1,0 +1,8 @@
+{% extends "portal/base.html" %}
+{% block content %}
+  <section class="form-card designer-empty">
+    <h1>{{ error_message }}</h1>
+    <p class="muted">Use the sidebar to continue, or return to your dashboard.</p>
+    <a class="button button-primary" href="{{ ui_url(dashboard) }}">Back to dashboard</a>
+  </section>
+{% endblock %}

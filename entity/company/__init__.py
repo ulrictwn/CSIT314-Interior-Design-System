@@ -1,0 +1,1 @@
+"""Company entities and persistence."""

@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% from 'macros.html' import account_table with context %}{% block content %}
+<header class="page-heading"><div><h1>{{ title }}</h1><p>Manage individual accounts and their assigned profiles.</p></div><a class="button button-primary" href="{{ url_for('create_user_account') }}">Create account</a></header>
+<form class="search-bar" method="get" action="{{ url_for('search_user_accounts') }}"><label class="sr-only" for="query">Search accounts</label><input class="form-control" id="query" name="q" placeholder="Search by account ID, username or full name" maxlength="200"><button class="button button-primary">Search</button></form>
+{{ account_table(accounts, mode) }}{% endblock %}

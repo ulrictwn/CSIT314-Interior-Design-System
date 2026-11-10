@@ -1,0 +1,69 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import icon with context %}
+{% block content %}
+  <header class="page-heading">
+    <div>
+      <h1>Welcome to your dashboard</h1>
+      <p>
+        Welcome
+        {% if current_user %}
+          , {{ current_user.full_name }}
+        {% endif %}
+        . Discover inspiring interiors and keep your favourite projects close.
+      </p>
+    </div>
+  </header>
+  <section class="form-card discovery-card">
+    <div class="card-section-heading">
+      <h2>Your next home starts here</h2>
+      <span class="soft-badge">Made for your inspiration</span>
+    </div>
+    <div class="discovery-hero">
+      <img src="{{ url_for('static',filename='images/login-interior.png') }}"
+           alt="Interior inspiration with warm natural light">
+      <div>
+        <h2>Make room for inspiration.</h2>
+        <p>Explore real projects, find a style you love, and build your personal shortlist.</p>
+        <small class="muted">Search by project, style, property type or location.</small>
+      </div>
+      <a class="button button-primary" href="{{ ui_url('search_idps') }}">{{ icon('search', 15) }} Discover Projects</a>
+    </div>
+  </section>
+  <div class="customer-shortcuts">
+    <a class="form-card shortcut-card" href="{{ ui_url('search_idps') }}">
+      <h2>{{ icon('search', 16) }} Search Interior Design Projects</h2>
+      <p>Find projects by name, style, property type or location.</p>
+      <span>Search projects ›</span>
+    </a>
+    <a class="form-card shortcut-card"
+       href="{{ ui_url('search_shortlist_idps') }}">
+      <h2>{{ icon('projects', 16) }} My Shortlist · {{ data.savedCount }} saved project{{ 's' if data.savedCount != 1 else '' }}</h2>
+      <p>Return to your favourite spaces and review their details.</p>
+      <span>Search shortlist ›</span>
+    </a>
+  </div>
+  <div class="section-heading">
+    <h2>Recently shortlisted</h2>
+  </div>
+  {% if data.recent %}
+    <div class="recent-grid">
+      {% for project in data.recent %}
+        <a class="form-card recent-card"
+           href="{{ ui_url('view_shortlist_idp',project_id=project.projectId) }}">
+          <span class="project-thumbnail">{{ icon('projects', 25) }}</span>
+          <div>
+            <h2>{{ project.projectName }}</h2>
+            <p>{{ project.propertyType }}</p>
+            <span>View project ›</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>Your shortlist starts here</h2>
+      <p>Save a project while browsing to find it here later.</p>
+      <a class="button button-outline" href="{{ ui_url('search_idps') }}">Discover projects</a>
+    </div>
+  {% endif %}
+{% endblock %}

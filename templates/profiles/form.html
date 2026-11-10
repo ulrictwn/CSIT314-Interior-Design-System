@@ -1,5 +1,59 @@
-{% extends 'base.html' %}{% from 'macros.html' import field, form_errors %}{% block content %}
-<header class="page-heading"><div><h1>{{ title }}</h1><p>{{ 'Change the selected role’s details and permissions.' if editing else 'Define a role and choose what its accounts can do.' }}</p></div></header>
-<section class="form-card"><h2>Profile details</h2><p class="muted">Add the basic information and permissions for this profile.</p>{{ form_errors(form) }}
-<form method="post">{{ form.hidden_tag() }}{{ field(form.profileName, 'Enter profile name') }}{{ field(form.description, 'Enter description') }}<div class="form-row">{{ field(form.status) }}<fieldset class="form-group permissions-group"><legend>Permissions</legend><details class="permissions-dropdown" {% if form.permissions.errors %}open{% endif %}><summary><span data-permission-summary>Select permissions</span></summary>{{ form.permissions(class_='permission-list') }}</details><p class="field-help">Select any supported actions. No selection means no feature access.</p></fieldset></div><div class="form-actions"><button class="button button-primary" type="submit">{{ 'Update Profile' if editing else 'Create' }}</button><a class="button button-secondary" href="{{ url_for('user_profiles') }}">Cancel</a></div></form></section>
+{% extends 'base.html' %}
+{% set title = 'Update User Profiles' %}
+{% set labels = {'profileName': 'Profile Name', 'description': 'Description', 'status': 'Status', 'permissions': 'Permissions'} %}
+
+{% macro field_errors(name) %}
+  {% for error in errors.get(name, []) %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+{% endmacro %}
+
+{% block content %}
+<header class="page-heading"><div><h1>{{ title }}</h1><p>Change the selected role’s details and permissions.</p></div></header>
+<section class="form-card">
+  <h2>Profile details</h2>
+  <p class="muted">Add the basic information and permissions for this profile.</p>
+  {% if errors %}
+  <div class="message error" role="alert"><strong>Please check your entries.</strong><ul>
+    {% for name, messages in errors.items() %}
+      {% for error in messages %}<li>{{ labels.get(name, name) }}: {{ error }}</li>{% endfor %}
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+  <form method="post">
+    <div class="form-group">
+      <label for="profileName">Profile Name</label>
+      <input id="profileName" name="profileName" type="text" class="form-control{{ ' invalid' if errors.get('profileName') else '' }}"
+             value="{{ values.get('profileName', '') }}" placeholder="Enter profile name" required maxlength="100"
+             aria-invalid="{{ 'true' if errors.get('profileName') else 'false' }}">
+      {{ field_errors('profileName') }}
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" class="form-control{{ ' invalid' if errors.get('description') else '' }}"
+                placeholder="Enter description" required maxlength="10000"
+                aria-invalid="{{ 'true' if errors.get('description') else 'false' }}">{{ values.get('description', '') }}</textarea>
+      {{ field_errors('description') }}
+    </div>
+    <div class="form-row">
+      <fieldset class="form-group permissions-group">
+        <legend>Permissions</legend>
+        <details class="permissions-dropdown" {% if errors.get('permissions') %}open{% endif %}>
+          <summary><span data-permission-summary>Select permissions</span></summary>
+          <ul id="permissions" class="permission-list">
+            {% for code, label in permission_options.items() %}
+            <li><input id="permissions-{{ loop.index0 }}" name="permissions" type="checkbox" value="{{ code }}"
+                       {% if code in selected_permissions %}checked{% endif %}>
+                <label for="permissions-{{ loop.index0 }}">{{ label }}</label></li>
+            {% endfor %}
+          </ul>
+        </details>
+        {{ field_errors('permissions') }}
+        <p class="field-help">Select any actions associated with this profile.</p>
+      </fieldset>
+    </div>
+    <div class="form-actions">
+      <button class="button button-primary" type="submit">Update Profile</button>
+      <a class="button button-secondary" href="{{ url_for('user_profiles') }}">Cancel</a>
+    </div>
+  </form>
+</section>
 {% endblock %}

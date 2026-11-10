@@ -1,0 +1,57 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import icon with context %}
+{% block content %}
+  <header class="page-heading">
+    <div>
+      <h1>Welcome to your dashboard</h1>
+      <p>
+        Welcome
+        {% if current_user %}
+          , {{ current_user.full_name }}
+        {% endif %}
+        . Choose an area to manage your company and projects.
+      </p>
+    </div>
+  </header>
+  <p class="section-label">Your workspace</p>
+  <div class="dashboard-panels">
+    <section class="form-card action-card">
+      <header class="action-card-heading">
+        {{ icon('company', 21) }}
+        <div>
+          <h2>Company profile</h2>
+          <p>Keep your company details up to date.</p>
+        </div>
+      </header>
+      {% for endpoint, heading, detail, symbol in [('create_company_profile','Create Company Profile','Add your company information.','plus'),('update_company_profile','Update Company Details','Edit your company details.','edit'),('delete_company_profile','Delete Company Profile','Remove information you no longer need.','trash'),('search_company_profile','Search Company Profile','Find a detail in your company profile.','search')] %}
+        <a class="dashboard-action" href="{{ ui_url(endpoint) }}">{{ icon(symbol,16) }}<span>
+          <strong>{{ heading }}</strong>
+          <small>{{ detail }}</small>
+        </span>{{ icon('chevron', 14) }}</a>
+      {% endfor %}
+    </section>
+    <section class="form-card action-card">
+      <header class="action-card-heading">
+        {{ icon('projects', 21) }}
+        <div>
+          <h2>My projects</h2>
+          <p>Manage ongoing work and your completed portfolio.</p>
+        </div>
+      </header>
+      {% for action, heading, detail, symbol in [('create','Create Interior Design Project','Record a new or completed project.','plus'),('view','View Interior Design Projects','Explore your project details.','projects'),('update','Update Interior Design Project','Keep the project information accurate.','edit'),('search','Search Interior Design Projects','Find a project by its name.','search'),('delete','Delete Interior Design Project','Remove a project you no longer need.','trash')] %}
+        <div class="dashboard-action project-action">
+          {{ icon(symbol,16) }}<span>
+          <strong>{{ heading }}</strong>
+          <small>{{ detail }}</small>
+          </span>
+          <div class="phase-links">
+            {% for kind in ['new','past'] %}
+              <a class="button button-small {{ 'button-primary' if kind == 'new' else 'button-outline' }}"
+                 href="{{ ui_url('create_' ~ kind ~ '_project') if action == 'create' else ui_url(kind ~ '_projects', mode=action) }}">{{ kind|title }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+  </div>
+{% endblock %}

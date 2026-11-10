@@ -1,0 +1,51 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import errors_summary,icon with context %}
+{% block content %}
+  {% set category = data.category %}
+  <header class="page-heading">
+    <h1>Delete Interior Design Project Category</h1>
+  </header>
+  {{ errors_summary() }}
+  <section class="form-card">
+    <div class="card-section-heading">
+      <div>
+        <h2>{{ category.categoryName }}</h2>
+        <p class="muted small">{{ category.description }}</p>
+      </div>
+    </div>
+    <dl class="summary-list">
+      <div>
+        <dt>Category ID</dt>
+        <dd>
+          CAT{{ category.categoryId }}
+        </dd>
+      </div>
+      <div>
+        <dt>Linked projects</dt>
+        <dd>
+          {{ category.projectCount }} projects
+        </dd>
+      </div>
+      <div>
+        <dt>Description</dt>
+        <dd class="preserve-lines">
+          {{ category.description }}
+        </dd>
+      </div>
+    </dl>
+  {% if category.projectCount %}<p class="message error">Assign the linked projects another category before deleting this category.</p>
+{% else %}
+  <h2 class="delete-question">{{ icon('alert', 19) }} Are you sure you want to delete {{ category.categoryName }}?</h2>
+  <p class="muted small">This removes the category from the platform's category list.</p>
+{% endif %}
+<form method="post"
+      action="{{ ui_url('delete_category',category_id=category.categoryId) }}">
+  <div class="form-actions">
+    <button class="button button-danger"
+            {% if category.projectCount %} disabled {% endif %}>Delete category</button>
+    <a class="button button-secondary"
+       href="{{ ui_url('search_categories',mode='delete') }}">Cancel</a>
+  </div>
+</form>
+</section>
+{% endblock %}

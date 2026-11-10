@@ -4,7 +4,7 @@ import subprocess
 from zipfile import ZipFile, ZIP_DEFLATED
 
 root = Path(__file__).resolve().parents[1]
-output = root / 'dist' / 'nestora-user-profiles.zip'
+output = root / 'dist' / 'nestora-user-admin.zip'
 output.parent.mkdir(exist_ok=True)
 tracked = subprocess.check_output(['git', 'ls-files', '-z'], cwd=root).decode().split('\0')
 allowed_folders = {'boundary', 'control', 'entity', 'infrastructure', 'static', 'templates', 'scripts', 'docs', 'tests', '.github'}

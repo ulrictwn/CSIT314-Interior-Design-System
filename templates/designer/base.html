@@ -1,0 +1,112 @@
+{% from 'designer/components.html' import icon with context %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} · Nestora</title>
+    <link rel="icon"
+          href="{{ url_for('static', filename='favicon.svg') }}"
+          type="image/svg+xml">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/designer.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  </head>
+  <body class="designer-body">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-layout designer-shell">
+      <aside class="sidebar designer-sidebar">
+        <a class="brand" href="{{ ui_url('designer_dashboard') }}">
+          <span class="brand-mark">{{ icon('company', 21) }}</span>
+          <span>Nestora<small>Interior designer portal</small>
+          </span>
+        </a>
+        <button class="nav-toggle button button-secondary"
+                type="button"
+                aria-controls="designer-navigation"
+                aria-expanded="false">Menu</button>
+        <nav id="designer-navigation"
+             class="designer-nav"
+             aria-label="Designer navigation">
+          <p class="nav-heading">Workspace</p>
+          <a class="nav-item{{ ' active' if active_endpoint == 'designer_dashboard' else '' }}"
+             href="{{ ui_url('designer_dashboard') }}">{{ icon('dashboard', 15) }}<span>Dashboard</span>
+          </a>
+          <details class="nav-section"
+                   {% if 'company' in active_endpoint %}open {% endif %}>
+            <summary>{{ icon('company', 15) }}<span>Company profile</span>{{ icon('chevron', 13) }}</summary>
+            <div class="nav-submenu">
+              {% for endpoint, label in [('create_company_profile','Create Company Profile'),('update_company_profile','Update Company Details'),('delete_company_profile','Delete Company Profile'),('search_company_profile','Search Company Profile')] %}
+                <a class="nav-item{{ ' active' if active_endpoint == endpoint or (endpoint == 'search_company_profile' and active_endpoint == 'view_company_profile') else '' }}"
+                   href="{{ ui_url(endpoint) }}">{{ label }}</a>
+              {% endfor %}
+            </div>
+          </details>
+          <details class="nav-section"
+                   {% if 'project' in active_endpoint %}open {% endif %}>
+            <summary>{{ icon('projects', 15) }}<span>My projects</span>{{ icon('chevron', 13) }}</summary>
+            {% for kind in ['new','past'] %}
+              <details class="nav-section nav-nested"
+                       {% if phase == kind and 'project' in active_endpoint %}open {% endif %}>
+                <summary>
+                  <span>{{ kind|title }} projects</span>{{ icon('chevron', 12) }}
+                </summary>
+                <div class="nav-submenu">
+                  {% for action, label in [('create','Create'),('update','Update'),('search','Search'),('delete','Delete')] %}
+                    {% set endpoint = 'create_' ~ kind ~ '_project' if action == 'create' else kind ~ '_projects' %}
+                    {% set selected = phase == kind and ('project' in active_endpoint) and (active_endpoint.startswith(action ~ '_') or (active_endpoint in [kind ~ '_projects', 'search_' ~ kind ~ '_projects'] and mode == action) or (action == 'search' and active_endpoint.startswith('view_'))) %}
+                    <a class="nav-item{{ ' active' if selected else '' }}"
+                       href="{{ ui_url(endpoint) if action == 'create' else ui_url(endpoint, mode=action) }}">{{ label }} {{ kind|title }} Projects</a>
+                  {% endfor %}
+                </div>
+              </details>
+            {% endfor %}
+          </details>
+          <p class="nav-heading">Project interest</p>
+          <a class="nav-item" href="{{ ui_url('project_view_counts') }}">{{ icon('eye',15) }} View Counts</a>
+          <a class="nav-item" href="{{ ui_url('project_shortlist_counts') }}">{{ icon('projects',15) }} Shortlist Counts</a>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="account-footer">
+            <span class="avatar">{{ current_user.full_name[:1]|upper if current_user else 'ID' }}</span>
+            <div>
+              <strong>{{ current_user.full_name if current_user else 'Designer workspace' }}</strong>
+              <small>Interior Designer</small>
+            </div>
+          </div>
+          {% if current_user %}
+            <form class="logout-form"
+                  method="post"
+                  action="{{ ui_url('interior_designer_logout') }}">
+              <button class="text-button" type="submit">{{ icon('logout', 14) }} Log out</button>
+            </form>
+          {% else %}
+            <a class="text-button sign-in-link"
+               href="{{ ui_url('interior_designer_login') }}">{{ icon('logout', 14) }} Sign in</a>
+          {% endif %}
+        </div>
+      </aside>
+      <main id="main" class="main-content">
+        <header class="topbar designer-topbar">
+          <div>
+            <a href="{{ ui_url('designer_dashboard') }}">Dashboard</a>
+            <span aria-hidden="true">/</span>
+            <span>{{ title }}</span>
+          </div>
+          <span class="portal-label">Interior Designer Portal</span>
+        </header>
+        <div class="page-content designer-content">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+              <div class="message {{ category }}"
+                   role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>
+            {% endfor %}
+          {% endwith %}
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

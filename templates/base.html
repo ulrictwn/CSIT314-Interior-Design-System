@@ -1,5 +1,44 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title|default('User Profiles') }} · Nestora</title><link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"><script src="{{ url_for('static', filename='js/app.js') }}" defer></script></head>
-<body><a class="skip-link" href="#main">Skip to content</a><div class="app-layout"><aside class="sidebar"><a class="brand" href="{{ url_for('user_profiles') }}"><span class="brand-mark" aria-hidden="true">N</span><span>Nestora<small>User profile administration</small></span></a><button class="nav-toggle button button-secondary" type="button" aria-controls="primary-navigation" aria-expanded="false">Menu</button><nav id="primary-navigation" aria-label="Main navigation"><div class="nav-group"><p class="nav-heading">User Profiles</p>
-{% for label, endpoint, mode, permission in [('Create User Profiles','create_user_profile','view','profile.create'),('View User Profiles','user_profiles','view','profile.view'),('Update User Profiles','user_profiles','update','profile.update'),('Suspend User Profiles','user_profiles','suspend','profile.suspend'),('Search User Profiles','search_user_profiles','view','profile.search')] %}{% if can(permission) %}<a class="nav-item {{ 'active' if request.endpoint == endpoint and request.args.get('mode', 'view') == mode else '' }}" href="{{ url_for(endpoint, mode=mode) if mode != 'view' else url_for(endpoint) }}">{{ label }}</a>{% endif %}{% endfor %}
-</div></nav><div class="account-footer"><small>Scope: user stories 1–5</small></div></aside><main id="main" class="main-content"><div class="topbar"><span>User Profiles / {{ title|default('Workspace') }}</span></div><div class="page-content">{% if preview_mode %}<div class="message info" role="status">Development preview · no account sign-in is implemented in this scope.</div>{% endif %}{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="message {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</div></main></div></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title|default('Workspace') }} · Nestora</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-layout {{ 'public-layout' if request.endpoint == 'login' else '' }}">
+    {% if request.endpoint != 'login' %}
+    <aside class="sidebar">
+      <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark" aria-hidden="true">N</span><span>Nestora<small>{{ current_user.profile.name if current_user else 'User Admin' }} workspace</small></span></a>
+      <button class="nav-toggle button button-secondary" type="button" aria-controls="primary-navigation" aria-expanded="false">Menu</button>
+      <nav id="primary-navigation" aria-label="Main navigation">
+        {% for group in navigation %}
+        <div class="nav-group">
+          <p class="nav-heading">{{ group.title }}</p>
+          {% for link in group.links %}
+          {% set active = request.endpoint == link.endpoint and request.args.get('mode', 'view') == link.arguments.get('mode', 'view') and (not link.arguments.get('phase') or request.view_args.get('phase') == link.arguments.phase) %}
+          <a class="nav-item {{ 'active' if active else '' }}" href="{{ url_for(link.endpoint, **link.arguments) }}" {% if active %}aria-current="page"{% endif %}>{{ link.label }}</a>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </nav>
+      <div class="account-footer"><span class="avatar">{{ current_user.full_name[:1]|upper if current_user else 'D' }}</span><div><strong>{{ current_user.full_name if current_user else 'Demo workspace' }}</strong><small>{{ current_user.profile.name if current_user else 'User Admin' }}</small></div></div>
+      {% if current_user %}<form method="post" action="{{ url_for('logout') }}" class="logout-form"><button class="text-button" type="submit">Sign out</button></form>{% else %}<a class="text-button" href="{{ url_for('login') }}">Sign in</a>{% endif %}
+    </aside>
+    {% endif %}
+    <main id="main" class="main-content">
+      {% if current_user %}<div class="topbar"><span>Workspace <span aria-hidden="true">/</span> {{ title }}</span><span class="topbar-role">{{ current_user.username }}</span></div>{% endif %}
+      <div class="page-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}<div class="message {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>{% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

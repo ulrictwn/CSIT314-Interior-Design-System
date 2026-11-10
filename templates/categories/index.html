@@ -1,0 +1,72 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import icon with context %}
+{% block content %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+    <a class="button button-outline" href="{{ ui_url('create_category') }}">{{ icon('plus', 15) }} Create category</a>
+  </header>
+  <section class="form-card search-card">
+    <form method="get" action="{{ ui_url('search_categories') }}">
+      <input type="hidden" name="mode" value="{{ data.mode }}">
+      <label class="search-label" for="category-query">Search categories</label>
+      <div class="search-bar">
+        <div class="search-input">
+          {{ icon('search', 17) }}<input class="form-control"
+                                        id="category-query"
+                                        name="q"
+                                        value="{{ data.query }}"
+                                        maxlength="200"
+                                        placeholder="Search by category name or ID">
+        </div>
+        <button class="button button-primary">Search</button>
+        <a class="button button-outline"
+           href="{{ ui_url('search_categories',mode=data.mode) }}">Show all</a>
+      </div>
+      <p class="field-help">Search by category name, description or category ID.</p>
+    </form>
+  </section>
+  <div class="section-heading">
+    <h2>
+      Search results <small>{{ data.categories|length }} categories</small>
+    </h2>
+  </div>
+  {% if data.categories %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Category ID</th>
+            <th>Projects</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in data.categories %}
+            <tr>
+              <td>
+                <strong>{{ category.categoryName }}</strong>
+                <small class="table-secondary category-excerpt">{{ category.description }}</small>
+              </td>
+              <td>CAT{{ category.categoryId }}</td>
+              <td>{{ category.projectCount }}</td>
+              <td>
+                <a class="button button-outline button-small"
+                   href="{{ ui_url((data.mode if data.mode in ['update','delete'] else 'view') ~ '_category',category_id=category.categoryId) }}">{{ data.mode|title if data.mode in ['update','delete'] else 'View' }}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="results-footer">
+        <span>{{ data.categories|length }} categories shown</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>No categories found</h2>
+      <p>Try another keyword or create a category for designers to use.</p>
+      <a class="button button-primary" href="{{ ui_url('create_category') }}">Create category</a>
+    </div>
+  {% endif %}
+{% endblock %}

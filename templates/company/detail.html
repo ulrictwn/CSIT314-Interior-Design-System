@@ -1,0 +1,52 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import linked_account with context %}
+{% block content %}
+  {% set profile = data.profile %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  <section class="form-card company-card">
+    <div class="card-section-heading">
+      <h2>{{ profile.companyName }}</h2>
+    </div>
+    <dl class="company-details">
+      <div>
+        <dt>Company name</dt>
+        <dd>
+          {{ profile.companyName }}
+        </dd>
+      </div>
+      <div>
+        <dt>Business registration number</dt>
+        <dd>
+          {{ profile.companyRegistrationNumber }}
+        </dd>
+      </div>
+      <div class="full-width">
+        <dt>Address</dt>
+        <dd>
+          {{ profile.companyAddress }}
+        </dd>
+      </div>
+      <div>
+        <dt>Contact number</dt>
+        <dd>
+          {{ profile.companyContact }}
+        </dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>
+          {{ profile.companyEmail }}
+        </dd>
+      </div>
+    </dl>
+    {{ linked_account() }}
+    <div class="form-actions">
+      <a class="button button-primary"
+         href="{{ ui_url('update_company_profile') }}">Edit company details</a>
+      <a class="button button-secondary"
+         href="{{ ui_url('search_company_profile') }}">Back to search</a>
+    </div>
+  </section>
+{% endblock %}

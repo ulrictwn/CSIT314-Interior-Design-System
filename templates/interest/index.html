@@ -1,0 +1,58 @@
+{% extends "portal/base.html" %}
+{% block content %}
+  {% set key = 'viewCount' if data.metric == 'views' else 'shortlistCount' %}
+  <header class="page-heading">
+    <div>
+      <h1>{{ title }}</h1>
+      <p>{{ 'See how often customers open your project details.' if data.metric == 'views' else 'See how many customers currently have each project saved.' }}</p>
+    </div>
+  </header>
+  <div class="stats-grid interest-stats">
+    <section class="form-card stat-card">
+      <p>Total {{ 'views' if data.metric == 'views' else 'shortlists' }}</p>
+      <strong>{{ data.projects|sum(attribute=key) }}</strong>
+      <small>Across your new and past projects</small>
+    </section>
+    <section class="form-card stat-card">
+      <p>Projects</p>
+      <strong>{{ data.projects|length }}</strong>
+      <small>In your workspace</small>
+    </section>
+  </div>
+  {% if data.projects %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Project ID</th>
+            <th>Type</th>
+            <th>{{ 'Views' if data.metric == 'views' else 'Shortlists' }}</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in data.projects %}
+            <tr>
+              <td>{{ project.projectName }}</td>
+              <td>IDP{{ project.projectId }}</td>
+              <td>{{ project.status }}</td>
+              <td>{{ project[key] }}</td>
+              <td>
+                <a class="button button-outline button-small"
+                   href="{{ ui_url('view_count' if data.metric == 'views' else 'view_shortlist_count',project_id=project.projectId) }}">View count</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>No projects yet</h2>
+      <p>Create a project to start tracking customer interest.</p>
+      <a class="button button-primary"
+         href="{{ ui_url('create_new_project') }}">Create project</a>
+    </div>
+  {% endif %}
+{% endblock %}

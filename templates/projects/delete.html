@@ -1,0 +1,27 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import icon, project_summary, linked_account with context %}
+{% block content %}
+  {% set project = data.project %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  <section class="form-card project-delete-card">
+    <div class="card-section-heading">
+      <h2>{{ project.projectName }}</h2>
+      <span class="project-phase">{{ phase_label }} project</span>
+    </div>
+    {{ project_summary(project) }}
+    <form method="post"
+          action="{{ ui_url('delete_' ~ phase ~ '_project',project_id=project.projectId) }}">
+      {{ linked_account() }}
+      <h2 class="delete-question">{{ icon('alert', 19) }} {{ 'Remove' if phase == 'past' else 'Delete' }} {{ project.projectName }}{{ ' from your portfolio' if phase == 'past' else '' }}?</h2>
+      <p class="muted small">This removes the project record. Cancel to keep it.</p>
+      <div class="form-actions">
+        <button class="button button-danger"
+                type="submit">{{ 'Remove from portfolio' if phase == 'past' else 'Delete new project' }}</button>
+        <a class="button button-secondary"
+           href="{{ ui_url('view_' ~ phase ~ '_project',project_id=project.projectId) }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

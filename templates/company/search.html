@@ -1,0 +1,56 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import icon, owner_hidden, linked_account, errors_summary with context %}
+{% block content %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  {{ errors_summary() }}
+  <section class="form-card search-card">
+    <form method="get" action="{{ ui_url('search_company_profile') }}">
+      {{ owner_hidden() }}<label class="search-label" for="company-query">Search company details</label>
+      <div class="search-bar">
+        <div class="search-input">
+          {{ icon('search', 17) }}<input class="form-control"
+                                         id="company-query"
+                                         name="q"
+                                         value="{{ data.get('query', request.args.get('q','')) or '' }}"
+                                         maxlength="200"
+                                         placeholder="Search your company details">
+        </div>
+        <button class="button button-primary">Search</button>
+        <a class="button button-outline"
+           href="{{ ui_url('search_company_profile') }}">Show all</a>
+      </div>
+      <p class="field-help">Search by company name, contact number, address, email or registration number.</p>
+    </form>
+  </section>
+  <div class="section-heading">
+    <h2>
+      Company details <small>{{ data.get('results', [])|length }} matches found</small>
+    </h2>
+  </div>
+  {% if data.get("results") %}
+    <section class="form-card search-results">
+      {% for result in data.results %}
+        {% set parts = result.partition(': ') %}
+        <div class="company-result">
+          <strong>{{ parts[0] }}</strong>
+          <p>{{ parts[2] }}</p>
+        </div>
+      {% endfor %}
+      <div class="results-footer">
+        <span>{{ data.results|length }} matching details</span>
+        <a class="button button-outline button-small"
+           href="{{ ui_url('view_company_profile') }}">View company profile</a>
+      </div>
+    </section>
+  {% else %}
+    <div class="empty-state">
+      <h2>No matching details found.</h2>
+      <p>Try a different search, or create your company profile.</p>
+      <a class="button button-primary"
+         href="{{ ui_url('create_company_profile') }}">Create company profile</a>
+    </div>
+  {% endif %}
+  <div class="page-linked-account">{{ linked_account() }}</div>
+{% endblock %}

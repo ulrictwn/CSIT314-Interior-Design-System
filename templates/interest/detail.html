@@ -1,0 +1,24 @@
+{% extends "portal/base.html" %}
+{% block content %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  <section class="form-card">
+    <div class="card-section-heading">
+      <div>
+        <h2>{{ data.project.projectName }}</h2>
+        <p class="muted small">IDP{{ data.project.projectId }} · {{ data.project.status }} project</p>
+      </div>
+    </div>
+    <div class="count-display">
+      <strong>{{ data.count }}</strong>
+      <p>{{ 'Customer project views' if data.metric == 'viewCount' else 'Customers with this project in their shortlist' }}</p>
+    </div>
+    <div class="form-actions">
+      <a class="button button-primary"
+         href="{{ ui_url('project_view_counts' if data.metric == 'viewCount' else 'project_shortlist_counts') }}">Back to counts</a>
+      <a class="button button-secondary"
+         href="{{ ui_url('view_' ~ data.project.status|lower ~ '_project',project_id=data.project.projectId) }}">View project</a>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% from 'designer/components.html' import icon %}
+{% set selected_role = login_role|default('admin') %}
+{% set audience = 'customer' if selected_role == 'customer' else 'staff' %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title|default("Sign in") }} · Nestora</title>
+    <link rel="icon"
+          href="{{ url_for('static',filename='favicon.svg') }}"
+          type="image/svg+xml">
+    <link rel="stylesheet"
+          href="{{ url_for('static',filename='css/app.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static',filename='css/login.css') }}">
+    <script src="{{ url_for('static',filename='js/login.js') }}" defer></script>
+  </head>
+  <body class="auth-body">
+    <main class="auth-layout"
+          data-login-root
+          data-role="{{ selected_role }}"
+          data-audience="{{ audience }}">
+      <section class="auth-visual" aria-label="Interior inspiration">
+        <img src="{{ url_for('static',filename='images/login-interior.png') }}"
+             alt="A calm living room with warm natural light and an olive lounge chair">
+        <a class="auth-brand" href="{{ url_for('home') }}">
+          <span class="brand-mark">{{ icon('company', 20) }}</span>Nestora</a>
+        <div class="auth-visual-copy">
+          <p class="auth-eyebrow">The interior design workspace</p>
+          <h1>
+            Great spaces start
+            <br>
+            with a connection.
+          </h1>
+          <p>
+            Discover inspiring interiors, keep your favourite spaces close,
+            <br class="desktop-break">
+            and bring your next project to life.
+          </p>
+        </div>
+      </section>
+      <section class="auth-content">
+        <div class="auth-card">
+          <div class="role-switch"
+               role="tablist"
+               aria-label="Choose your sign-in portal">
+            <span class="role-switch-thumb" aria-hidden="true"></span>
+            <a href="{{ url_for('staff_login',role=selected_role if audience == 'staff' else 'admin') }}"
+               role="tab"
+               id="staff-tab"
+               aria-controls="staff-login-panel"
+               aria-selected="{{ 'true' if audience == 'staff' else 'false' }}"
+               tabindex="{{ '0' if audience == 'staff' else '-1' }}"
+               data-login-audience="staff">Staff</a>
+            <a href="{{ url_for('customer_login') }}"
+               role="tab"
+               id="customer-tab"
+               aria-controls="customer-login-panel"
+               aria-selected="{{ 'true' if audience == 'customer' else 'false' }}"
+               tabindex="{{ '0' if audience == 'customer' else '-1' }}"
+               data-login-audience="customer">Customer</a>
+          </div>
+          {% with messages=get_flashed_messages(with_categories=true) %}
+            {% for category,message in messages %}
+              <div class="message {{ category }}" role="status" data-login-notice>{{ message }}</div>
+            {% endfor %}
+          {% endwith %}
+          {% for panel in ['staff','customer'] %}
+            <section id="{{ panel }}-login-panel"
+                     class="login-form-panel"
+                     role="tabpanel"
+                     aria-labelledby="{{ panel }}-tab"
+                     data-login-panel="{{ panel }}"
+                     {% if audience != panel %} hidden {% endif %}>
+              <p class="eyebrow">Welcome back</p>
+              <h2>{{ 'Staff sign in' if panel == 'staff' else 'Customer sign in' }}</h2>
+              <p class="auth-form-intro">{{ 'Manage your workspace, projects and platform.' if panel == 'staff' else 'Your next great space starts here.' }}</p>
+            {% if audience == panel and error_message %}<div class="message error"
+                                                             role="alert">{{ error_message }}</div>
+          {% endif %}
+          <form method="post"
+                action="{{ url_for('staff_login' if panel == 'staff' else 'customer_login') }}"
+                id="{{ panel }}-login-form">
+            {% if panel == "staff" %}
+              <div class="form-group">
+                <label for="staff-role">Staff role</label>
+                <select id="staff-role" name="staffRole" class="form-control" required>
+                  {% for key,label,endpoint in [('admin','User Admin','login'),('designer','Interior Designer','interior_designer_login'),('manager','Platform Manager','platform_manager_login')] %}
+                    <option value="{{ key }}"
+                            data-login-url="{{ url_for(endpoint) }}"
+                            {% if selected_role == key %} selected {% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              {% for message in errors.get('staffRole',[]) %}<p class="field-error">{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="form-group">
+          <label for="{{ panel }}-username">Username</label>
+          <input class="form-control"
+                 id="{{ panel }}-username"
+                 name="username"
+                 value="{{ values.get('username', '') if audience == panel else '' }}"
+                 autocomplete="username"
+                 maxlength="80"
+                 required
+                 placeholder="Enter your username">
+          {% if audience == panel %}
+            {% for message in errors.get('username',[]) %}
+              <p class="field-error">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ panel }}-password">Password</label>
+          <div class="password-field">
+            <input class="form-control"
+                   id="{{ panel }}-password"
+                   name="password"
+                   type="password"
+                   autocomplete="current-password"
+                   maxlength="128"
+                   required
+                   placeholder="Enter your password">
+            <button type="button"
+                    class="password-toggle"
+                    data-password-toggle="{{ panel }}-password"
+                    aria-label="Show password"
+                    aria-pressed="false">{{ icon('eye', 18) }}</button>
+          </div>
+          {% if audience == panel %}
+            {% for message in errors.get('password',[]) %}
+              <p class="field-error">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <button class="button button-primary button-wide auth-submit"
+                type="submit">{{ icon('arrow', 17) }} Sign in</button>
+      </form>
+    </section>
+  {% endfor %}
+  <details class="account-help">
+    <summary>Need access or a password reset?</summary>
+    <p>Contact your project administrator to set up your account or reset your password.</p>
+  </details>
+</div>
+</section>
+</main>
+</body>
+</html>

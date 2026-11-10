@@ -1,0 +1,102 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import icon,owner_hidden with context %}
+{% block content %}
+  {% set shortlisted = data.shortlisted %}
+  {% set search_endpoint = 'search_shortlist_idps' if shortlisted else 'search_idps' %}
+  <header class="page-heading">
+    <div>
+      <h1>{{ ('View My Shortlist' if shortlisted else 'View Interior Design Projects') if request.args.get("mode") == 'view' else title }}</h1>
+      <p>{{ 'Return to the spaces you saved.' if shortlisted else 'Find a space that feels like you. Explore projects by keyword and save your favourites.' }}</p>
+    </div>
+  </header>
+  <section class="form-card search-card">
+    <form method="get" action="{{ ui_url(search_endpoint) }}">
+      {{ owner_hidden() }}<label class="search-label"
+                                 for="project-query">{{ 'Search saved projects' if shortlisted else 'Search Projects' }}</label>
+      <div class="search-bar">
+        <div class="search-input">
+          {{ icon('search', 17) }}<input id="project-query"
+                                        class="form-control"
+                                        name="q"
+                                        value="{{ data.query }}"
+                                        maxlength="200"
+                                        placeholder="Search by project name, ID, style or location">
+        </div>
+        <button class="button button-primary">Search</button>
+        <a class="button button-outline" href="{{ ui_url(search_endpoint) }}">Show all</a>
+      </div>
+      <p class="field-help">Search by project name, project ID, category, property type, description or location.</p>
+    </form>
+  </section>
+  <div class="section-heading">
+    <h2>
+      Search results <small>{{ data.projects|length }} projects</small>
+    </h2>
+    {% if data.query %}
+      <span class="muted small">Results for “{{ data.query }}”</span>
+    {% endif %}
+  </div>
+  {% if data.projects %}
+    <div class="table-wrap project-table customer-project-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Project ID</th>
+            <th>Property type / renovation cost</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in data.projects %}
+            <tr>
+              <td>
+                <a class="project-row-name"
+                   href="{{ ui_url('view_shortlist_idp' if shortlisted else 'view_idp',project_id=project.projectId,q=data.query) }}">
+                  <span class="project-thumbnail">{{ icon('projects', 24) }}</span>
+                  <span>
+                    <strong>{{ project.projectName }}</strong>
+                    <small>{{ project.area }}</small>
+                  </span>
+                </a>
+              </td>
+              <td>IDP{{ project.projectId }}</td>
+              <td>
+                {{ project.propertyType }}<small class="table-secondary">S${{ '{:,.2f}'.format(project.renovationCost) }}</small>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <a class="button button-outline button-small"
+                     href="{{ ui_url('view_shortlist_idp' if shortlisted else 'view_idp',project_id=project.projectId,q=data.query) }}">View</a>
+                  {% if project.projectId in data.savedIds %}
+                    <span class="saved-badge">✓ Saved</span>
+                  {% elif owner_id %}
+                    <form method="post"
+                          action="{{ ui_url('save_shortlist_idp',project_id=project.projectId) }}">
+                      {{ owner_hidden() }}<button class="button button-outline button-small">Shortlist</button>
+                    </form>
+                  {% else %}
+                    <a class="button button-outline button-small"
+                       href="{{ url_for('customer_login') }}">Sign in to save</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="results-footer">
+        <span>{{ data.projects|length }} projects shown</span>
+        <span>{{ 'My Shortlist' if shortlisted else 'Discover Projects' }}</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>{{ 'No shortlisted IDPs found.' if shortlisted else 'No IDPs found.' }}</h2>
+      <p>{{ 'Try another keyword, or discover a project to save.' if shortlisted else 'Try another keyword or check again after designers add projects.' }}</p>
+      {% if shortlisted %}
+        <a class="button button-outline" href="{{ ui_url('search_idps') }}">Discover projects</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

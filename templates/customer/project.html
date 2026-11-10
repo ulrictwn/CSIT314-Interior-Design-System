@@ -1,0 +1,71 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import owner_hidden with context %}
+{% block content %}
+  {% set project = data.project %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  <section class="form-card">
+    <div class="card-section-heading">
+      <div>
+        <h2>{{ project.projectName }}</h2>
+        <p class="muted small">
+          By {{ project.designerName }}
+          {% if project.companyName %}
+            · {{ project.companyName }}
+          {% endif %}
+        </p>
+      </div>
+      {% if project.projectId in data.savedIds %}
+        <span class="saved-badge">✓ Saved to My Shortlist</span>
+      {% elif owner_id %}
+        <form method="post"
+              action="{{ ui_url('save_shortlist_idp',project_id=project.projectId) }}">
+          {{ owner_hidden() }}<button class="button button-primary">Save to Shortlist</button>
+        </form>
+      {% else %}
+        <a class="button button-primary" href="{{ url_for('customer_login') }}">Sign in to save</a>
+      {% endif %}
+    </div>
+    <div class="project-detail-layout">
+      <figure class="project-inspiration">
+        <img src="{{ url_for('static',filename='images/login-interior.png') }}"
+             alt="A warm neutral living room">
+        <figcaption>Interior inspiration</figcaption>
+      </figure>
+      <div>
+        <h3>Project information</h3>
+        <dl class="project-facts">
+          {% for label,value in [('Project ID','IDP' ~ project.projectId),('Area',project.area),('Property type',project.propertyType),('Category',project.categoryName),('Status',project.status)] %}
+            <div>
+              <dt>{{ label }}</dt>
+              <dd>
+                {{ value }}
+              </dd>
+            </div>
+          {% endfor %}
+          <div>
+            <dt>Renovation cost</dt>
+            <dd>
+              S${{ '{:,.2f}'.format(project.renovationCost) }}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <section class="about-project">
+      <h3>About this project</h3>
+      <p class="preserve-lines">{{ project.description }}</p>
+    </section>
+    <div class="form-actions">
+      <a class="button button-secondary"
+         href="{{ ui_url('search_shortlist_idps' if data.shortlisted else 'search_idps',q=request.args.get('q','')) }}">Back to {{ 'my shortlist' if data.shortlisted else 'search results' }}</a>
+      {% if data.shortlisted %}
+        <form method="post"
+              action="{{ ui_url('remove_shortlist_idp',project_id=project.projectId) }}">
+          {{ owner_hidden() }}<button class="button button-primary">Remove shortlist</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

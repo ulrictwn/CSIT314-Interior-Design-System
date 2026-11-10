@@ -1,5 +1,4 @@
 """Create missing local settings without replacing existing database credentials."""
-import os
 import re
 import secrets
 from pathlib import Path
@@ -10,8 +9,7 @@ existing = path.read_text() if path.exists() else ''
 settings = {
     'POSTGRES_USER': 'postgres', 'POSTGRES_DB': 'interior_design',
     'POSTGRES_PASSWORD': secrets.token_hex(32), 'POSTGRES_HOST': 'db', 'POSTGRES_PORT': '5432',
-    'SECRET_KEY': secrets.token_hex(32), 'COOKIE_SECURE': 'true' if os.getenv('CODESPACES') == 'true' else 'false',
-    'PROFILE_DEVELOPMENT_PREVIEW': 'false',
+    'SECRET_KEY': secrets.token_hex(32),
 }
 with path.open('a') as stream:
     for key, value in settings.items():

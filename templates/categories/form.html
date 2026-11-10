@@ -1,0 +1,48 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import field,errors_summary with context %}
+{% block content %}
+  {% set editing = data.get('editing',false) %}
+  <header class="page-heading">
+    <h1>{{ 'Update' if editing else 'Create' }} Interior Design Project Category</h1>
+  </header>
+  {{ errors_summary() }}
+  <section class="form-card">
+    <div class="card-section-heading">
+      <h2>{{ values.get("categoryName") if editing else 'New category details' }}</h2>
+    </div>
+    <form method="post" action="{{ request.path }}">
+      <div class="{{ 'form-row' if editing else '' }}">
+        {{ field('categoryName','Category name',maxlength=100) }}
+        {% if editing %}
+          <div class="form-group">
+            <label for="categoryId">Category ID</label>
+            <input class="form-control readonly-field"
+                   id="categoryId"
+                   value="CAT{{ data.get('category', {}).get('categoryId',data.get('categoryId','')) }}"
+                   readonly>
+            <p class="field-help">Category ID cannot be changed.</p>
+          </div>
+        {% endif %}
+      </div>
+      <p class="field-help category-name-help">Category names must be unique across the platform.</p>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea class="form-control{{ ' invalid' if errors.get('description') else '' }}"
+                  id="description"
+                  name="description"
+                  required
+                  maxlength="10000">{{ values.get('description','') }}</textarea>
+        {% for message in errors.get('description',[]) %}
+          <p class="field-error">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% if editing and data.get("category") %}<p class="muted small">{{ data.category.projectCount }} linked projects</p>
+{% endif %}
+<div class="form-actions">
+  <button class="button button-primary">{{ 'Save changes' if editing else 'Create category' }}</button>
+  <a class="button button-secondary"
+     href="{{ ui_url('search_categories',mode='update') if editing else ui_url('platform_manager_dashboard') }}">Cancel</a>
+</div>
+</form>
+</section>
+{% endblock %}

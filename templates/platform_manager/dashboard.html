@@ -1,0 +1,74 @@
+{% extends "portal/base.html" %}
+{% from 'designer/components.html' import icon with context %}
+{% block content %}
+  <header class="page-heading">
+    <div>
+      <h1>Platform Manager Dashboard</h1>
+      <p>
+        Welcome
+        {% if current_user %}
+          , {{ current_user.full_name }}
+        {% endif %}
+        . Manage IDP categories and keep track of activity across Nestora.
+      </p>
+    </div>
+  </header>
+  <div class="stats-grid">
+    <section class="form-card stat-card">
+      <p>IDP categories</p>
+      <strong>{{ data.categoryCount }}</strong>
+      <small>Categories available to designers</small>
+    </section>
+    <section class="form-card stat-card">
+      <p>Categorised projects</p>
+      <strong>{{ data.projectCount }}</strong>
+      <small>Across the platform</small>
+    </section>
+    <section class="form-card stat-card">
+      <p>Successful logins yesterday</p>
+      <strong>{{ data.successfulLogins }}</strong>
+      <small>{{ data.yesterday }} · Daily activity</small>
+    </section>
+  </div>
+  <div class="dashboard-panels">
+    <section class="form-card">
+      <header class="action-card-heading">
+        {{ icon('projects', 21) }}
+        <div>
+          <h2>IDP Categories</h2>
+          <p>Keep projects organised with consistent, easy-to-find categories.</p>
+        </div>
+      </header>
+      {% for action,label,detail in [('create','Create Category','Add a category to organise Interior Design Projects.'),('view','View Categories','Review categories and their linked projects.'),('update','Update Category','Keep category names and descriptions up to date.'),('delete','Delete Category','Remove categories that are no longer needed.'),('search','Search Categories','Find a category by name or unique ID.')] %}<a class="dashboard-action"
+                                                                                                                                                                                                                                                                                                                                                                                                                                            href="{{ ui_url('create_category') if action == 'create' else ui_url('search_categories',mode=action) }}">{{ icon('plus' if action == 'create' else 'search',16) }}<span>
+        <strong>{{ label }}</strong>
+        <small>{{ detail }}</small>
+        </span>{{ icon('chevron', 14) }}</a>
+      {% endfor %}
+    </section>
+    <section class="form-card">
+      <header class="action-card-heading">
+        {{ icon('dashboard', 21) }}
+        <div>
+          <h2>Activity Reports</h2>
+          <p>Generate a report for a day, week or month to review platform activity.</p>
+        </div>
+      </header>
+      {% for kind,label in [('daily','Review new IDPs, customer shortlists and the top IDP category.'),('weekly','Understand activity across a selected week.'),('monthly','See a complete month of platform activity.')] %}<a class="dashboard-action"
+                                                                                                                                                                                                                            href="{{ ui_url('generate_' ~ kind ~ '_report') }}">{{ icon('projects', 16) }}<span>
+        <strong>Generate {{ kind|title }} Report</strong>
+        <small>{{ label }}</small>
+        </span>{{ icon('chevron', 14) }}</a>
+      {% endfor %}
+      <div class="latest-report">
+        <strong>Latest daily report</strong>
+        {% if data.latestReport %}
+          <p>{{ data.latestReport.startDate }} · Generated {{ data.latestReport.generatedAt }}</p>
+          <a href="{{ ui_url('view_report',report_id=data.latestReport.reportId) }}">Open report ›</a>
+        {% else %}
+          <p>No daily report has been generated yet.</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+{% endblock %}

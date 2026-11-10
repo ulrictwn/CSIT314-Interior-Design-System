@@ -1,0 +1,45 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import project_summary, linked_account with context %}
+{% block content %}
+  {% set project = data.project %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  <section class="form-card project-detail-card">
+    <div class="card-section-heading">
+      <div>
+        <h2>{{ project.projectName }}</h2>
+        <p class="muted small">
+          {% if current_user and current_user.account_id == project.accountId %}
+            By {{ current_user.full_name }}
+          {% else %}
+            Account {{ project.accountId }}
+          {% endif %}
+        </p>
+      </div>
+      <span class="project-phase">{{ phase_label }} project</span>
+    </div>
+    <div class="project-detail-layout">
+      <figure class="project-inspiration">
+        <img src="{{ url_for('static',filename='images/login-interior.png') }}"
+             alt="A warm neutral living room with an olive lounge chair">
+        <figcaption>Interior inspiration</figcaption>
+      </figure>
+      <div>
+        <h3>Project information</h3>
+        {{ project_summary(project) }}
+      </div>
+    </div>
+    <section class="about-project">
+      <h3>About this project</h3>
+      <p class="preserve-lines">{{ project.description }}</p>
+    </section>
+    {{ linked_account() }}
+    <div class="form-actions">
+      <a class="button button-primary"
+         href="{{ ui_url('update_' ~ phase ~ '_project',project_id=project.projectId) }}">Update project</a>
+      <a class="button button-secondary"
+         href="{{ ui_url(phase ~ '_projects',mode='view') }}">Back to projects</a>
+    </div>
+  </section>
+{% endblock %}

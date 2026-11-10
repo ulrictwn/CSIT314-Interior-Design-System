@@ -1,85 +1,88 @@
-# Nestora — user stories 1–5 only
+# Nestora – Online Interior Design Platform
 
-This is the corrected, limited package. Use this ZIP instead of the earlier 48-story ZIP.
+CSIT314 Software Development Methodologies group project by team **Fugglers**.
 
-## Included scope
+Nestora connects homeowners with interior designers. It implements all 48 user stories across four portals:
 
-1. Create a user profile with name, description, status and selected permission strings.
-2. View existing profiles and their details.
-3. Update profile information and permissions.
-4. Suspend a profile only when no accounts are assigned to it.
-5. Search profiles by name or description.
+| Portal | What it does | User stories |
+| --- | --- | --- |
+| User Admin | Create, view, update, suspend and search user profiles and user accounts | US1–US12 |
+| Interior Designer | Manage a company profile and new and past Interior Design Projects (IDPs); see each project's view and shortlist counts | US13–US29, US37–US38 |
+| Customer | Search and view IDPs, save them to a shortlist, and search and view the shortlist | US30–US36 |
+| Platform Manager | Manage IDP categories and generate daily, weekly and monthly reports | US39–US48 |
 
-The application uses Boundary, Control and Entity classes. Profile permissions are Python lists, stored as PostgreSQL `text[]`. Checkboxes appear inside a dropdown. Empty selections are allowed and mean no feature permissions. Permissions for future modules can be stored as role data; those modules are not implemented in this package.
+## Design
 
-No account CRUDS, login/logout, company management, projects, shortlists, categories, reports, test cases or test suite are included.
+The code follows the Boundary–Control–Entity (BCE) pattern, with one boundary, one controller and one entity method per user story action:
 
-## Use in your existing Codespace
+- **`boundary/`** – pages that receive input, strip ordinary text and display results or errors.
+- **`control/`** – controllers that pass each request to the entity in a single line.
+- **`entity/`** – entities that validate all input and read and write the database (`entity/validation.py` holds the shared field rules).
+- **`templates/`** and **`static/`** – the HTML screens and styles.
+- **`infrastructure/`** – app set-up: database connection, login protection for each portal, and command-line commands.
 
-Keep your existing working `.devcontainer` configuration, `.env`, `.postgres-data`, unrelated code and existing test files. This package contains no replacement container configuration and no real database or credentials. Save or commit your current work before integrating the files.
+## Technology
 
-1. Extract the ZIP. Copy the contents of `nestora-first-five` into your project root, preserving the folder structure. Review overlapping files before replacing them, especially `app.py` and shared infrastructure.
-2. Activate your existing virtual environment and install the libraries:
+Python 3.12, Flask, SQLAlchemy, PostgreSQL (SQLite for tests), pytest and GitHub Actions.
 
+## Setting up
+
+Run these from the project folder. On Windows, use `.venv\Scripts\python.exe` instead of `.venv/bin/python`.
+
+1. Create a virtual environment and install the dependencies:
    ```bash
-   source .venv/bin/activate
-   python -m pip install -r requirements.lock
+   python -m venv .venv
+   .venv/bin/python -m pip install -r requirements-dev.txt
    ```
-
-   If there is no virtual environment yet, first run `python -m venv .venv`.
-
-3. Keep your current database connection settings. To add missing settings without replacing existing values:
-
+2. Configure the database in `.env`. In the Codespace, `python scripts/setup_env.py` adds any missing settings. Without PostgreSQL, you can use SQLite instead:
+   ```
+   DATABASE_URL=sqlite:///nestora.db
+   SECRET_KEY=any-long-random-text
+   ```
+3. Create the database tables:
    ```bash
-   python scripts/setup_env.py
+   .venv/bin/python -m flask --app app upgrade-db
    ```
-
-   PostgreSQL uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, and `POSTGRES_PORT`. Inside your Compose setup the host is normally `db`. An existing `DATABASE_URL` overrides those settings. Keep a stable generated `SECRET_KEY` in `.env`. Do not commit `.env`.
-
-4. Prepare the profile table:
-
+4. Either create the first User Admin yourself, or load the test data (next section):
    ```bash
-   python -m flask --app app upgrade-db
+   .venv/bin/python -m flask --app app bootstrap-admin
    ```
-
-   This creates only `user_profile` on a new database. It preserves existing records, adds `status` if missing, and creates a case-insensitive unique-name index. A legacy `user_profiles` table is renamed only if `user_profile` is absent. Duplicate names or an unfamiliar structure stop the upgrade for review. Other existing tables are not deleted.
-
-5. To try these five screens before an account/login module exists, add this line to your local `.env`:
-
-   ```dotenv
-   PROFILE_DEVELOPMENT_PREVIEW=true
-   ```
-
-   This explicitly enables an unauthenticated development preview. Keep the forwarded Codespaces port **Private**. It is not an implemented login or an authenticated administrator. Leave it `false` when connecting the real authentication described below.
-
-6. Start Flask:
-
+5. Start the website:
    ```bash
-   python -m flask --app app run --host=0.0.0.0 --port=5000
+   .venv/bin/python -m flask --app app run --host=0.0.0.0 --port=5000
    ```
+   Staff sign in at `/login` and choose their role (User Admin, Interior Designer or Platform Manager). Customers sign in at `/customer/login`.
 
-   Open port 5000 from the Codespaces Ports tab. Visit `/profiles` or `/profiles/create`. Set `COOKIE_SECURE=true` for the HTTPS forwarded URL; use `false` only for local HTTP.
+Accounts created by a User Admin start with the default password `password`. To set a different password from the terminal:
 
-## Existing authentication integration
+```bash
+.venv/bin/python -m flask --app app reset-password --username <username>
+```
 
-The report lists “User Admin must be logged in” as a precondition. Implementing account login is outside the requested five stories, so this package provides an integration hook rather than adding that later story. With preview disabled, access is denied until `app.config['PROFILE_ACTOR_LOADER']` is set to a callable that returns your authenticated user, or `None` when signed out. That user must expose `has_permission(code)`. The hook runs on every request. A signed-in admin needs the relevant `profile.create`, `.view`, `.update`, `.suspend`, and `.search` permissions. Register the hook in application setup before serving requests. Do not use a hardcoded user as production authentication.
+## Test data
 
-## Suspension and existing accounts
+The `test data` folder fills an empty database with realistic Singapore sample data: 100 user profiles, 220 user accounts, 100 company profiles, 100 IDP categories, 300 projects, 300 shortlist entries, 100 reports and about 7,700 activity events.
 
-Story 4 still needs to inspect account assignments. The small adapter in `infrastructure/profile_assignments.py` reads existing `user_account` or `user_accounts` tables with a `profile_id` column. It does not define or create account models, screens, or records. Any assigned account blocks suspension, including a suspended account. The Update status field uses the same guard. When no account table exists yet, there are no stored assignments to block suspension. If your real account table uses another name or foreign-key column, change this adapter before integrating. Future account-assignment code must also lock the profile row and reject a suspended profile.
+```bash
+.venv/bin/python "test data/create_data.py"
+```
 
-## Code map
+Every sample account's password is `password`, for example `customer001`, `designer001`, `manager01` and `admin01`. See [test data/README.md](test%20data/README.md) for listing and clearing the data.
 
-| Story | Boundary | Controller | URL |
-| --- | --- | --- | --- |
-| 1 | CreateUserProfilePage | CreateUserProfileController | `/profiles/create` |
-| 2 | ViewUserProfilePage | ViewUserProfileController | `/profiles`, `/profiles/<id>` |
-| 3 | UpdateUserProfilePage | UpdateUserProfileController | `/profiles/<id>/update` |
-| 4 | SuspendUserProfilePage | SuspendUserProfileController | `/profiles/<id>/suspend` |
-| 5 | SearchUserProfilePage | SearchUserProfileController | `/profiles/search` |
+## Tests
 
-The classes are grouped in `boundary/profile_pages.py` and `control/profile_controllers.py`; matching individual module names re-export them. `entity/user_profile.py` defines persistence. `boundary/forms.py` defines validation. HTML lives in `templates/profiles/` and shared styling in `static/`.
+The automated tests are in `tests/sprint_1/` to `tests/sprint_5/`, with one file per user story: 22 tests for Sprint 1 (TC01–TC22) and one test for each later story (TC23–TC65), 65 in total. Each test uses its own temporary database.
 
-Create/update/suspend use POST and CSRF tokens. Success redirects prevent refresh resubmission. Cancel never saves. Search uses escaped, parameterized matching. Profile names are unique without regard to capitalization. Status is `Active` or `Suspended`. A missing record gives 404; validation gives a visible error and preserves form values. An assigned profile cannot be suspended through either the suspension form or the Update status field.
+```bash
+.venv/bin/python -m pytest -v
+```
 
-Local checks cover the five request flows, validation, CSRF, assignment guard, and schema upgrade. No test files or fixtures are shipped. PostgreSQL `text[]` schema compilation was checked; verify the live PostgreSQL connection in your own Codespace. Your GitHub repository has not been edited or pushed.
+To also produce the HTML test report and coverage report in `reports/`:
+
+```bash
+.venv/bin/python scripts/run_profile_tests.py
+```
+
+## CI/CD
+
+The GitHub Actions workflow `.github/workflows/profile-ci.yml` runs on every push and pull request. It runs all 65 tests twice, once on SQLite and once on PostgreSQL, and uploads the test reports as artifacts. When tests pass on the `main` branch, it also packages the tested source code as a downloadable artifact.

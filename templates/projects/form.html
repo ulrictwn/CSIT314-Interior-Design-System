@@ -1,0 +1,69 @@
+{% extends "designer/base.html" %}
+{% from 'designer/components.html' import field, linked_account, errors_summary with context %}
+{% block content %}
+  <header class="page-heading">
+    <h1>{{ title }}</h1>
+  </header>
+  {{ errors_summary() }}
+  <section class="form-card project-form-card">
+    <div class="card-section-heading">
+      <h2>{{ values.get("projectName") if editing else ('Completed project details' if phase == 'past' else 'New project details') }}</h2>
+      <span class="project-phase">{{ phase_label }} project</span>
+    </div>
+    <form method="post"
+          action="{{ ui_url('update_' ~ phase ~ '_project', project_id=data.project.projectId) if editing and data.get('project') else request.path }}">
+      {{ field('projectName', 'Project name') }}
+      <div class="form-row">
+        {{ field('area','Area',maxlength=100,placeholder='e.g. Tampines, Singapore · 120 sqm') }}
+        <div class="form-group">
+          <label for="propertyType">Property type</label>
+          <input class="form-control{{ ' invalid' if errors.get('propertyType') else '' }}"
+                 list="property-options"
+                 id="propertyType"
+                 name="propertyType"
+                 maxlength="100"
+                 value="{{ values.get('propertyType', '') }}"
+                 required
+                 placeholder="Choose or enter a property type">
+          <datalist id="property-options">
+            {% for item in property_types %}
+              <option value="{{ item }}">
+            {% endfor %}
+          </datalist>
+          {% for message in errors.get('propertyType',[]) %}
+            <p class="field-error">{{ message }}</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-row">
+        {{ field('renovationCost',('Final' if phase == 'past' else 'Estimated') ~ ' renovation cost (SGD)',type='number',minval=0,step='any',placeholder='65000') }}
+        <div class="form-group"><label for="categoryId">Category</label>
+          <select class="form-control{{ ' invalid' if errors.get('categoryId') else '' }}" id="categoryId" name="categoryId" required>
+            <option value="">Choose a category</option>
+            {% for category in categories %}<option value="{{ category.category_id }}" {% if values.get('categoryId','')|string == category.category_id|string %}selected{% endif %}>{{ category.category_name }} · CAT{{ category.category_id }}</option>{% endfor %}
+          </select>
+          {% for message in errors.get('categoryId',[]) %}<p class="field-error">{{ message }}</p>{% endfor %}
+          {% if not categories %}<p class="field-help">No categories yet. <a href="{{ ui_url('create_category') }}">Create a category</a> before adding a project.</p>{% endif %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="description">Project description</label>
+        <textarea id="description"
+                  name="description"
+                  class="form-control{{ ' invalid' if errors.get('description') else '' }}"
+                  maxlength="10000"
+                  required
+                  placeholder="Describe the project and its design.">{{ values.get('description','') }}</textarea>
+        {% for message in errors.get('description',[]) %}
+          <p class="field-error">{{ message }}</p>
+        {% endfor %}
+      </div>
+      {{ linked_account(true) }}
+      <div class="form-actions">
+        <button class="button button-primary" type="submit" {% if not categories %}disabled{% endif %}>{{ 'Save changes' if editing else ('Add to portfolio' if phase == 'past' else 'Create project') }}</button>
+        <a class="button button-secondary"
+           href="{{ ui_url('view_' ~ phase ~ '_project', project_id=data.project.projectId) if editing and data.get('project') else ui_url(phase ~ '_projects',mode='view') }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
