@@ -1,7 +1,7 @@
 # control/categories/view_category_controller.py: the boundary-to-entity request handler.
 from control.categories.view_category_controller import ViewCategoryController
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, validate_category_fields, positive_integer
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from flask import flash, redirect, url_for
@@ -20,10 +20,9 @@ class UpdateCategoryPage(MethodView):
     def get(self, category_id):
         """Load the existing category through ViewCategoryController for editing."""
         try:
-            category_id = positive_integer(strip_input(category_id), 'Category ID')
+            category = ViewCategoryController().getCategory(strip_input(category_id))
         except DomainError as error:
             return error_response(str(error), 'manager', {'categoryId': [str(error)]})
-        category = ViewCategoryController().getCategory(category_id)
         if category is None:
             return error_response('Category not found.','manager',status=404)
         return present(dict(ok=True,editing=True,category=category.as_dict(),values=category.as_dict()),
@@ -36,18 +35,9 @@ class UpdateCategoryPage(MethodView):
         return self.rendered_page
 
     def onUpdate(self, categoryId: int, categoryName: str, description: str) -> None:
-        """Validate the category ID and fields, then call UpdateCategoryController.updateCategory."""
+        """Strip category details and let the entity validate them through the controller."""
         self.values = dict(categoryName=strip_input(categoryName), description=strip_input(description))
-        _, self.field_errors = validate_category_fields(**self.values)
-        self.categoryId = categoryId
-        try:
-            self.categoryId = positive_integer(strip_input(categoryId), 'Category ID')
-        except DomainError as error:
-            self.field_errors['categoryId'] = [str(error)]
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.displayError()
-            return
+        self.categoryId = strip_input(categoryId)
         controller = UpdateCategoryController()
         if controller.updateCategory(self.categoryId, **self.values):
             self.category = ViewCategoryController().getCategory(self.categoryId)

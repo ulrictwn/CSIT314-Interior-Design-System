@@ -1,7 +1,7 @@
 from flask import render_template
 from flask.views import MethodView
-# Input cleanup and field checks from boundary/validation.py.
-from boundary.validation import positive_integer, strip_input
+# Ordinary input cleanup from boundary/validation.py; entities validate the values.
+from boundary.validation import strip_input
 # Controller used to relay this boundary request from control/profile/view_user_profile_controller.py.
 from control.profile.view_user_profile_controller import ViewUserProfileController
 
@@ -17,11 +17,11 @@ class ViewUserProfilePage(MethodView):
         return self.rendered_page
 
     def onView(self, profileId: int) -> None:
-        """Check the ID and ask the controller for the selected profile.
+        """Pass the stripped ID to the entity through the view controller.
 
         Uses boundary/validation.py, control/profile/view_user_profile_controller.py.
         """
-        profileId = positive_integer(strip_input(profileId), 'Profile ID')
+        profileId = strip_input(profileId)
         profile = ViewUserProfileController().getUserProfile(profileId)
         if profile is None:
             self.rendered_page = render_template('error.html', code=404,

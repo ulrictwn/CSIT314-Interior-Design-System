@@ -2,8 +2,8 @@ from flask import request
 from flask.views import MethodView
 # boundary/designer/presentation.py: shared HTML/JSON rendering.
 from boundary.designer.presentation import present
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, search_text
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: application error types.
 from infrastructure.errors import DomainError
 # boundary/designer/context.py: submitted values and the signed-in account.
@@ -27,15 +27,13 @@ class SearchCompanyProfilePage(MethodView):
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
-        """Validate the search text, then request matching records from the imported controller."""
+        """Strip search text, then request matching records or validation errors from the entity."""
         self.keyword = strip_input(keyword)
         try:
-            keyword = search_text(self.keyword)
+            results = SearchCompanyProfileController().searchCompanyProfile(account_id(), self.keyword)
         except DomainError as error:
             self.rendered_page = error_response(str(error), {'keyword': [str(error)]}, values={'keyword': self.keyword})
             return
-        accountId = account_id()
-        results = SearchCompanyProfileController().searchCompanyProfile(accountId, keyword)
         self.displayResults(results)
 
     def displayResults(self, results: list[str]) -> None:

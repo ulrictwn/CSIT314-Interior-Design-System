@@ -1,5 +1,5 @@
-# Pure value checks shared with boundary input validation from infrastructure/validation.py.
-from infrastructure.validation import validate_profile_fields, valid_profile_id, search_text, required_text
+# Entity-owned field and data checks from entity/validation.py.
+from entity.validation import validate_profile_fields, positive_integer, search_text, required_text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -25,7 +25,7 @@ class UserProfile(db.Model):
     def userProfileExists(cls, profileName: str) -> bool:
         """Check whether another saved profile already uses this name.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         profileName = required_text(profileName, 'Profile name', 100)
         return db.session.execute(db.select(cls.profile_id).where(
@@ -35,7 +35,7 @@ class UserProfile(db.Model):
                           permissions: list[str]) -> bool:
         """Check profile data and duplicate names, then save the new profile.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         self.error_message, self.field_errors, self.error_reason = None, {}, None
         values, errors = validate_profile_fields(profileName, description, status, permissions)
@@ -71,10 +71,9 @@ class UserProfile(db.Model):
     def getUserProfile(cls, profileId: int) -> 'UserProfile | None':
         """Look up a profile by ID, returning None when it cannot be found.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
-        if not valid_profile_id(profileId):
-            return None
+        profileId = positive_integer(profileId, 'Profile ID')
         return db.session.get(cls, profileId)
 
     @classmethod
@@ -85,26 +84,33 @@ class UserProfile(db.Model):
 
     @classmethod
     def searchUserProfiles(cls, keyword: str) -> list['UserProfile']:
-        """Find profiles by name or description; a blank internal query lists all.
+        """Validate required search text and find matching names or descriptions.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
-        keyword = search_text(keyword)
+        keyword = search_text(keyword, required=True)
         return db.session.execute(db.select(cls).where(db.or_(
             cls.name.icontains(keyword, autoescape=True),
             cls.description.icontains(keyword, autoescape=True)
         )).order_by(cls.name, cls.profile_id)).scalars().all()
 
+    @classmethod
+    def listUserProfiles(cls) -> list['UserProfile']:
+        """Read the alphabetical directory for initial lists and profile choices."""
+        return db.session.scalars(db.select(cls).order_by(cls.name, cls.profile_id)).all()
+
     def updateUserProfile(self, profileId: int, profileName: str, description: str,
                           permissions: list[str]) -> bool:
         """Check saved data and duplicate names, then update fields while preserving status.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
-        if not valid_profile_id(profileId):
-            self.error_message = 'User profile not found.'
-            self.field_errors = {}
-            self.error_reason = 'not_found'
+        try:
+            profileId = positive_integer(profileId, 'Profile ID')
+        except DomainError as error:
+            self.error_message = str(error)
+            self.field_errors = {'profileId': [str(error)]}
+            self.error_reason = 'invalid_data'
             return False
         values, errors = validate_profile_fields(profileName, description, 'Active', permissions)
         if errors:
@@ -147,12 +153,14 @@ class UserProfile(db.Model):
     def suspendUserProfile(self, profileId: int) -> bool:
         """Suspend a saved profile only when no account is assigned to it.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
-        if not valid_profile_id(profileId):
-            self.error_message = 'User profile not found.'
-            self.field_errors = {}
-            self.error_reason = 'not_found'
+        try:
+            profileId = positive_integer(profileId, 'Profile ID')
+        except DomainError as error:
+            self.error_message = str(error)
+            self.field_errors = {'profileId': [str(error)]}
+            self.error_reason = 'invalid_data'
             return False
         # Entity used for saved data or return-value types from entity/accounts/user_account.py.
         from entity.accounts.user_account import UserAccount

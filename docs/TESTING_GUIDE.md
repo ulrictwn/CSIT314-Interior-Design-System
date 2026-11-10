@@ -1,6 +1,6 @@
 # Sprint tests
 
-The test suite follows `Nothinghere/CSIT314 Group Project Report (5).docx`:
+The test suite follows `Nothinghere/CSIT314 Group Project Report (6).docx`:
 
 | Folder | User stories | Tests |
 | --- | --- | ---: |
@@ -57,4 +57,6 @@ Sprint 1 preserves every check listed in the updated document, including TC08 an
 
 Sprints 2–5 each have one successful workflow test per story. Requests exercise the real boundary, controller, and entity, with checks of displayed results or stored changes. Later-story JSON requests use the same BCE handlers as the HTML forms. Logout tests begin with an existing browser login, and report tests use known activity and dates.
 
-The broad migration, browser-layout, and method-contract suites remain excluded as requested. The latest access checks are asserted within existing login/logout, company deletion, project deletion, and shortlist story tests; direct entity rejection is also checked in existing profile/account cases. The earlier diagram transcription remains as a reference in `docs/bce_contracts.json`. This smaller suite covers the requested sprint scenarios; it is not the previous exhaustive regression suite.
+The broad migration, browser-layout, and method-contract suites remain excluded as requested. The latest access checks are asserted within existing login/logout, company deletion, project deletion, and shortlist story tests; direct entity rejection is also checked in existing profile/account cases. The unchanged diagram transcription was checked against all 48 latest Word images and remains as a reference in `docs/bce_contracts.json`. This smaller suite covers the requested sprint scenarios; it is not the previous exhaustive regression suite.
+
+Validation assertions exercise real controller/entity calls: boundaries strip ordinary input and display errors; entities validate fields and stored data. Invalid requests must not change records. The latest report test fixtures match Word (6), including its exact TC63–TC65 dates and totals.

@@ -1,21 +1,21 @@
-# BCE validation and cleanup — 10 November 2026
+# BCE validation correction — 10 November 2026
 
-The current audit covers all 48 stories in Word version (5). This update supersedes the earlier rule that boundaries only strip input. See [the complete story/method audit](BCE_AUDIT_1_48.md).
+Reviewed against `Nothinghere/CSIT314 Group Project Report (6).docx`, including all 48 BCE diagrams and the TDD statement that validation moved into entities. This correction replaces the earlier, incorrect 10 November boundary-validation guidance. See [the complete story/method audit](BCE_AUDIT_1_48.md).
 
 | Layer | Responsibility |
 | --- | --- |
-| Boundary | Receive and strip ordinary input; reject missing, malformed, overlong or unsupported field values before the controller; display results. Preserve passwords exactly. |
+| Boundary | Receive and strip ordinary input, call the controller, and display results/errors. Preserve passwords exactly. |
 | Controller | Relay calls/results through its entity object. No input checks, SQL or copied error state. |
-| Entity | Validate duplicates, references, assignments, membership and stored state; perform database operations. Essential shared value checks also protect direct/CLI callers. |
+| Entity | Validate all fields, IDs, searches, dates and credentials, plus duplicates, references, assignments and saved state; perform database operations. |
 
-Boundary events call the checks exposed by `boundary/validation.py`. Their single pure implementation is in `infrastructure/validation.py`, which has no database, entity-model or Flask dependencies. The five entity validation helper modules have been consolidated into that file.
+`boundary/validation.py` contains only `strip_input`. Shared field rules now live in `entity/validation.py` and are called by entity operations. The unused infrastructure copy was removed. Invalid values reach the real controller and are rejected by the entity before records are changed; the boundary renders the returned field errors.
 
-Profile/account lists and active-profile dropdowns reuse existing diagram Search operations, so the separate Directory controllers and entity list helpers were removed. The assignment check lives directly in `UserProfile.suspendUserProfile`. Staff role-selector input is checked in the Staff boundary; the selector-only controller/entity method were removed. Error rendering for report generation and account suspension is inside the diagram events. Unused auth re-exports and persistence wrappers were removed.
+All affected profile/account, company/project, login, category, shortlist, search, detail/count and report pages follow this split. Existing tests that blocked controller calls were updated to exercise the real BCE path, checking errors and unchanged records. The suite retains exactly TC01–TC65.
 
-The requested `UpdateUserProfileController.getUserProfile` prefill method remains. Flask adapters, constructors, required setup/password/serialization support, report activity history, stored-report reads/downloads, the supplied remove-shortlist wireframe and dashboards still serve required behavior. No speculative fields or features were added.
+The 48 diagrams are unchanged from the previous version: all 208 method entries retain their class/method names, parameter order/types and return types. Event/display methods remain void. Two necessary story-controller helpers are documented: the requested update-profile prefill getter and `ViewUserProfileController.listUserProfiles` for initial directories/dropdowns. A separate list operation lets the entity reject a submitted blank profile search without breaking the initial list. Staff selector checks also run in the account entity through a small relay controller.
 
-Existing role/session/ownership checks remain to enforce the document's login preconditions and scoped-account tests. CSRF, throttling, server-side session tokens and final-admin protection remain outside the demo scope. Account creation retains the password-free form and hashed default password `password`.
+Word (6) resolves the old report-test conflict. TC63–TC65 now check new projects, shortlist saves and top category. The fixtures match its exact dates and totals. Monthly reports validate the submitted start/end period in the entity, including reversed dates; a full calendar month remains the form default rather than an extra requirement.
 
-All 208 diagram method entries retain their names, parameter order/types and return types; event/display methods remain void. All 65 sprint tests pass on SQLite and PostgreSQL. Existing tests assert that invalid fields do not reach action controllers. The table schema and stored records need no changes; restart Flask.
+Existing role/session/ownership behavior, the password-free account form and hashed default password `password` remain. No database columns, constraints or relationships changed; this correction needs no migration or data reset. The Word file was not edited. Remaining inconsistencies in its prose are listed in [the audit](BCE_AUDIT_1_48.md#document-conflicts-and-agreed-choices).
 
-The subsequent method simplification removes all six `_reject` helpers and the private New/Past CRUD, duplicate-query and keyword helpers. Error handling and database work now live directly in the diagram operations. All 409 application methods/functions have short explanations; local imports name their source files. Diagram signatures and runtime behavior remain unchanged.
+Verification: all 65 sprint tests pass on SQLite and PostgreSQL in disposable databases/isolated schemas. The 48-story/208-method contract check and 42-page HTML smoke checks pass. Existing ActivityEvent recording and report history are preserved. Restart Flask to load the changes.

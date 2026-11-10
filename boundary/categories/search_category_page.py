@@ -1,7 +1,7 @@
 from flask import request
 from flask.views import MethodView
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, search_text
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 # boundary/designer/context.py: submitted values and signed-in account context.
@@ -17,9 +17,8 @@ from entity.categories.category import Category
 class SearchCategoryPage(MethodView):
     def get(self):
         """Display categories matching the supplied search keyword."""
-        self.mode = request.args.get('mode','search')
-        if self.mode not in ('search','view','update','delete'):
-            return error_response('Choose a supported category operation.','manager')
+        modes = {name: name for name in ('search', 'view', 'update', 'delete')}
+        self.mode = modes.get(strip_input(request.args.get('mode', 'search')), 'search')
         self.onSearch(request.args.get('q',''))
         return self.rendered_page
 
@@ -30,13 +29,14 @@ class SearchCategoryPage(MethodView):
         return self.rendered_page
 
     def onSearch(self,keyword: str) -> None:
-        """Validate the keyword, then request matching records through the search controller."""
+        """Strip the keyword and display the search result or entity validation error."""
+        self.keyword = strip_input(keyword)
         try:
-            self.keyword = search_text(strip_input(keyword))
+            categories = SearchCategoryController().searchCategories(self.keyword)
         except DomainError as error:
             self.rendered_page = error_response(str(error), 'manager', {'keyword': [str(error)]})
             return
-        self.displayResults(SearchCategoryController().searchCategories(self.keyword))
+        self.displayResults(categories)
 
     def displayResults(self,categories: list[Category]) -> None:
         """Display the returned records using the shared portal presenter."""

@@ -1,7 +1,7 @@
 # control/categories/view_category_controller.py: the boundary-to-entity request handler.
 from control.categories.view_category_controller import ViewCategoryController
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from flask import flash, redirect, url_for
@@ -18,10 +18,9 @@ class DeleteCategoryPage(MethodView):
     def get(self,category_id):
         """Load the category through ViewCategoryController for confirmation."""
         try:
-            category_id = positive_integer(strip_input(category_id), 'Category ID')
+            category = ViewCategoryController().getCategory(strip_input(category_id))
         except DomainError as error:
             return error_response(str(error), 'manager', {'categoryId': [str(error)]})
-        category = ViewCategoryController().getCategory(category_id)
         if category is None:
             return error_response('Category not found.','manager',status=404)
         return present(dict(ok=True,category=category.as_dict(),confirmationRequired=True),
@@ -33,18 +32,17 @@ class DeleteCategoryPage(MethodView):
         return self.rendered_page
 
     def onDelete(self,categoryId: int) -> None:
-        """Validate the category ID, then call DeleteCategoryController.deleteCategory."""
-        try:
-            categoryId = positive_integer(strip_input(categoryId), 'Category ID')
-        except DomainError as error:
-            self.rendered_page = error_response(str(error), 'manager', {'categoryId': [str(error)]})
-            return
+        """Strip the category ID and display the result of the entity deletion request."""
+        categoryId = strip_input(categoryId)
         controller = DeleteCategoryController()
         if controller.deleteCategory(categoryId):
             self.displaySuccess()
         else:
-            category = ViewCategoryController().getCategory(categoryId)
-            self.rendered_page = error_response(controller.entity.error_message,'manager',
+            try:
+                category = ViewCategoryController().getCategory(categoryId)
+            except DomainError:
+                category = None
+            self.rendered_page = error_response(controller.entity.error_message,'manager',controller.entity.field_errors,
                 status=404 if controller.entity.error_reason == 'not_found' else 400,
                 template='categories/delete.html' if category else 'portal/error.html',
                 category=category.as_dict() if category else None)

@@ -8,8 +8,8 @@ from boundary.portal import present, error_response
 from control.reports.view_report_controller import ViewReportController
 # boundary/reports/presentation.py: report date defaults and display labels.
 from boundary.reports.presentation import report_metrics
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 
@@ -18,10 +18,9 @@ class ViewReportPage(MethodView):
     def get(self,report_id):
         """Load and display a saved report through ViewReportController."""
         try:
-            report_id = positive_integer(strip_input(report_id), 'Report ID')
+            report = ViewReportController().getReport(strip_input(report_id))
         except DomainError as error:
             return error_response(str(error), 'manager', {'reportId': [str(error)]})
-        report = ViewReportController().getReport(report_id)
         if report is None:
             return error_response('Report not found.','manager',status=404)
         return present(dict(ok=True,report=report.as_dict(),metrics=report_metrics(report),kind=report.report_type,
@@ -33,10 +32,9 @@ class DownloadReportPage(MethodView):
     def get(self,report_id):
         """Load a saved report through ViewReportController and return its CSV."""
         try:
-            report_id = positive_integer(strip_input(report_id), 'Report ID')
+            report = ViewReportController().getReport(strip_input(report_id))
         except DomainError as error:
             return error_response(str(error), 'manager', {'reportId': [str(error)]})
-        report = ViewReportController().getReport(report_id)
         if report is None:
             return error_response('Report not found.','manager',status=404)
         stream = io.StringIO(newline='')

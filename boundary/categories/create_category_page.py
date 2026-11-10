@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, validate_category_fields
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 from flask import flash, redirect, url_for
 from flask.views import MethodView
 # boundary/designer/context.py: submitted values and signed-in account context.
@@ -24,14 +24,8 @@ class CreateCategoryPage(MethodView):
         return self.rendered_page
 
     def onCreate(self, categoryName: str, description: str) -> None:
-        """Validate category input, then call CreateCategoryController.createCategory."""
+        """Strip category input and pass it to the controller for entity validation."""
         self.values = dict(categoryName=strip_input(categoryName), description=strip_input(description))
-        _, self.field_errors = validate_category_fields(**self.values)
-
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.displayError()
-            return
         controller = CreateCategoryController()
         if controller.createCategory(**self.values):
             self.category = controller.entity

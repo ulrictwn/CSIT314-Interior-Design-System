@@ -2,8 +2,8 @@
 from control.profile.view_user_profile_controller import ViewUserProfileController
 from flask import render_template, redirect, url_for, flash
 from flask.views import MethodView
-# Input cleanup and field checks from boundary/validation.py.
-from boundary.validation import positive_integer, strip_input
+# Ordinary input cleanup from boundary/validation.py; entities validate the values.
+from boundary.validation import strip_input
 # Controller used to relay this boundary request from control/profile/suspend_user_profile_controller.py.
 from control.profile.suspend_user_profile_controller import SuspendUserProfileController
 
@@ -15,7 +15,7 @@ class SuspendUserProfilePage(MethodView):
 
         Uses boundary/validation.py, control/profile/view_user_profile_controller.py.
         """
-        self.profile = ViewUserProfileController().getUserProfile(positive_integer(profile_id, 'Profile ID'))
+        self.profile = ViewUserProfileController().getUserProfile(strip_input(profile_id))
         if self.profile is None:
             self.error_message, self.error_reason = 'User profile not found.', 'not_found'
             self.displayError()
@@ -28,11 +28,11 @@ class SuspendUserProfilePage(MethodView):
         return self.rendered_page
 
     def onSuspend(self, profileId: int) -> None:
-        """Check the ID and ask the controller to suspend the profile.
+        """Strip the ID and display the entity's suspension result.
 
         Uses boundary/validation.py, control/profile/suspend_user_profile_controller.py, control/profile/view_user_profile_controller.py.
         """
-        profileId = positive_integer(strip_input(profileId), 'Profile ID')
+        profileId = strip_input(profileId)
         controller = SuspendUserProfileController()
         if controller.suspendUserProfile(profileId):
             self.displaySuccess()

@@ -1,5 +1,5 @@
-# infrastructure/validation.py: shared pure value checks.
-from infrastructure.validation import positive_integer, valid_account_id
+# entity/validation.py: entity-owned field and value checks.
+from entity.validation import positive_integer, valid_account_id
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError

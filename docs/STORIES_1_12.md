@@ -1,6 +1,8 @@
 # BCE implementation map
 
-Boundaries receive and strip ordinary input, then validate missing/incorrect fields before controllers. Controllers relay calls/results through their entity object. Entities validate duplicates, references and saved state, then perform database operations. Essential shared value checks also protect direct Python/CLI calls.
+Source: `Nothinghere/CSIT314 Group Project Report (6).docx`; its BCE diagrams are unchanged from the previous report.
+
+Boundaries receive and strip ordinary input, preserve passwords exactly, and display results/errors. Controllers relay calls/results through their entity object. Entities validate every input field and saved-data rule before performing database operations. Reusable pure checks live in `entity/validation.py` and are also used by trusted Python/CLI calls. This follows the lecturer's rule and the report's TDD statement that validation moved from boundaries into entities.
 
 This classroom demonstration uses ordinary HTML forms and a basic browser session for login/logout. Profile/account pages require an active User Admin login; permissions remain stored profile data. See [the implemented demo scope](BCE_DEMO_SIMPLIFICATION.md).
 
@@ -21,17 +23,17 @@ This classroom demonstration uses ordinary HTML forms and a basic browser sessio
 | 11 | `UserAdminLoginPage.onLogin`, `displayDashboard`, `displayError` | `UserAdminLoginController.login`; `UserAccount.login` |
 | 12 | `LogoutPage.logout`, `displayLoginPage` | The report leaves the control/entity methods blank; the boundary clears the browser session and redirects to login. |
 
-Event/display methods return `None` (UML void) and store the response in `self.rendered_page`. Flask's `get()`/`post()` adapters return that response. Create/update/suspend/login entity operations return Boolean results; controllers relay duplicate messages and other saved-data errors to the boundary.
+Event/display methods return `None` (UML void) and store the response in `self.rendered_page`. Flask's `get()`/`post()` adapters return that response. Create/update/suspend/login entity operations return Boolean results; boundaries display validation and saved-data errors from the controller's entity. Controllers do not duplicate validation or copy entity error fields.
 
 Profile update now uses the diagram's four arguments: `profileId, profileName, description, permissions`. `getUserProfile` remains in the update controller/entity as requested so saved data can be displayed first. Update preserves status; the separate Suspend operation changes it.
 
 ## Where validation happens
 
-- Boundary diagram events use `boundary/validation.py` to check missing fields, lengths, formats, choices, identifiers and search text before action-controller calls.
-- `infrastructure/validation.py` provides the single reusable pure-value implementation. The former entity validation helper modules were removed. Entity operations reuse essential checks to protect direct/CLI callers.
-- Login checks required credential fields in the boundary, strips the username and preserves the password exactly. `UserAccount.login` checks the stored password, account/profile status and role.
-- Entities check case-insensitive duplicates, uniqueness, rollback, active profile references, missing records and saved state.
-- Diagram search methods supply profile/account directories and dropdowns. The boundary displays the active profile choices; the entity verifies an assigned profile is active when saving.
+- Boundary diagram events use only `strip_input` from `boundary/validation.py`. They pass stripped ordinary values and unchanged passwords through controllers without rejecting missing, malformed or overlong fields.
+- Entity operations call the pure checks in `entity/validation.py` for required fields, lengths, email/phone formats, supported choices, identifiers and search text. The former `infrastructure/validation.py` module is removed.
+- Login boundaries strip the username and preserve the password exactly. `UserAccount.login` validates credential fields, then checks the stored password, account/profile status and role. The shared Staff selector uses `StaffLoginController.selectRole` to relay role validation to `UserAccount.staffRole`.
+- Entities check case-insensitive duplicates, uniqueness, active profile references, missing records and saved state, and manage persistence and rollback.
+- Initial profile directories and dropdowns use the runtime helper `ViewUserProfileController.listUserProfiles` → `UserProfile.listUserProfiles`. This helper keeps initial listing separate from the diagram's `searchUserProfiles`, which requires submitted search text. Blank account searches still list all accounts. Boundaries display active profile choices; entities verify an assigned profile is active when saving.
 
 ## Files
 
@@ -40,7 +42,7 @@ Profile update now uses the diagram's four arguments: `profileId, profileName, d
 | Profile boundaries / controls / entity | `boundary/profile/`, `control/profile/`, `entity/profile/user_profile.py` |
 | Account boundaries / controls / entity | `boundary/accounts/`, `control/accounts/`, `entity/accounts/user_account.py` |
 | Authentication | `boundary/auth/`, `control/auth/`, `entity/accounts/user_account.py` |
-| Input cleanup / validation | `boundary/validation.py` / `infrastructure/validation.py` |
+| Input cleanup / entity validation | `boundary/validation.py` (only `strip_input`) / `entity/validation.py` |
 | HTML | `templates/profiles/`, `templates/accounts/`, `templates/auth/` |
 | Routes | `boundary/routes.py` |
 

@@ -1,5 +1,5 @@
-# infrastructure/validation.py: pure value checks for direct entity calls.
-from infrastructure.validation import validate_project_fields, positive_integer, search_text
+# entity/validation.py: pure value checks for direct entity calls.
+from entity.validation import validate_project_fields, positive_integer, search_text
 # infrastructure/errors.py: application error types.
 from infrastructure.errors import DomainError, NotFoundError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError

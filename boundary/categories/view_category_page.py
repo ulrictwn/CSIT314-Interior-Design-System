@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from flask.views import MethodView
@@ -18,13 +18,12 @@ class ViewCategoryPage(MethodView):
         return self.rendered_page
 
     def onView(self,categoryId: int) -> None:
-        """Validate the supplied ID, then request the saved details through the view controller."""
+        """Strip the supplied ID and display saved details or the entity validation error."""
         try:
-            categoryId = positive_integer(strip_input(categoryId), 'Category ID')
+            category = ViewCategoryController().getCategory(strip_input(categoryId))
         except DomainError as error:
             self.rendered_page = error_response(str(error), 'manager', {'categoryId': [str(error)]})
             return
-        category = ViewCategoryController().getCategory(categoryId)
         if category is None:
             self.rendered_page = error_response('Category not found.','manager',status=404)
             return

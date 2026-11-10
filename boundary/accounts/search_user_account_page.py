@@ -1,7 +1,7 @@
 from flask import render_template, request, flash
 from flask.views import MethodView
-# Input cleanup and field checks from boundary/validation.py.
-from boundary.validation import strip_input, search_text
+# Ordinary input cleanup from boundary/validation.py; entities validate the values.
+from boundary.validation import strip_input
 # Controller used to relay this boundary request from control/accounts/search_user_account_controller.py.
 from control.accounts.search_user_account_controller import SearchUserAccountController
 # Application validation and missing-data errors from infrastructure/errors.py.
@@ -19,13 +19,13 @@ class SearchUserAccountPage(MethodView):
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
-        """Validate the keyword and request matching accounts; blank lists all.
+        """Strip the keyword and request matching accounts; entity validation owns errors.
 
         Uses boundary/validation.py, control/accounts/search_user_account_controller.py.
         """
         self.keyword = keyword
         try:
-            keyword = search_text(strip_input(keyword))
+            keyword = strip_input(keyword)
             accounts = SearchUserAccountController().searchUserAccounts(keyword)
         except DomainError as error:
             flash(str(error), 'error')

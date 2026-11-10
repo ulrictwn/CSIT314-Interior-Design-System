@@ -1,7 +1,7 @@
 # control/designer/project_interest_controller.py: provides the controller used to communicate with its entity.
 from control.designer.project_interest_controller import ProjectInterestController
-# boundary/validation.py: trims and checks submitted input fields.
-from boundary.validation import strip_input, positive_integer
+# boundary/validation.py: trims ordinary text before the entity call.
+from boundary.validation import strip_input
 # infrastructure/errors.py: defines expected validation, missing-record and access errors.
 from infrastructure.errors import DomainError
 from flask.views import MethodView
@@ -18,14 +18,14 @@ class ViewCountPage(MethodView):
         return self.rendered_page
 
     def onView(self,projectId: int) -> None:
-        """Check the project ID, then request its saved count from ViewCountController."""
+        """Strip the project ID and request its saved count through the entity controllers."""
         try:
-            projectId = positive_integer(strip_input(projectId), 'Project ID')
+            projectId = strip_input(projectId)
+            self.project = ProjectInterestController().getProject(projectId)
         except DomainError as error:
             self.rendered_page = error_response(str(error), 'designer', {'projectId': [str(error)]})
             return
         controller = ViewCountController()
-        self.project = ProjectInterestController().getProject(projectId)
         if self.project is None:
             self.rendered_page = error_response('Project not found.','designer',status=404)
             return

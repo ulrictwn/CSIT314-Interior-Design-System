@@ -1,11 +1,10 @@
-"""Pure value checks reused by boundaries, entity integrity guards and trusted setup.
+"""Field and data validation used by entity operations and trusted CLI setup.
 
-Boundary events run field checks before controllers. These helpers perform no
-database queries and have no Flask or entity-model dependencies.
+Boundaries strip ordinary input; entities call these database-free checks
+before enforcing duplicates, references, stored state and persistence.
 """
 import re
 import math
-from calendar import monthrange
 from datetime import date, timedelta
 from email_validator import validate_email, EmailNotValidError
 # infrastructure/errors.py: defines expected validation, missing-record and access errors.
@@ -76,11 +75,6 @@ def validate_profile_fields(profileName, description, status, permissions):
         return None, errors
     return (values[0], values[1], status.strip(),
             list(dict.fromkeys(permissions))), {}
-
-
-def valid_profile_id(profileId):
-    """Check that a profile ID is a positive database integer."""
-    return type(profileId) is int and 1 <= profileId <= 2_147_483_647
 
 
 def valid_account_id(accountId):
@@ -220,7 +214,7 @@ def validate_category_fields(categoryName, description):
 
 
 def validate_report_dates(kind, startDate, endDate=None):
-    """Parse report dates and check the daily, seven-day or calendar-month period."""
+    """Parse report dates and check the daily, weekly or selected monthly period."""
     values, errors = {}, {}
     for name, raw in [('startDate',startDate), ('endDate',endDate)]:
         try:
@@ -250,11 +244,10 @@ def validate_report_dates(kind, startDate, endDate=None):
     elif kind == 'weekly':
         valid = end - start == timedelta(days=6)
     else:
-        last_day = monthrange(start.year, start.month)[1]
-        valid = start.day == 1 and end == start.replace(day=last_day)
+        valid = end >= start
     if not valid:
         message = {'daily':'Choose one day for a daily report.', 'weekly':'Choose seven consecutive days for a weekly report.',
-                   'monthly':'Choose the first and last day of one calendar month.'}[kind]
+                   'monthly':'The end date must not be before the start date.'}[kind]
         error = DomainError(message)
         error.field_errors = {'endDate':[message]}
         raise error

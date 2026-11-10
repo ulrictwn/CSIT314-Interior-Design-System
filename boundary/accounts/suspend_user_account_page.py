@@ -2,10 +2,8 @@
 from control.accounts.view_user_account_controller import ViewUserAccountController
 from flask import render_template, redirect, url_for, flash
 from flask.views import MethodView
-# Input cleanup and field checks from boundary/validation.py.
-from boundary.validation import strip_input, valid_account_id
-# Application validation and missing-data errors from infrastructure/errors.py.
-from infrastructure.errors import DomainError
+# Ordinary input cleanup from boundary/validation.py; entities validate the values.
+from boundary.validation import strip_input
 # Controller used to relay this boundary request from control/accounts/suspend_user_account_controller.py.
 from control.accounts.suspend_user_account_controller import SuspendUserAccountController
 
@@ -18,8 +16,6 @@ class SuspendUserAccountPage(MethodView):
         Uses boundary/validation.py, control/accounts/view_user_account_controller.py.
         """
         account_id = strip_input(account_id)
-        if not valid_account_id(account_id):
-            raise DomainError('Enter a valid account ID.')
         self.account = ViewUserAccountController().getUserAccount(account_id)
         if self.account is None:
             return render_template('error.html', code=404, message='User account not found.',
@@ -32,13 +28,11 @@ class SuspendUserAccountPage(MethodView):
         return self.rendered_page
 
     def onSuspend(self, accountId: str) -> None:
-        """Check the ID, request suspension and display any saved-state error.
+        """Strip the ID, request suspension and display the entity's result.
 
         Uses boundary/validation.py, control/accounts/suspend_user_account_controller.py, control/accounts/view_user_account_controller.py.
         """
         accountId = strip_input(accountId)
-        if not valid_account_id(accountId):
-            raise DomainError('Enter a valid account ID.')
         controller = SuspendUserAccountController()
         if controller.suspendUserAccount(accountId):
             self.displaySuccess()

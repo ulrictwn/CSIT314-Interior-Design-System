@@ -1,5 +1,5 @@
-# Pure value checks shared with boundary input validation from infrastructure/validation.py.
-from infrastructure.validation import (validate_account_fields, validate_account_details,
+# Entity-owned field and data checks from entity/validation.py.
+from entity.validation import (validate_account_fields, validate_account_details,
     validate_login_credentials, valid_account_id, search_text, password_value, required_text, positive_integer)
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -54,7 +54,7 @@ class UserAccount(db.Model):
     def set_password(self, password):
         """Validate and hash a private password for trusted setup or reset commands.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         self.password_hash = generate_password_hash(password_value(password))
 
@@ -66,7 +66,7 @@ class UserAccount(db.Model):
     def userAccountExists(cls, username: str) -> bool:
         """Check whether a saved account already uses this username.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         username = required_text(username, 'Username', 80)
         return db.session.execute(db.select(cls.account_id).where(
@@ -82,7 +82,7 @@ class UserAccount(db.Model):
     def getUserAccount(cls, accountId: str) -> 'UserAccount | None':
         """Look up an account by ID, returning None for missing or invalid IDs.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         if not valid_account_id(accountId):
             return None
@@ -92,7 +92,7 @@ class UserAccount(db.Model):
     def generateAccountId(cls, profileId: int) -> str:
         """Generate an unused ID from the selected profile and shared account counter.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         profileId = positive_integer(profileId, 'Profile ID')
         # Entity used for saved data or return-value types from entity/profile/user_profile.py.
@@ -129,7 +129,7 @@ class UserAccount(db.Model):
                           phoneNumber: str, profileId: int) -> bool:
         """Check account data and duplicates, generate its ID and save a password hash.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         values, errors = validate_account_fields(username, fullName, email, phoneNumber, profileId)
         if errors:
@@ -196,7 +196,7 @@ class UserAccount(db.Model):
     def searchUserAccounts(cls, keyword: str = '') -> list['UserAccount']:
         """Find accounts by ID, username or full name; blank lists all accounts.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         keyword = search_text(keyword)
         statement = db.select(cls)
@@ -208,7 +208,7 @@ class UserAccount(db.Model):
     def updateUserAccount(self, accountId: str, fullName: str, email: str, profileId: int) -> bool:
         """Check the saved account, active profile and duplicate email before updating.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         if not valid_account_id(accountId):
             self.error_message = 'User account not found.'
@@ -277,7 +277,7 @@ class UserAccount(db.Model):
     def suspendUserAccount(self, accountId: str) -> bool:
         """Suspend an existing active account, rejecting missing or suspended accounts.
 
-        Uses infrastructure/validation.py.
+        Uses entity/validation.py.
         """
         if not valid_account_id(accountId):
             self.error_message = 'User account not found.'
@@ -316,7 +316,7 @@ class UserAccount(db.Model):
     def login(self, username: str, password: str, profileName: str = 'User Admin') -> bool:
         """Check saved credentials, role and status, then record a successful login.
 
-        Uses entity/reports/activity_event.py, infrastructure/validation.py.
+        Uses entity/reports/activity_event.py, entity/validation.py.
         """
         self.authenticated_account = None
         try:
@@ -344,6 +344,15 @@ class UserAccount(db.Model):
         ActivityEvent.record('login_success', account.account_id)
         db.session.commit()
         return True
+
+    @staticmethod
+    def staffRole(role):
+        """Validate the staff portal choice before its controller selects a login page."""
+        if not isinstance(role, str) or role not in ('admin', 'designer', 'manager'):
+            error = DomainError('Choose a supported staff role.')
+            error.field_errors = {'staffRole': [str(error)]}
+            raise error
+        return role
 
     def portalRole(self):
         """Resolve the active account role used by the portal session checks."""

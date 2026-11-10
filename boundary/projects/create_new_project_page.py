@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, validate_project_fields
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 from flask.views import MethodView
 # boundary/designer/presentation.py: shared HTML/JSON rendering.
 from boundary.designer.presentation import present
@@ -26,15 +26,9 @@ class CreateNewProjectPage(MethodView):
 
     def onCreate(self, projectName: str, categoryId: int, propertyType: str,
                  area: str, renovationCost: float, description: str) -> None:
-        """Validate entered fields, then call the imported controller and display its result."""
+        """Strip entered text, then ask the controller/entity to validate and save it."""
         self.values = {field: strip_input(value) for field, value in zip(PROJECT_FIELDS,
             [projectName, categoryId, propertyType, area, renovationCost, description])}
-        values, self.field_errors = validate_project_fields(**self.values)
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.displayError()
-            return
-        self.values = values
         controller = CreateNewProjectController()
         if controller.createNewProject(account_id(), **self.values):
             self.project = controller.entity

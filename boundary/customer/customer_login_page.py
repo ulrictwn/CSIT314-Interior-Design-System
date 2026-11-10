@@ -1,9 +1,8 @@
 from flask import redirect, render_template, session, url_for
 from flask.views import MethodView
 # infrastructure/errors.py: saved-data and validation errors.
-from infrastructure.errors import DomainError
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, validate_login_credentials
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # boundary/designer/context.py: submitted values and signed-in account context.
 from boundary.designer.context import request_values
 # boundary/designer/presentation.py: HTML or JSON presentation choice.
@@ -28,12 +27,6 @@ class CustomerLoginPage(MethodView):
     def onLogin(self, username: str, password: str) -> None:
         """Check credential fields, then request login through the role-specific controller."""
         self.username = strip_input(username)
-        try:
-            self.username = validate_login_credentials(self.username, password)
-        except DomainError as error:
-            self.error_message, self.field_errors = str(error), error.field_errors
-            self.displayError()
-            return
         controller = CustomerLoginController()
         if controller.login(self.username, password):
             session.clear()

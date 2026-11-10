@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, validate_report_dates
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 from datetime import date
 from flask import flash, redirect, url_for
 from flask.views import MethodView
@@ -33,12 +33,11 @@ class WeeklyReportPage(MethodView):
         return self.rendered_page
 
     def onGenerateWeeklyReport(self, startDate: date) -> None:
-        """Check the selected dates, then request a saved report through the report controller."""
+        """Strip date input and display the saved report or the entity validation error."""
         self.values = dict(startDate=strip_input(startDate), endDate=strip_input(getattr(self, 'submitted_end_date', None)))
         try:
-            start, end = validate_report_dates('weekly', self.values['startDate'], self.values['endDate'])
-            controller = WeeklyReportController(accountId=optional_account_id(), endDate=end)
-            report = controller.generateWeeklyReport(start)
+            controller = WeeklyReportController(accountId=optional_account_id(), endDate=self.values['endDate'])
+            report = controller.generateWeeklyReport(self.values['startDate'])
         except DomainError as error:
             self.error_message, self.field_errors = str(error), getattr(error, 'field_errors', {})
             self.rendered_page = error_response(self.error_message, 'manager', self.field_errors,

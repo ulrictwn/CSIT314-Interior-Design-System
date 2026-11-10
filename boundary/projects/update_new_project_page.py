@@ -1,7 +1,7 @@
 # control/projects/view_new_project_controller.py: controller used to relay this page's entity requests.
 from control.projects.view_new_project_controller import ViewNewProjectController
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer, validate_project_fields
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: application error types.
 from infrastructure.errors import DomainError
 from flask.views import MethodView
@@ -21,10 +21,9 @@ class UpdateNewProjectPage(MethodView):
     def get(self, project_id):
         """Retrieve existing details through the View controller and prefill the form."""
         try:
-            projectId = positive_integer(strip_input(project_id), 'Project ID')
+            project = ViewNewProjectController().getNewProject(strip_input(project_id))
         except DomainError as error:
             return error_response(str(error), {'projectId': [str(error)]})
-        project = ViewNewProjectController().getNewProject(projectId)
         if project is None:
             return error_response('New project not found.', status=404)
         return present(dict(ok=True, fields=PROJECT_FIELDS, project=project_values(project), values=project_values(project)))
@@ -37,19 +36,10 @@ class UpdateNewProjectPage(MethodView):
 
     def onUpdate(self, projectId: int, projectName: str, categoryId: int, propertyType: str,
                  area: str, renovationCost: float, description: str) -> None:
-        """Validate entered fields, then call the imported controller and display its result."""
+        """Strip entered text, then ask the controller/entity to validate and save it."""
         self.values = {field: strip_input(value) for field, value in zip(PROJECT_FIELDS,
             [projectName, categoryId, propertyType, area, renovationCost, description])}
-        values, self.field_errors = validate_project_fields(**self.values)
-        try:
-            projectId = positive_integer(strip_input(projectId), 'Project ID')
-        except DomainError as error:
-            self.field_errors['projectId'] = [str(error)]
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.displayError()
-            return
-        self.values = values
+        projectId = strip_input(projectId)
         controller = UpdateNewProjectController()
         if controller.updateNewProject(projectId, **self.values):
             self.values = project_values(ViewNewProjectController().getNewProject(projectId))

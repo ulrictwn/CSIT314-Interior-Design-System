@@ -2,7 +2,6 @@
 from datetime import date, datetime, timezone
 
 import pytest
-from unittest.mock import Mock
 from entity.reports.activity_event import ActivityEvent
 from entity.reports.report import Report
 from infrastructure.database import db
@@ -10,21 +9,20 @@ from infrastructure.database import db
 pytestmark = [pytest.mark.sprint5, pytest.mark.story47]
 
 
-def test_TC64_generate_weekly_report_displays_and_saves_period_totals(app, manager_client, report_activity, monkeypatch):
-    # Invalid user input is rejected in the boundary before the controller.
-    blocked = Mock(side_effect=AssertionError('Invalid input reached the controller'))
-    with monkeypatch.context() as guard:
-        guard.setattr('boundary.reports.weekly_report_page.WeeklyReportController.generateWeeklyReport', blocked)
-        invalid = manager_client.post('/manager/reports/weekly', json={'startDate': '2026-06-01', 'endDate': '2026-06-01'})
-        assert invalid.status_code == 400
-        blocked.assert_not_called()
+def test_TC64_generate_weekly_report_displays_and_saves_period_totals(app, manager_client, report_activity):
+    # Invalid input passes through the controller and is rejected by the entity.
+    invalid = manager_client.post('/manager/reports/weekly', json={'startDate': '2026-06-01', 'endDate': '2026-06-01'})
+    assert invalid.status_code == 400
+    assert 'endDate' in invalid.json['errors']
+    with app.app_context():
+        assert Report.query.count() == 0
     response = manager_client.post('/manager/reports/weekly', json=dict(startDate='2026-06-01'))
     assert response.status_code == 201
     report = response.json['report']
     assert (report['type'], report['startDate'], report['endDate']) == (
         'weekly', '2026-06-01', '2026-06-07')
-    assert report['totals'] == report_activity['totals']
-    assert report['rows'] == report_activity['rows']
+    assert report['totals'] == report_activity['weekly']['totals']
+    assert report['rows'] == report_activity['weekly']['rows']
     with app.app_context():
         saved = Report.getReport(report['reportId'])
         assert saved.report_type == 'weekly'
@@ -42,7 +40,7 @@ def test_TC64_generate_weekly_report_displays_and_saves_period_totals(app, manag
     assert snapshot.status_code == 200
     assert snapshot.json['report']['totals'] == report['totals']
     refreshed = manager_client.post('/manager/reports/weekly', json=dict(startDate='2026-06-01'))
-    assert refreshed.json['report']['totals'] == dict(report_activity['totals'], shortlistSaves=4)
+    assert refreshed.json['report']['totals'] == dict(report_activity['weekly']['totals'], shortlistSaves=9)
     for suffix in ('', '/download'):
         legacy_page = manager_client.get('/manager/reports/' + str(legacy_id) + suffix,
                                          headers={'Accept': 'text/html'})

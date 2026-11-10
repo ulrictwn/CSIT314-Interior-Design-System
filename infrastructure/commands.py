@@ -12,8 +12,8 @@ from infrastructure.errors import DomainError
 from entity.profile.user_profile import UserProfile
 # entity/accounts/user_account.py: provides the saved-data entity used by this operation.
 from entity.accounts.user_account import UserAccount
-# infrastructure/validation.py: provides shared pure field/value checks.
-from infrastructure.validation import username_value, password_value, email_address, required_text as required
+# entity/validation.py: provides shared pure field/value checks.
+from entity.validation import username_value, password_value, email_address, required_text as required
 
 
 def register_commands(app):

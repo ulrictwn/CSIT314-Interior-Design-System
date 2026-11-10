@@ -1,5 +1,5 @@
-# infrastructure/validation.py: pure value checks for direct entity calls.
-from infrastructure.validation import validate_company_fields, search_text, valid_account_id
+# entity/validation.py: pure value checks for direct entity calls.
+from entity.validation import validate_company_fields, search_text, valid_account_id
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 # infrastructure/database.py: shared SQLAlchemy database session.
 from infrastructure.database import db

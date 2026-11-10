@@ -37,9 +37,9 @@ def present(payload, status=200):
         return url_for(name, **kwargs)
     phase = 'past' if 'past' in endpoint else 'new'
     phase_label = 'Past' if phase == 'past' else 'New'
-    mode = request.values.get('mode', 'search')
-    if mode not in ('view', 'search', 'update', 'delete'):
-        payload, status, mode = dict(ok=False, message='Choose a supported project operation.', errors={}), 400, 'search'
+    # Navigation mode chooses a row-action display; unknown modes show Search.
+    mode = {'view': 'view', 'search': 'search', 'update': 'update', 'delete': 'delete'}.get(
+        request.values.get('mode', 'search'), 'search')
     if request.method == 'POST' and payload.get('ok') and 'message' in payload:
         flash(payload['message'], 'success')
         if endpoint in ('create_company_profile', 'update_company_profile'):

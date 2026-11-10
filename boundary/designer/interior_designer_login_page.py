@@ -1,11 +1,9 @@
 from flask import redirect, render_template, session, url_for
 from flask.views import MethodView
-# infrastructure/errors.py: defines expected validation, missing-record and access errors.
-from infrastructure.errors import DomainError
 # boundary/designer/presentation.py: chooses designer HTML/JSON responses.
 from boundary.designer.presentation import wants_html
-# boundary/validation.py: trims and checks submitted input fields.
-from boundary.validation import strip_input, validate_login_credentials
+# boundary/validation.py: strips ordinary submitted text only.
+from boundary.validation import strip_input
 # boundary/designer/context.py: reads form/JSON values and the signed-in account.
 from boundary.designer.context import request_values
 # boundary/designer/responses.py: formats designer validation/entity errors.
@@ -28,14 +26,8 @@ class InteriorDesignerLoginPage(MethodView):
         return self.rendered_page
 
     def onLogin(self, username: str, password: str) -> None:
-        """Check fields, then call InteriorDesignerLoginController from control/designer/interior_designer_login_controller.py."""
+        """Strip the username and call InteriorDesignerLoginController from control/designer/interior_designer_login_controller.py."""
         self.username = strip_input(username)
-        try:
-            self.username = validate_login_credentials(self.username, password)
-        except DomainError as error:
-            self.error_message, self.field_errors = str(error), error.field_errors
-            self.displayError()
-            return
         controller = InteriorDesignerLoginController()
         if controller.login(self.username, password):
             session.clear()

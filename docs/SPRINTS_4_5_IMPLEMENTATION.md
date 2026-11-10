@@ -1,6 +1,6 @@
 # Sprints 4 and 5 — Stories 30–48
 
-The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (5).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
+The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (6).docx` and the screenshots under `Nothinghere/Customer/` and `Nothinghere/Platform manager/`. Existing Stories 1–29 remain connected to the same application.
 
 ## Diagram map
 
@@ -26,9 +26,9 @@ The implementation uses the BCE diagrams in `Nothinghere/CSIT314 Group Project R
 | 47 | `WeeklyReportPage.onGenerateWeeklyReport(startDate)` | `WeeklyReportController.generateWeeklyReport(startDate)` | `Report.generateReport(reportType, startDate, endDate)` |
 | 48 | `MonthlyReportPage.onGenerateMonthlyReport(startDate, endDate)` | `MonthlyReportController.generateMonthlyReport(startDate, endDate)` | `Report.generateReport(reportType, startDate, endDate)` |
 
-The updated report (4) now includes the BCE diagrams for Stories 46–48. The classes, event names, displayReport(report) methods, and date parameters match those diagrams. Daily/weekly accept startDate; monthly accepts startDate and endDate. All three use the entity operation generateReport(reportType, startDate, endDate). See [the full 48-story audit](BCE_AUDIT_1_48.md).
+The current report (6) includes the BCE diagrams for Stories 46–48. The classes, event names, displayReport(report) methods, and date parameters match those diagrams. Daily/weekly accept startDate; monthly accepts startDate and endDate. All three use the entity operation generateReport(reportType, startDate, endDate). See [the full 48-story audit](BCE_AUDIT_1_48.md).
 
-All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries strip ordinary text, validate field input/identifiers/dates before controllers and display results/errors. Entities validate duplicates, references, saved relationships and state, then query/persist data. Pure rules are shared through infrastructure/validation.py, including essential guards for direct entity calls.
+All event and display methods retain `-> None` (UML void), assigning `self.rendered_page`. Flask `get`/`post` adapters return the resulting response. Controllers relay entity calls and results. Boundaries strip ordinary text and display results/errors. Entities validate all fields, identifiers, dates, duplicates, references, saved relationships and state before database changes. Shared pure rules live in entity/validation.py; boundary/validation.py contains only strip_input. Passwords are preserved exactly.
 
 ## Folder layout
 
@@ -45,7 +45,7 @@ The root test-output directory `/reports/` is ignored by Git. The ignore rule is
 
 ## Login and dashboards
 
-The animated selector now has **Staff** and **Customer** sides. Staff has a role selector for User Admin, Interior Designer, and Platform Manager. Its form submits to `StaffLoginPage`, which selects the role-specific boundary event; each event still calls its own controller and the existing account entity. The controls work with keyboard navigation, reduced motion, or JavaScript disabled.
+The animated selector now has **Staff** and **Customer** sides. Staff has a role selector for User Admin, Interior Designer, and Platform Manager. Its form submits to `StaffLoginPage`, which relays role validation through StaffLoginController to UserAccount.staffRole and selects the role-specific boundary event; each event still calls its own controller and the existing account entity. The controls work with keyboard navigation, reduced motion, or JavaScript disabled.
 
 | Role | Login | Dashboard | Logout (POST) |
 | --- | --- | --- | --- |
@@ -80,15 +80,15 @@ Now that the later category stories exist, designer project forms select from sa
 
 ## Reports
 
-Daily reports cover one day, weekly reports seven consecutive days, and monthly reports a complete calendar month. The Report entity validates ISO date input (or date objects in direct BCE calls), supported years (1900–9998), and the selected interval. Daily/weekly end dates are read-only and derived from startDate; monthly accepts both dates. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
+Daily reports cover one day, weekly reports seven consecutive days, and monthly reports the selected start/end period (defaulting to a full calendar month). The Report entity validates ISO date input (or date objects in direct BCE calls), supported years (1900–9998), and the selected interval. Daily/weekly end dates are read-only and derived from startDate; monthly accepts both dates. Changing the start date fills the corresponding end date in the browser. Date boundaries and generation labels use **Asia/Singapore**; event timestamps are stored in UTC.
 
 Reports store an immutable snapshot for the selected period. CSV downloads read that snapshot, so later activity does not change an existing report. Generate another report to include new activity.
 
-Stories 46–48 use their **Normal Flow** and the updated wireframes embedded in Word version (5). The three summary figures are **new IDPs created**, **times customers shortlisted a project**, and **top IDP category**. The wireframes define the top category as the category with the most new IDPs created in the selected period. Past projects added are excluded. Equal category counts use alphabetical name order (then category ID); an empty period has zero counts and no top category. The detail table and CSV show the new-IDP counts by category.
+Stories 46–48 use their **Normal Flow** and the updated wireframes embedded in Word version (6). The three summary figures are **new IDPs created**, **times customers shortlisted a project**, and **top IDP category**. The wireframes define the top category as the category with the most new IDPs created in the selected period. Past projects added are excluded. Equal category counts use alphabetical name order (then category ID); an empty period has zero counts and no top category. The detail table and CSV show the new-IDP counts by category.
 
 `ActivityEvent` supplies the dated creation and shortlist-save history. A removed shortlist still counts as a save action in its original period; saving it again counts again. Failed or duplicate saves add no event. Project creation events retain the creation-time category ID and name, so later reassignment or deletion does not erase their contribution. A surviving category uses its current label for new reports; a deleted category uses its recorded label. Existing saved report snapshots and CSV downloads keep their original values and remain readable, including older reports with login/registration metrics. Generate a new report to use the corrected format.
 
-The Word document's **TC63–TC65 test descriptions still list login and registration totals**, contradicting the Normal Flow and updated wireframes. The three code tests now follow the requested use-case figures; the Word file is left unchanged. Each report story still has one test.
+Word (6) now matches the report flows/wireframes. The existing TC63–TC65 use its exact data: 4 November 2026 has 2 new IDPs/2 shortlist saves/top Bohemian Living room; 1–7 June has 1/8/top Transitional Kitchen; 1–30 June has 10/32/top Bohemian Kitchen. Monthly ranges reject an end before the start in the entity; the unlisted first/last-calendar-day restriction was removed. The Word file is unchanged and each report story still has one test.
 
 The compatible `upgrade-db` command adds nullable `category_id` and `category_name` columns to `activity_event`. For old project-creation events, it recovers the available category from surviving projects. Old deleted projects, or earlier category assignments that were never recorded, cannot be reconstructed; unresolved events appear as **Unknown category**. No accounts, projects, shortlists, events, or saved reports are deleted. New activity and its category snapshot are recorded in the same transaction as the successful operation.
 
@@ -134,3 +134,7 @@ The previously deleted `boundary/profile/create_user_profile_page.py` was restor
 The final SQLite run also passed all 484 tests. After the final migration adjustment, focused SQLite/PostgreSQL migration checks passed, including preservation of increasing category IDs after deletion and another upgrade. The final Chromium run completed 41 page checks, 13 screenshots and all interactive flows without JavaScript errors, HTTP 500s, or missing assets.
 
 Restart the running Flask process to load the new routes. Start at `/login`, choose Staff or Customer, and select the staff role when applicable. Create a saved category from the manager portal before creating a designer project.
+
+## Latest validation correction — 10 November 2026
+
+The current audit follows the lecturer and the Word TDD section: boundaries only strip input; entities perform all validation; controllers relay. Existing tests exercise real entity rejection and unchanged records. Model declarations and the working database are unchanged by this correction. See [the full audit and remaining document conflicts](BCE_AUDIT_1_48.md).

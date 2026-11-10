@@ -1,9 +1,7 @@
 from flask import g, session, redirect, url_for, request, render_template
 from flask.views import MethodView
-# infrastructure/errors.py: defines expected validation, missing-record and access errors.
-from infrastructure.errors import DomainError
-# boundary/validation.py: trims and checks submitted input fields.
-from boundary.validation import strip_input, validate_login_credentials
+# boundary/validation.py: strips ordinary submitted text only.
+from boundary.validation import strip_input
 # control/auth/user_admin_login_controller.py: provides the controller used to communicate with its entity.
 from control.auth.user_admin_login_controller import UserAdminLoginController
 # infrastructure/navigation.py: builds sidebar links and selects role dashboards.
@@ -23,14 +21,8 @@ class UserAdminLoginPage(MethodView):
         return self.rendered_page
 
     def onLogin(self, username: str, password: str) -> None:
-        """Check the fields, then call UserAdminLoginController from control/auth/user_admin_login_controller.py."""
+        """Strip the username and call UserAdminLoginController from control/auth/user_admin_login_controller.py."""
         self.username = strip_input(username)
-        try:
-            self.username = validate_login_credentials(self.username, password)
-        except DomainError as error:
-            self.error_message, self.field_errors = str(error), error.field_errors
-            self.displayError()
-            return
         controller = UserAdminLoginController()
         if controller.login(self.username, password):
             session.clear()

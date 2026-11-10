@@ -1,7 +1,7 @@
 from flask import request
 from flask.views import MethodView
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, search_text
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 # boundary/designer/context.py: submitted values and signed-in account context.
@@ -28,14 +28,14 @@ class SearchShortlistIDPPage(MethodView):
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
-        """Validate the keyword, then request matching records through the search controller."""
+        """Strip the keyword and display the search result or entity validation error."""
+        self.keyword = strip_input(keyword)
+        self.owner = account_id()
         try:
-            self.keyword = search_text(strip_input(keyword))
+            idps = SearchShortlistIDPController().search_shortlist_IDP(self.owner, self.keyword)
         except DomainError as error:
             self.rendered_page = error_response(str(error), 'customer', {'keyword': [str(error)]})
             return
-        self.owner = account_id()
-        idps = SearchShortlistIDPController().search_shortlist_IDP(self.owner, self.keyword)
         self.displayResults(idps)
 
     def displayResults(self, idps: list[InteriorDesignProject]) -> None:

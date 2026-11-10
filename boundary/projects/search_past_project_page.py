@@ -2,8 +2,8 @@ from flask import request
 from flask.views import MethodView
 # boundary/designer/presentation.py: shared HTML/JSON rendering.
 from boundary.designer.presentation import present
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, search_text
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: application error types.
 from infrastructure.errors import DomainError
 # boundary/projects/presentation.py: project form fields and display values.
@@ -31,16 +31,14 @@ class SearchPastProjectPage(MethodView):
         return self.rendered_page
 
     def onSearch(self, projectName: str) -> None:
-        """Validate the search text, then request matching records from the imported controller."""
+        """Strip search text, then request matching records or validation errors from the entity."""
         self.projectName = strip_input(projectName)
         try:
-            projectName = search_text(self.projectName)
+            projects = SearchPastProjectController().searchPastProjects(account_id(), self.projectName)
         except DomainError as error:
             self.rendered_page = error_response(str(error), {'projectName': [str(error)]},
                                                 values={'projectName': self.projectName})
             return
-        accountId = account_id()
-        projects = SearchPastProjectController().searchPastProjects(accountId, projectName)
         self.displayResults(projects)
 
     def displayResults(self, projects: list[InteriorDesignProject]) -> None:

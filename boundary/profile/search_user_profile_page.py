@@ -1,7 +1,8 @@
+from control.profile.view_user_profile_controller import ViewUserProfileController
 from flask import render_template, request, flash
 from flask.views import MethodView
-# Input cleanup and field checks from boundary/validation.py.
-from boundary.validation import strip_input, search_text
+# Ordinary input cleanup from boundary/validation.py; entities validate the values.
+from boundary.validation import strip_input
 # Controller used to relay this boundary request from control/profile/search_user_profile_controller.py.
 from control.profile.search_user_profile_controller import SearchUserProfileController
 # Application validation and missing-data errors from infrastructure/errors.py.
@@ -22,22 +23,22 @@ class SearchUserProfilePage(MethodView):
         if 'q' in request.args:
             self.onSearch(self.keyword)
         else:
-            self.displayResults(SearchUserProfileController().searchUserProfiles(''))
+            self.displayResults(ViewUserProfileController().listUserProfiles())
         return self.rendered_page
 
     def onSearch(self, keyword: str) -> None:
-        """Validate the search text and request matching profiles.
+        """Strip the search text and display matches or the entity's validation error.
 
         Uses control/profile/search_user_profile_controller.py, boundary/validation.py.
         """
         self.keyword = keyword
         controller = SearchUserProfileController()
         try:
-            keyword = search_text(strip_input(keyword), required=True)
+            keyword = strip_input(keyword)
             profiles = controller.searchUserProfiles(keyword)
         except DomainError as error:
             flash(str(error), 'error')
-            profiles = SearchUserProfileController().searchUserProfiles('')
+            profiles = ViewUserProfileController().listUserProfiles()
         self.displayResults(profiles)
 
     def displayResults(self, profiles: list[UserProfile]) -> None:

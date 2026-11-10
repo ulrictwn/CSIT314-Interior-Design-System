@@ -5,14 +5,14 @@ from entity.company.company_profile import CompanyProfile
 pytestmark = [pytest.mark.sprint2, pytest.mark.story16]
 
 
-def test_TC33_update_company_profile_loads_and_saves_company_details(app, designer_client, company_profile, company_data, monkeypatch):
-    with monkeypatch.context() as patch:
-        patch.setattr('control.company.update_company_profile_controller.UpdateCompanyProfileController.updateCompanyProfile',
-                      lambda *args, **kwargs: pytest.fail('Malformed company input reached the controller.'))
-        invalid = designer_client.post('/designer/company/update', json=dict(company_data,
-            companyContact='letters', companyAddress=' '))
-        assert invalid.status_code == 400
-        assert {'companyContact', 'companyAddress'} <= invalid.json['errors'].keys()
+def test_TC33_update_company_profile_loads_and_saves_company_details(app, designer_client, company_profile, company_data):
+    invalid = designer_client.post('/designer/company/update', json=dict(company_data,
+        companyContact='letters', companyAddress=' '))
+    assert invalid.status_code == 400
+    assert {'companyContact', 'companyAddress'} <= invalid.json['errors'].keys()
+    with app.app_context():
+        unchanged = CompanyProfile.getCompanyProfile(company_profile)
+        assert (unchanged.company_contact, unchanged.company_address) == (company_data['companyContact'], company_data['companyAddress'])
     page = designer_client.get('/designer/company/update', query_string={'accountId': company_profile})
     assert page.status_code == 200
     assert page.json['values']['companyName'] == company_data['companyName']

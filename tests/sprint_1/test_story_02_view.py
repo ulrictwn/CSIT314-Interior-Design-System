@@ -1,5 +1,7 @@
 """Story 2: TC08–TC11 from the Word document."""
 import pytest
+from entity.profile.user_profile import UserProfile
+from infrastructure.errors import DomainError
 
 pytestmark = [pytest.mark.sprint1, pytest.mark.story2]
 
@@ -23,7 +25,11 @@ def test_TC09_profile_details_are_correct(admin_client, seed_profile):
         assert text in response.text
 
 
-def test_TC10_viewing_nonexistent_profile_returns_error(admin_client):
+def test_TC10_viewing_nonexistent_profile_returns_error(app, admin_client):
+    with app.app_context():
+        for invalid_id in ('invalid', None, True, 0):
+            with pytest.raises(DomainError, match='Profile ID must be a positive'):
+                UserProfile.getUserProfile(invalid_id)
     assert admin_client.get('/profiles/999999').status_code == 404
 
 

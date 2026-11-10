@@ -113,6 +113,6 @@
       {% endif %}
       Selected period · Singapore time
     </p>
-  {% else %}<p class="muted small report-credit">Choose {{ 'one day' if data.kind == 'daily' else 'seven consecutive days' if data.kind == 'weekly' else 'one complete calendar month' }}. Reports use Singapore time.</p>
+  {% else %}<p class="muted small report-credit">Choose {{ 'one day' if data.kind == 'daily' else 'seven consecutive days' if data.kind == 'weekly' else 'a valid start and end date' }}. Reports use Singapore time.</p>
   {% endif %}
 {% endblock %}

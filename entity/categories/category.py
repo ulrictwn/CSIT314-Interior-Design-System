@@ -1,5 +1,5 @@
-# infrastructure/validation.py: shared pure value checks.
-from infrastructure.validation import validate_category_fields, positive_integer, search_text, required_text
+# entity/validation.py: entity-owned field and value checks.
+from entity.validation import validate_category_fields, positive_integer, search_text, required_text
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from sqlalchemy.exc import IntegrityError

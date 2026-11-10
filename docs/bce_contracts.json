@@ -1,5 +1,5 @@
 {
-  "source": "Nothinghere/CSIT314 Group Project Report (5).docx",
+  "source": "Nothinghere/CSIT314 Group Project Report (6).docx",
   "stories": [
     {
       "story": 1,
@@ -2508,14 +2508,21 @@
       "method": "getUserProfile",
       "reason": "Explicitly requested lookup to display the current profile before updating."
     },
-    "auxiliary_controllers": "Dashboard, project-interest, shortlist-removal and stored-report controllers support the supplied wireframes and working navigation. Profile/account lists and dropdowns reuse diagram search methods.",
+    "auxiliary_controllers": "Dashboard, project-interest, shortlist-removal and stored-report controllers support supplied wireframes and navigation. StaffLoginController relays selector validation to UserAccount.staffRole. Initial profile lists use ViewUserProfileController.listUserProfiles; account and category directories reuse their blank-search operations.",
     "validation": {
-      "boundary": "Existing diagram events strip ordinary text and reject missing/malformed fields before controller calls.",
+      "boundary": "Strip ordinary input and display entity results/errors. Preserve passwords exactly. No field, identifier, search or date validation.",
       "controller": "Relay only; no field checks, SQL, or copied entity error state.",
-      "entity": "Validate duplicates, references and saved state; essential defensive checks protect direct/CLI calls.",
-      "shared_helpers": "infrastructure/validation.py contains the single implementation of pure value rules; boundary/validation.py exposes them to HTTP handlers."
+      "entity": "Validate required fields, formats, lengths, choices, numbers, IDs, dates, search input, credentials, duplicates, references and saved state before persistence.",
+      "shared_helpers": "entity/validation.py owns the shared pure value checks; boundary/validation.py contains only strip_input."
     },
     "method_explanations": "Every application method/function starts with a short explanation; local imports identify their project source files.",
-    "entity_method_simplification": "Error setters, duplicate-query and New/Past CRUD dispatcher helpers are inlined into diagram operations. Necessary setup, password/session, serialization, ownership, membership, dashboard and report-access helpers remain."
+    "entity_method_simplification": "Error setters, duplicate-query and New/Past CRUD dispatcher helpers are inlined into diagram operations. Necessary setup, password/session, serialization, ownership, membership, dashboard and report-access helpers remain.",
+    "additional_controller_methods": [
+      {
+        "class": "ViewUserProfileController",
+        "method": "listUserProfiles",
+        "reason": "Initial profile directories and account dropdowns must list profiles, while the diagram search operation rejects a submitted blank query in the entity."
+      }
+    ]
   }
 }

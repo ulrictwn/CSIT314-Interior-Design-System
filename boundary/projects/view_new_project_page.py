@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: application error types.
 from infrastructure.errors import DomainError
 from flask.views import MethodView
@@ -24,11 +24,10 @@ class ViewNewProjectPage(MethodView):
     def onView(self, projectId: int) -> None:
         """Retrieve the selected record through the imported View controller."""
         try:
-            projectId = positive_integer(strip_input(projectId), 'Project ID')
+            project = ViewNewProjectController().getNewProject(strip_input(projectId))
         except DomainError as error:
             self.rendered_page = error_response(str(error), {'projectId': [str(error)]})
             return
-        project = ViewNewProjectController().getNewProject(projectId)
         if project is None:
             self.rendered_page = error_response('New project not found.', status=404)
         else:

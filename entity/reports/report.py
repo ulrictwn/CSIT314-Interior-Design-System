@@ -1,5 +1,5 @@
-# infrastructure/validation.py: shared pure value checks.
-from infrastructure.validation import validate_report_dates, positive_integer
+# entity/validation.py: entity-owned field and value checks.
+from entity.validation import validate_report_dates, positive_integer
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 # infrastructure/database.py: the shared SQLAlchemy database connection.

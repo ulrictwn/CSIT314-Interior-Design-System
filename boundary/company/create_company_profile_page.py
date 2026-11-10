@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, validate_company_fields
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 from flask.views import MethodView
 # boundary/designer/presentation.py: shared HTML/JSON rendering.
 from boundary.designer.presentation import present
@@ -26,15 +26,9 @@ class CreateCompanyProfilePage(MethodView):
 
     def onCreate(self, companyName: str, companyContact: str, companyAddress: str,
                  companyEmail: str, companyRegistrationNumber: str) -> None:
-        """Validate entered fields, then call the imported controller and display its result."""
+        """Strip entered text, then ask the controller/entity to validate and save it."""
         self.values = {field: strip_input(value) for field, value in zip(COMPANY_FIELDS,
             [companyName, companyContact, companyAddress, companyEmail, companyRegistrationNumber])}
-        values, self.field_errors = validate_company_fields(**self.values)
-        if self.field_errors:
-            self.error_message, self.error_reason = 'Please correct the errors below.', 'invalid_data'
-            self.displayError()
-            return
-        self.values = values
         controller = CreateCompanyProfileController()
         if controller.createCompanyProfile(account_id(), **self.values):
             self.profile = controller.entity

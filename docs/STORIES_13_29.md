@@ -1,6 +1,6 @@
 # Stories 13–29: designer BCE implementation
 
-Source: the BCE diagrams in `CSIT314 Group Project Report (5).docx`.
+Source: the BCE diagrams in `Nothinghere/CSIT314 Group Project Report (6).docx`. These diagrams are unchanged from the previous report.
 
 These stories have Python boundary, controller, and entity implementations, with HTML screens based on the references in `Nothinghere/`. The boundary display methods render HTML for browsers and retain JSON responses for API clients. The event/display method names and void signatures remain aligned with the diagrams. The existing Stories 1–12 HTML remains in place.
 
@@ -30,7 +30,7 @@ Controller files live under the matching `control/company/`, `control/designer/`
 
 ## Responsibilities
 
-Boundary diagram events strip ordinary text and validate required fields, types, lengths, email/phone formats, identifiers and renovation costs before calling controllers. Controllers retain an entity and relay calls/results. Entities validate duplicates, references and saved state, then query/save data. Shared pure rules live in `infrastructure/validation.py` and are exposed by `boundary/validation.py`; direct entity/CLI calls also retain essential integrity guards. Boundary `presentation.py` helpers hold field names and serialization.
+Boundary diagram events receive input, strip ordinary text using only `strip_input` from `boundary/validation.py`, preserve passwords exactly, and display results/errors. Controllers retain an entity and relay calls/results. Entities validate required fields, types, lengths, email/phone formats, identifiers and renovation costs using `entity/validation.py`, then enforce duplicates, references and saved state before querying/saving data. Boundaries do not import or repeat those checks. Trusted entity/CLI callers use the same validation rules. Boundary `presentation.py` helpers hold field names and serialization.
 
 The public event and display methods keep `-> None` (UML void). They assign `self.rendered_page`; Flask's HTTP adapters return it. Mutation controller/entity methods return `bool`. Getter methods return an entity or `None` when no matching record exists.
 
@@ -56,7 +56,7 @@ Category lookup was deferred during Stories 13–29 and is now connected through
 
 ### Designer login/logout
 
-`InteriorDesignerLoginPage.onLogin(username, password)` strips the username and checks the required credential fields before calling `InteriorDesignerLoginController.login`; `UserAccount.login` verifies the saved credentials. The entity receives `profileName='Interior Designer'` and checks the stored password hash and account/profile status and role. The existing admin login still defaults to `User Admin`.
+`InteriorDesignerLoginPage.onLogin(username, password)` strips the username and passes the unchanged password to `InteriorDesignerLoginController.login`; `UserAccount.login` validates required credential fields and verifies the saved credentials. The entity receives `profileName='Interior Designer'` and checks the stored password hash and account/profile status and role. The existing admin login still defaults to `User Admin`.
 
 Successful login stores only the account ID in the existing basic browser session. Logout clears it and redirects to the designer login endpoint. Protected requests require an active Interior Designer login. The session identifies the owner; conflicting request account IDs and other designers’ project IDs are rejected. CSRF, rate limits, and server-side session tokens remain outside the demo scope.
 
@@ -87,7 +87,7 @@ Replace `{type}` with `new` or `past`. JSON create responses use 201, reads/upda
 
 Project collections accept `mode=view`, `mode=search`, `mode=update`, or `mode=delete` to select the row action. Sidebar Search links open the list directly. Delete GETs show confirmation and Cancel; only POST deletes a record. Blank searches show all relevant records.
 
-`templates/auth/login.html` provides the Staff/Customer slider. Staff submits through `/staff/login`, which dispatches to the Admin, Interior Designer, or Platform Manager BCE boundary. Company templates live in `templates/company/`; project templates live in `templates/projects/`; designer layout/dashboard and shared macros live in `templates/designer/`. Shared HTML presentation is in `boundary/designer/presentation.py`; no controller/entity rendering was introduced. See [the frontend notes](FRONTEND_IMPLEMENTATION.md) for the reference scope and image asset.
+`templates/auth/login.html` provides the Staff/Customer slider. Staff submits through `/staff/login`; `StaffLoginController.selectRole` relays its stripped role to `UserAccount.staffRole` for validation, then the boundary dispatches to the Admin, Interior Designer, or Platform Manager BCE login event. Company templates live in `templates/company/`; project templates live in `templates/projects/`; designer layout/dashboard and shared macros live in `templates/designer/`. Shared HTML presentation is in `boundary/designer/presentation.py`; no controller/entity rendering was introduced. See [the frontend notes](FRONTEND_IMPLEMENTATION.md) for the reference scope and image asset.
 
 After signing in as an Interior Designer, POST `/designer/projects/new/create` using the same session cookie with:
 

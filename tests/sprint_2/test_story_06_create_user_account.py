@@ -1,6 +1,5 @@
 """Sprint 2, user story 6: one successful workflow through BCE."""
 import pytest
-from unittest.mock import patch
 from entity.accounts.user_account import UserAccount
 
 pytestmark = [pytest.mark.sprint2, pytest.mark.story6]
@@ -14,9 +13,11 @@ def test_TC23_create_user_account_saves_details_and_default_password(app, admin_
         invalid = UserAccount()
         assert invalid.createUserAccount('bad_email', 'password', 'Bad Email', 'invalid', '+65 6123 4567', profile_id) is False
         assert 'email' in invalid.field_errors
-    with patch('boundary.accounts.create_user_account_page.CreateUserAccountController.createUserAccount') as create:
-        assert admin_client.post('/accounts/create', data=dict(values, email='invalid')).status_code == 400
-        create.assert_not_called()
+    invalid_response = admin_client.post('/accounts/create', data=dict(values, email='invalid'))
+    assert invalid_response.status_code == 400
+    assert 'Enter a valid email address.' in invalid_response.text
+    with app.app_context():
+        assert UserAccount.getByUsername('customer1') is None
     response = admin_client.post('/accounts/create', data=values)
     assert response.status_code == 302
     with app.app_context():

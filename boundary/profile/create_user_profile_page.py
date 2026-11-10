@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask.views import MethodView
-from boundary.validation import strip_input, validate_profile_fields
+from boundary.validation import strip_input
 from control.profile.create_user_profile_controller import CreateUserProfileController
 from infrastructure.permissions import PERMISSION_OPTIONS
 
@@ -8,10 +8,12 @@ from infrastructure.permissions import PERMISSION_OPTIONS
 class CreateUserProfilePage(MethodView):
 
     def get(self):
+        """Display the empty profile form and permission labels."""
         return render_template('profiles/create.html', values={}, errors={},
                                selected_permissions=[], permission_options=PERMISSION_OPTIONS)
 
     def post(self):
+        """Read submitted fields and pass them to the onCreate event."""
         self.onCreate(request.form.get('profileName', ''),
                       request.form.get('description', ''),
                       request.form.get('status', ''),
@@ -20,15 +22,13 @@ class CreateUserProfilePage(MethodView):
 
     def onCreate(self, profileName: str, description: str, status: str,
                  permissions: list[str]) -> None:
-        """Check input with boundary/validation.py before calling the profile controller."""
-        values, errors = validate_profile_fields(
-            strip_input(profileName), strip_input(description), strip_input(status), permissions)
-        if errors:
-            self.error_message, self.field_errors = 'Please correct the errors below.', errors
-            self.displayError()
-            return
+        """Strip fields and display the entity result from CreateUserProfileController.
+
+        Uses boundary/validation.py and control/profile/create_user_profile_controller.py.
+        """
         controller = CreateUserProfileController()
-        if controller.createUserProfile(*values):
+        if controller.createUserProfile(strip_input(profileName), strip_input(description),
+                                        strip_input(status), permissions):
             self.displaySuccess()
         else:
             self.error_message = controller.entity.error_message
@@ -36,6 +36,7 @@ class CreateUserProfilePage(MethodView):
             self.displayError()
 
     def displaySuccess(self) -> None:
+        """Show the creation message and return to the profile list."""
         flash('User profile created successfully.', 'success')
         self.rendered_page = redirect(url_for('user_profiles'))
 

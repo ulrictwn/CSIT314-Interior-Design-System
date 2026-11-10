@@ -1,6 +1,6 @@
 # Sprint test case map
 
-Source: `Nothinghere/CSIT314 Group Project Report (5).docx`, Sprint 1, each story's **Test Case and Test Data → Checks** list. There are exactly 22 Sprint 1 test functions, with the document's case numbers in their names. Compound checks use one test function with multiple assertions rather than generating extra test cases.
+Source: `Nothinghere/CSIT314 Group Project Report (6).docx`, Sprint 1, each story's **Test Case and Test Data → Checks** list. There are exactly 22 Sprint 1 test functions, with the document's case numbers in their names. Compound checks use one test function with multiple assertions rather than generating extra test cases.
 
 | Case | Story | Document check covered |
 | --- | ---: | --- |
@@ -50,10 +50,20 @@ Total: **65 tests**, covering all **48 stories**. Every test gets a disposable d
 
 The latest BCE review keeps the same 65 test functions. Shared fixtures arrange signed-in users. Existing story cases also check entity-level validation and the requested logged-out, wrong-role, and forged-ownership behavior; see [BCE_REVIEW_CHANGES.md](BCE_REVIEW_CHANGES.md).
 
-## Report requirement correction (Stories 46–48)
+## Report cases (Stories 46–48)
 
-The code tests follow the Normal Flow and updated Word (5) wireframes: new IDPs created, times customers shortlisted a project, and the category with the most new IDPs. Word test cases TC63–TC65 still describe login/registration totals and require an editorial correction. No extra test functions were added. The shared report data uses real entity operations and covers New versus Past projects, Singapore date boundaries, activity outside the period, shortlist removal/re-save, project reassignment/deletion and deleted category labels. The existing three report cases also check empty periods, deterministic category ties, saved snapshots, HTML/CSV output and older saved-report compatibility.
+Word (6) resolves the old report-test mismatch: its cases now check new IDPs, shortlist saves and top category, matching the flows/wireframes. The existing tests use the exact document dates and totals:
 
-## Boundary validation verification
+| Case | Period | New IDPs | Shortlist saves | Top category |
+| --- | --- | ---: | ---: | --- |
+| TC63 | 4 November 2026 | 2 | 2 | Bohemian Living room |
+| TC64 | 1–7 June 2026 | 1 | 8 | Transitional Kitchen |
+| TC65 | 1–30 June 2026 | 10 | 32 | Bohemian Kitchen |
 
-The existing sprint cases also assert that missing, malformed, overlong or unsupported user fields are rejected by boundary events before the relevant action-controller method is called. This includes profile/account, company/project, login, category/search and report-date inputs. Entity duplicate/reference/state checks are verified through real isolated database operations. The suite remains 65 test functions.
+Fixtures use real entity operations. The same three cases retain checks of Singapore boundaries, New versus Past projects, removed/re-saved shortlists, historical category changes/deletions, empty periods, ties, saved snapshots and older saved reports. Monthly date validation accepts a selected valid period and rejects reversed dates in the entity.
+
+TC34 searches **Updated Studio** and TC47 searches **Updated Seaside Home**, as specified in Word (6). Each test arranges its own update prerequisite rather than depending on another test's data.
+
+## Entity validation verification
+
+The existing cases send missing, malformed, overlong or unsupported values through the real boundary/controller/entity path. Boundaries strip ordinary input; entities reject invalid fields and return errors before records change. Tests no longer mock controllers to require an early boundary rejection. Duplicate/reference/state checks still use isolated database operations. Password whitespace is preserved, and the suite remains exactly TC01–TC65.

@@ -1,7 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer
-# infrastructure/errors.py: saved-data and validation errors.
-from infrastructure.errors import DomainError
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 from flask import flash, redirect, url_for
 from flask.views import MethodView
 # boundary/designer/context.py: submitted values and signed-in account context.
@@ -21,13 +19,8 @@ class SaveShortlistIDPPage(MethodView):
         return self.rendered_page
 
     def onSave(self, projectId: int) -> None:
-        """Validate the project ID, then call SaveShortlistIDPController.saveShortlist."""
-        try:
-            self.projectId = positive_integer(strip_input(projectId), 'Project ID')
-        except DomainError as error:
-            self.error_message, self.status = str(error), 400
-            self.displayError()
-            return
+        """Strip the project ID and display the shortlist result or entity error."""
+        self.projectId = strip_input(projectId)
         self.owner = account_id()
         controller = SaveShortlistIDPController()
         if controller.saveShortlist(self.owner,self.projectId):

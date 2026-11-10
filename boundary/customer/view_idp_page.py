@@ -1,5 +1,5 @@
-# boundary/validation.py: input cleanup and field checks.
-from boundary.validation import strip_input, positive_integer
+# boundary/validation.py: ordinary text cleanup only.
+from boundary.validation import strip_input
 # infrastructure/errors.py: saved-data and validation errors.
 from infrastructure.errors import DomainError
 from flask.views import MethodView
@@ -20,14 +20,13 @@ class ViewIDPPage(MethodView):
         return self.rendered_page
 
     def onView(self, projectId: int) -> None:
-        """Validate the supplied ID, then request the saved details through the view controller."""
+        """Strip the supplied ID and display details or the entity validation error."""
+        self.owner = optional_account_id()
         try:
-            projectId = positive_integer(strip_input(projectId), 'Project ID')
+            idp = ViewIDPController().getIDP(strip_input(projectId))
         except DomainError as error:
             self.rendered_page = error_response(str(error), 'customer', {'projectId': [str(error)]})
             return
-        self.owner = optional_account_id()
-        idp = ViewIDPController().getIDP(projectId)
         if idp is None:
             self.rendered_page = error_response('Project not found.','customer',status=404)
             return
